@@ -28,10 +28,14 @@ class ScenarioTests(unittest.TestCase):
         self.assertEqual(scenario.facts["full_name"], "Maya Patel")
         self.assertEqual(scenario.facts["first_name"], "Maya")
         self.assertEqual(scenario.facts["last_name"], "Patel")
+        self.assertEqual(scenario.facts["first_name_spelling"], "M-A-Y-A")
+        self.assertEqual(scenario.facts["last_name_spelling"], "P-A-T-E-L")
         self.assertEqual(scenario.facts["date_of_birth"], "March 14, 1987")
         self.assertIn("full_name", scenario.required_facts)
         self.assertIn("first_name", scenario.required_facts)
         self.assertIn("last_name", scenario.required_facts)
+        self.assertIn("first_name_spelling", scenario.required_facts)
+        self.assertIn("last_name_spelling", scenario.required_facts)
         self.assertIn("date_of_birth", scenario.required_facts)
         self.assertTrue(scenario.optional_edge_behavior)
         self.assertEqual(scenario.limits.max_call_seconds, 240)
@@ -66,9 +70,13 @@ class ScenarioTests(unittest.TestCase):
                     self.assertNotIn("name", scenario.facts)
                     self.assertTrue(scenario.facts["first_name"])
                     self.assertTrue(scenario.facts["last_name"])
+                    self.assertTrue(scenario.facts["first_name_spelling"])
+                    self.assertTrue(scenario.facts["last_name_spelling"])
                     self.assertIn("first_name", scenario.required_facts)
                     self.assertIn("last_name", scenario.required_facts)
                     self.assertIn("full_name", scenario.required_facts)
+                    self.assertIn("first_name_spelling", scenario.required_facts)
+                    self.assertIn("last_name_spelling", scenario.required_facts)
                 if "provider_preference" in scenario.facts:
                     provider_preference = scenario.facts["provider_preference"].casefold()
                     self.assertTrue(
@@ -84,6 +92,8 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("full_name: Maya Patel", prompt)
         self.assertIn("first_name: Maya", prompt)
         self.assertIn("last_name: Patel", prompt)
+        self.assertIn("first_name_spelling: M-A-Y-A", prompt)
+        self.assertIn("last_name_spelling: P-A-T-E-L", prompt)
         self.assertIn("date_of_birth: March 14, 1987", prompt)
         self.assertIn("Answer with the provided facts only when asked.", prompt)
         self.assertIn("Do not volunteer everything at once.", prompt)
@@ -97,6 +107,12 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("Wait for the agent to finish speaking before responding.", prompt)
         self.assertIn("Say the opening line once only.", prompt)
         self.assertIn("Do not interrupt the agent.", prompt)
+        self.assertIn("Patient role boundary:", prompt)
+        self.assertIn("Do not narrate clinic-side work.", prompt)
+        self.assertIn('"let me check"', prompt)
+        self.assertIn('"I can schedule', prompt)
+        self.assertIn('"Could you check that for me?"', prompt)
+        self.assertIn('"That works for me if you can book it"', prompt)
 
     def test_prompt_blocks_meta_disclosure_by_default_without_patient_data_flag(self):
         scenario = load_scenario("t01_smoke")
@@ -153,6 +169,11 @@ class ScenarioTests(unittest.TestCase):
         self.assertEqual(scenario.patient_profile, "sofia_reyes_montoya")
         self.assertEqual(scenario.facts["date_of_birth"], "May 4, 1990")
         self.assertEqual(scenario.facts["phone"], "555-492-7163")
+        self.assertEqual(scenario.facts["first_name_spelling"], "S-O-F-I-A")
+        self.assertEqual(
+            scenario.facts["last_name_spelling"],
+            "R-E-Y-E-S hyphen M-O-N-T-O-Y-A",
+        )
         self.assertEqual(
             scenario.name_variations,
             [

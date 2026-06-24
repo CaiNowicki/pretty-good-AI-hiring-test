@@ -109,6 +109,9 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(event["type"], "response.create")
         self.assertIn("Keep it short", event["response"]["instructions"])
         self.assertIn("demos", event["response"]["instructions"])
+        self.assertIn("Stay in the patient role", event["response"]["instructions"])
+        self.assertIn("'let me check'", event["response"]["instructions"])
+        self.assertIn("'Could you check that for me?'", event["response"]["instructions"])
 
     def test_pre_goal_response_answers_intake_without_scheduling(self):
         event = build_pre_goal_response()
@@ -116,6 +119,9 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(event["type"], "response.create")
         self.assertIn("Do not ask to schedule yet", event["response"]["instructions"])
         self.assertIn("demos", event["response"]["instructions"])
+        self.assertIn("Stay in the patient role", event["response"]["instructions"])
+        self.assertIn("'I can schedule you'", event["response"]["instructions"])
+        self.assertIn("'That works for me if you can book it'", event["response"]["instructions"])
 
     def test_meta_probe_gets_patient_redirect_by_default(self):
         scenario = load_scenario("t01_smoke")
@@ -199,6 +205,23 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(build_exact_fact_answer(scenario, "What is your first name?"), "Maya")
         self.assertEqual(build_exact_fact_answer(scenario, "What is your last name?"), "Patel")
         self.assertEqual(build_exact_fact_answer(scenario, "What is your full name?"), "Maya Patel")
+        self.assertEqual(build_exact_fact_answer(scenario, "Can I have your name?"), "Maya Patel")
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "Can you spell your first name?"),
+            "M-A-Y-A",
+        )
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "Can you spell your last name?"),
+            "P-A-T-E-L",
+        )
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "How do you spell your name?"),
+            "M-A-Y-A P-A-T-E-L",
+        )
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "Can you spell your first and last name?"),
+            "M-A-Y-A P-A-T-E-L",
+        )
         self.assertEqual(
             build_exact_fact_answer(scenario, "Can you tell me your full name, first and last?"),
             "Maya Patel",
@@ -254,6 +277,10 @@ class RealtimeBridgeTests(unittest.TestCase):
             "date_of_birth",
         )
         self.assertEqual(
+            requested_info_key(scenario, "Can you spell your last name again?"),
+            "last_name_spelling",
+        )
+        self.assertEqual(
             requested_info_key(scenario, "Is this a follow-up or routine visit?"),
             "appointment_type",
         )
@@ -268,6 +295,22 @@ class RealtimeBridgeTests(unittest.TestCase):
                 "My date of birth is March 14, 1987.",
                 0,
             ),
+        )
+        self.assertIn(
+            "how to spell my last name",
+            build_repeated_info_answer("last_name_spelling", "P-A-T-E-L", 0),
+        )
+
+    def test_hyphenated_name_spelling_uses_scenario_override(self):
+        scenario = load_scenario("a07_name_lookup_confusion")
+
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "Could you spell your last name?"),
+            "R-E-Y-E-S hyphen M-O-N-T-O-Y-A",
+        )
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "Could you spell Reyes-Montoya for me?"),
+            "R-E-Y-E-S hyphen M-O-N-T-O-Y-A",
         )
 
     def test_repeated_info_decision_uses_runtime_probability(self):

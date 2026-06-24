@@ -195,6 +195,56 @@ def _as_fact_mapping(value: Any, path: Path, field: str) -> dict[str, Any]:
     return facts
 
 
+def _spelling_for_name(name: str) -> str:
+    chunks: list[str] = []
+    letters: list[str] = []
+
+    def flush_letters() -> None:
+        if letters:
+            chunks.append("-".join(letters))
+            letters.clear()
+
+    for character in name.strip():
+        if character.isalpha():
+            letters.append(character.upper())
+            continue
+
+        flush_letters()
+        if character == "-":
+            chunks.append("hyphen")
+        elif character == "'":
+            chunks.append("apostrophe")
+        elif character.isspace():
+            chunks.append("space")
+        else:
+            chunks.append(character)
+
+    flush_letters()
+    return " ".join(chunks)
+
+
+def _add_name_spelling_facts(facts: dict[str, Any]) -> dict[str, Any]:
+    enriched = dict(facts)
+    for name_key in ("first_name", "last_name"):
+        spelling_key = f"{name_key}_spelling"
+        name = str(enriched.get(name_key, "")).strip()
+        if name and not str(enriched.get(spelling_key, "")).strip():
+            enriched[spelling_key] = _spelling_for_name(name)
+    return enriched
+
+
+def _add_name_spelling_required_facts(
+    required_facts: list[str],
+    facts: dict[str, Any],
+) -> list[str]:
+    enriched = list(required_facts)
+    for name_key in ("first_name", "last_name"):
+        spelling_key = f"{name_key}_spelling"
+        if name_key in required_facts and spelling_key in facts and spelling_key not in enriched:
+            enriched.append(spelling_key)
+    return enriched
+
+
 def _persona_facts_for_profile(patient_profile: str) -> tuple[dict[str, Any], list[str]]:
     try:
         persona = load_persona(patient_profile)
@@ -337,9 +387,10 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
     persona_facts, persona_name_variations = _persona_facts_for_profile(
         str(data["patient_profile"])
     )
-    facts = {**persona_facts, **scenario_facts}
+    facts = _add_name_spelling_facts({**persona_facts, **scenario_facts})
 
     required_facts = _as_string_list(data["required_facts"], path, "required_facts")
+    required_facts = _add_name_spelling_required_facts(required_facts, facts)
     missing_fact_values = sorted(set(required_facts) - set(facts.keys()))
     if missing_fact_values:
         joined = ", ".join(missing_fact_values)
@@ -534,6 +585,23 @@ Conversation strategy:
 - Correct misunderstandings plainly, then return to the scheduling or information goal.
 - If the agent drifts, politely steer back to the goal without taking over the agent's role.
 """
+    role_boundary_section = """
+Patient role boundary:
+- You are the patient, not clinic staff or the scheduling agent.
+- Do not narrate clinic-side work. Never say you can check availability,
+  look up the schedule, hold a slot, book, create, adjust, move, cancel,
+  confirm, or reschedule appointments yourself.
+- Do not say phrases like "let me check", "I can check that", "I can schedule
+  you", "I'll book that", "I'll put you down", "I created the appointment",
+  "I've changed that", "I'll adjust the time", "you're all set", or "I can
+  help you schedule".
+- Do use patient language: say what you want, accept or decline offered times,
+  and ask the agent to check, book, change, cancel, or confirm appointment
+  details for you.
+- Patient-side phrases are okay, such as "Could you check that for me?",
+  "That works for me if you can book it", "Can you move it to that time?",
+  "Could you cancel that appointment?", and "Can you confirm the details?"
+"""
     interruption_guidance = (
         _build_interruption_guidance(scenario)
         if scenario.interruption_test
@@ -576,13 +644,11 @@ for a complete answer before asking another.
 Wait for the agent to finish speaking before responding.
 Stay polite and conversational, like a real patient on a phone call.
 {strategy_section}
+{role_boundary_section}
 {interruption_guidance}
 {meta_guidance}
 Say the opening line once only. If you already introduced yourself, do not repeat the
 opening line later; answer the current question or steer back to the goal instead.
-You are the patient, not the clinic staff or scheduling agent. Never say you are checking,
-scheduling, booking, creating, adjusting, or rescheduling appointments yourself. Ask the
-agent to do those things for you.
 {edge_section}
 {name_lookup_guidance}
 {persona_behavior_guidance}

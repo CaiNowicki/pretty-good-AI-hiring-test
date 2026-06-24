@@ -184,8 +184,11 @@ REPEATED_INFO_LABELS = {
     "appointment_type": "the appointment type",
     "date_of_birth": "my date of birth",
     "first_name": "my first name",
+    "first_name_spelling": "how to spell my first name",
     "full_name": "my name",
     "last_name": "my last name",
+    "last_name_spelling": "how to spell my last name",
+    "name_spelling": "how to spell my name",
     "phone": "my phone number",
     "provider_preference": "my provider preference",
 }
@@ -194,6 +197,17 @@ REPEATED_INFO_TEMPLATES = (
     "I mentioned {label} earlier, but {answer}",
     "I did give you {label} already. {answer}",
     "I've already shared {label}; {answer}",
+)
+SCHEDULER_LANGUAGE_GUARDRAIL = (
+    "Stay in the patient role: do not say you can check availability, book, "
+    "schedule, hold, create, adjust, move, cancel, confirm, or reschedule "
+    "appointments yourself. Avoid scheduler phrases like 'let me check', "
+    "'I can check that', 'I can schedule you', 'I'll book that', "
+    "'I'll put you down', 'you're all set', or 'I can help you schedule'; "
+    "say what you want, accept or decline offered times, and ask the agent to "
+    "do those things for you. Patient-side phrases are okay, such as 'Could "
+    "you check that for me?', 'That works for me if you can book it', 'Can you "
+    "move it to that time?', or 'Can you confirm the details?'"
 )
 
 
@@ -294,7 +308,7 @@ def build_turn_response(scenario: Scenario | None = None, transcript: str = "") 
                 "answer only what was asked, use the "
                 "scenario facts exactly, do not add unrelated preferences or comments, "
                 "do not mention tests, harnesses, bots, assistants, simulations, or "
-                "demos, and wait for the agent after speaking."
+                f"demos, and wait for the agent after speaking. {SCHEDULER_LANGUAGE_GUARDRAIL}"
             )
 
     return {
@@ -318,7 +332,8 @@ def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = 
                 "Answer the agent's intake or profile setup question directly as the patient. "
                 "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
                 "facts exactly, do not add unrelated preferences or comments, do not mention "
-                "tests, harnesses, bots, assistants, simulations, or demos, and keep it brief."
+                "tests, harnesses, bots, assistants, simulations, or demos, and keep it brief. "
+                f"{SCHEDULER_LANGUAGE_GUARDRAIL}"
             )
 
     return {
@@ -395,6 +410,9 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     assumed_identity_answer = build_assumed_patient_identity_answer(scenario, transcript)
     if assumed_identity_answer:
         return assumed_identity_answer
+    name_spelling_answer = _name_spelling_answer(scenario, normalized)
+    if name_spelling_answer:
+        return name_spelling_answer
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
         dob = scenario.facts.get("date_of_birth", "").strip()
         return f"My date of birth is {dob}." if dob else ""
@@ -439,6 +457,9 @@ def requested_info_key(scenario: Scenario | None, transcript: str) -> str:
         return ""
 
     normalized = transcript.casefold()
+    spelling_key = _requested_name_spelling_key(scenario, normalized)
+    if spelling_key:
+        return spelling_key
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
         return "date_of_birth"
     if _asks_to_confirm_known_date_of_birth(scenario, transcript, normalized):
@@ -506,6 +527,57 @@ def _caller_last_name(scenario: Scenario) -> str:
         return last_name
     name_parts = _caller_full_name(scenario).split()
     return name_parts[-1] if len(name_parts) > 1 else ""
+
+
+def _name_spelling_answer(scenario: Scenario, normalized_transcript: str) -> str:
+    spelling_key = _requested_name_spelling_key(scenario, normalized_transcript)
+    first_spelling = scenario.facts.get("first_name_spelling", "").strip()
+    last_spelling = scenario.facts.get("last_name_spelling", "").strip()
+    if spelling_key == "first_name_spelling":
+        return first_spelling
+    if spelling_key == "last_name_spelling":
+        return last_spelling
+    if spelling_key == "name_spelling":
+        return " ".join(part for part in (first_spelling, last_spelling) if part)
+    return ""
+
+
+def _requested_name_spelling_key(
+    scenario: Scenario,
+    normalized_transcript: str,
+) -> str:
+    if "spell" not in normalized_transcript:
+        return ""
+
+    first_name = _caller_first_name(scenario).casefold()
+    last_name = _caller_last_name(scenario).casefold()
+    has_first_spelling = bool(scenario.facts.get("first_name_spelling", "").strip())
+    has_last_spelling = bool(scenario.facts.get("last_name_spelling", "").strip())
+
+    if has_first_spelling and has_last_spelling and (
+        "full name" in normalized_transcript
+        or "first and last" in normalized_transcript
+        or "first name and last name" in normalized_transcript
+    ):
+        return "name_spelling"
+    if has_first_spelling and (
+        "first name" in normalized_transcript
+        or (first_name and first_name in normalized_transcript)
+    ):
+        return "first_name_spelling"
+    if has_last_spelling and (
+        "last name" in normalized_transcript
+        or "surname" in normalized_transcript
+        or (last_name and last_name in normalized_transcript)
+    ):
+        return "last_name_spelling"
+    if has_first_spelling or has_last_spelling:
+        if (
+            "name" in normalized_transcript
+            or "surname" in normalized_transcript
+        ):
+            return "name_spelling"
+    return ""
 
 
 def _asks_about_full_name(normalized_transcript: str) -> bool:
