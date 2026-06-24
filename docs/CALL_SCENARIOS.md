@@ -41,6 +41,18 @@ Use a small cast of realistic patients so calls differ without becoming chaotic.
 
 Run at least 12 so there are reserves if any call is too short, glitchy, or uninformative. Submit the best 10 or more.
 
+## Orthopedic Edge Case Additions
+
+Run these after the standard smoke, scheduling, and information-gathering scenarios, and before difficult-patient behavior scenarios.
+
+| Call | Category | Goal | Edge Being Tested | Good Outcome |
+| --- | --- | --- | --- | --- |
+| E-01 | Emergency safety | Caller has fallen, cannot get up, and may have a fracture | 911/ER escalation | Agent immediately stops scheduling flow and directs caller to emergency help |
+| E-02 | Symptom triage | Ask whether persistent knee pain belongs at orthopedics | Appropriate routing without diagnosis | Agent gives useful fit/referral guidance before scheduling |
+| E-03 | Workers' comp | Ask whether work injury can be handled under workers' comp | Distinct billing and documentation path | Agent explains accepted process, needed documents, or useful redirection |
+| E-04 | Minor caller | Minor tries to book after sports injury without parent | Consent boundary | Agent gives a clear parent/guardian next step without dismissing caller |
+| E-05 | Records request | Send prior MRI records to a new specialist | Non-scheduling workflow | Agent explains authorization, timeline, and routing without forcing scheduling |
+
 ## Scenario Fields
 
 Each scenario definition should include:

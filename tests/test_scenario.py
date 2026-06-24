@@ -111,6 +111,43 @@ class ScenarioTests(unittest.TestCase):
                 self.assertIn("ask one question at a time", prompt)
                 self.assertEqual(load_scenario(declared_id).id, declared_id)
 
+    def test_loads_all_orthopedic_edge_scenarios_before_difficult_batch(self):
+        scenario_files = {
+            "e01_medical_emergency": "E-01-medical-emergency",
+            "e02_symptom_triage": "E-02-symptom-triage",
+            "e03_workers_comp": "E-03-workers-comp",
+            "e04_minor_caller": "E-04-minor-without-parent",
+            "e05_records_request": "E-05-records-request",
+        }
+
+        for file_stem, declared_id in scenario_files.items():
+            with self.subTest(file_stem=file_stem):
+                scenario = load_scenario(file_stem)
+                prompt = build_patient_system_prompt(scenario)
+
+                self.assertEqual(scenario.id, declared_id)
+                self.assertTrue(scenario.required_facts)
+                self.assertTrue(scenario.optional_edge_behavior)
+                self.assertIn("Optional edge behavior:", prompt)
+                self.assertEqual(load_scenario(declared_id).id, declared_id)
+
+        ordered = ordered_scenario_stems()
+        first_edge_index = ordered.index("e01_medical_emergency")
+        first_difficult_index = ordered.index("d01_hard_of_hearing")
+        standard_indices = [
+            index
+            for index, stem in enumerate(ordered)
+            if stem.startswith(("t", "a", "i"))
+        ]
+        edge_indices = [
+            index
+            for index, stem in enumerate(ordered)
+            if stem.startswith("e")
+        ]
+
+        self.assertTrue(all(index < first_edge_index for index in standard_indices))
+        self.assertTrue(all(index < first_difficult_index for index in edge_indices))
+
     def test_loads_all_difficult_scenarios_after_standard_batches(self):
         scenario_files = {
             "d01_hard_of_hearing": "D-01-hard-of-hearing",
@@ -147,7 +184,7 @@ class ScenarioTests(unittest.TestCase):
         standard_indices = [
             index
             for index, stem in enumerate(ordered)
-            if stem.startswith(("t", "a", "i"))
+            if stem.startswith(("t", "a", "i", "e"))
         ]
         self.assertTrue(all(index < first_difficult_index for index in standard_indices))
 
