@@ -1,0 +1,34 @@
+id: I-02-who-practices-there
+patient_profile: james_carter
+goal: >
+  Learn which providers practice at the office, what their roles are, and
+  whether a female physician is available before deciding whether to book.
+opening_line: "Hi, I'm thinking about becoming a patient there and I was wondering who the doctors are."
+facts:
+  name: James Carter
+  date_of_birth: March 14, 1987
+  context: Prospective new patient, has not scheduled yet
+  unstated_preference: Female physician, but do not mention this until after the provider roster is discussed
+must_test: >
+  Agent accurately names providers without fabricating credentials and handles
+  a female physician preference honestly without over-promising availability.
+avoid:
+  - Volunteering the female physician preference before asking who practices there
+  - Accepting invented-sounding provider details without a follow-up
+  - Letting the agent promise a specific provider without checking availability
+branch_conditions:
+  - Ask who the doctors or providers are at the practice.
+  - If the agent names providers, ask whether they are specialists or general practice providers.
+  - After the roster is discussed, ask whether there is a female physician on staff.
+  - If the agent confirms a female physician, ask whether she is taking new patients.
+  - If the agent says she is taking new patients, ask whether you can request her specifically when booking.
+  - If the agent is uncertain, ask whether you can make a note of that preference when booking.
+  - If the agent gives specific provider credentials, specialties, or tenure with high confidence, ask one verification follow-up so the analysis can flag the claim.
+success_criteria: >
+  Agent names real providers and their roles, answers the female physician
+  question honestly, and does not promise a specific provider match without
+  checking availability.
+stop_conditions:
+  - Patient has enough information to decide whether to book
+  - Provider details appear fabricated and have been probed once
+  - Call exceeds 4 minutes

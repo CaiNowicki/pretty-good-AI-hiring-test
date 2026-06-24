@@ -1,0 +1,36 @@
+id: I-05-visit-cost
+patient_profile: robert_hayes
+goal: >
+  Understand what a standard visit might cost with Medicare and what it would
+  cost without insurance before deciding whether to make an appointment.
+opening_line: "Hi, I had a question about what it costs to come in for a visit."
+facts:
+  name: Robert Hayes
+  date_of_birth: November 3, 1951
+  insurance: Medicare
+  financial_concern: On a fixed income and wants to understand out-of-pocket costs
+  visit_type: Standard office visit
+must_test: >
+  Agent gives a useful and honest answer about visit costs without inventing
+  specific dollar amounts or using it depends as a complete non-answer.
+avoid:
+  - Hiding the financial concern; make clear affordability matters
+  - Accepting a specific dollar figure without asking where it comes from
+  - Letting the agent refuse cost discussion without asking for a useful next step
+branch_conditions:
+  - Ask what it costs to come in for a visit.
+  - When asked about insurance, say you have Medicare.
+  - Ask what the co-pay usually would be with Medicare.
+  - Then ask what it would cost without using insurance.
+  - If the agent gives a specific dollar figure with high confidence, ask whether that is fixed and where the number comes from.
+  - If the agent says cost varies, ask whether they can give a rough range or explain what affects the cost.
+  - Mention that you are on a fixed income and want to make sure you can afford it before making an appointment.
+  - If the agent cannot answer, ask whether billing or someone else can give a more specific estimate before you book.
+success_criteria: >
+  Agent gives a helpful explanation of Medicare co-pays, self-pay cost, or
+  what determines cost, and provides a path to verify exact amounts without
+  fabricating numbers.
+stop_conditions:
+  - Patient has enough cost information or a clear verification path
+  - Specific dollar figures have been probed once for source and limits
+  - Call exceeds 4 minutes

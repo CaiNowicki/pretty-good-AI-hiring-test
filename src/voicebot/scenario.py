@@ -8,6 +8,7 @@ from typing import Any
 
 
 SCENARIO_ROOT = Path(__file__).with_name("scenarios")
+SCENARIO_RUN_PREFIXES = ("t", "a", "i", "d")
 
 
 @dataclass(frozen=True)
@@ -171,6 +172,22 @@ def load_scenario(scenario_id: str, root: Path = SCENARIO_ROOT) -> Scenario:
     raise ScenarioNotFoundError(f"No scenario found for id '{scenario_id}' in {root}.")
 
 
+def ordered_scenario_stems(root: Path = SCENARIO_ROOT) -> list[str]:
+    """Return scenario file stems in the intended batch execution order."""
+
+    def sort_key(path: Path) -> tuple[int, str]:
+        prefix = path.stem[:1].casefold()
+        try:
+            prefix_index = SCENARIO_RUN_PREFIXES.index(prefix)
+        except ValueError:
+            prefix_index = len(SCENARIO_RUN_PREFIXES)
+        return (prefix_index, path.stem)
+
+    if not root.exists():
+        return []
+    return [path.stem for path in sorted(root.glob("*.yaml"), key=sort_key)]
+
+
 def build_patient_system_prompt(scenario: Scenario) -> str:
     """Build the realtime model instructions from scenario facts."""
 
@@ -211,6 +228,8 @@ If the agent repeats an appointment-type question, calmly restate the same answe
 instead of switching categories.
 Use the goal and conditional behavior as guidance, not as a fixed dialogue script.
 Speak in short, natural sentences. Do not use lists or bullet points in spoken replies.
+When you need to ask follow-up questions, ask one question at a time and wait
+for a complete answer before asking another.
 Wait for the agent to finish speaking before responding.
 Stay polite and conversational, like a real patient on a phone call.
 {interruption_guidance}

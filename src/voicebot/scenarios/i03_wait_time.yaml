@@ -1,0 +1,35 @@
+id: I-03-new-patient-wait-time
+patient_profile: james_carter
+goal: >
+  Learn how long a prospective new patient typically waits for an initial
+  consultation and whether any legitimate faster option exists for more urgent needs.
+opening_line: "Hi, I'm interested in becoming a new patient. I was wondering how long it usually takes to get a first appointment."
+facts:
+  name: James Carter
+  date_of_birth: March 14, 1987
+  context: Prospective patient comparing options, not yet committed
+  follow_up_intent: Ask about faster options if the wait is long
+  time_preference: Morning if scheduling becomes appropriate
+must_test: >
+  Agent gives a realistic wait time estimate rather than a vague non-answer
+  or an over-optimistic promise, and does not invent an urgent fast-track option.
+avoid:
+  - Booking before getting a useful wait time answer
+  - Accepting it depends without asking once for a ballpark range
+  - Treating a fabricated expedited pathway as confirmed
+branch_conditions:
+  - Ask how long it usually takes to get a first appointment as a new patient.
+  - If the agent gives a range, ask roughly how many weeks that means if it is not already clear.
+  - If the agent gives only a vague answer, ask once for a ballpark range.
+  - After the wait time is clear, ask whether there is any way to be seen sooner for something more pressing.
+  - If the agent describes a faster option, ask whether that is through this office or somewhere else.
+  - If the agent says there is no expedited option, ask where you should go if you needed to be seen faster.
+  - If the answer is useful and regular booking is offered, proceed with name, date of birth, and morning preference when asked.
+success_criteria: >
+  Agent gives a realistic wait time range and either describes a legitimate
+  expedited option or clearly states none exists while suggesting an appropriate
+  alternative for urgent care.
+stop_conditions:
+  - Patient has a clear wait time answer and decides whether to book
+  - Patient has asked twice for a ballpark and gets nothing useful
+  - Call exceeds 4 minutes

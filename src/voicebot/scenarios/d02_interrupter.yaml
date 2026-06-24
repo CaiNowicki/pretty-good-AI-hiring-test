@@ -1,0 +1,43 @@
+id: D-02-interrupter
+patient_profile: impatient_adult_caller
+goal: >
+  Schedule an appointment while interrupting the agent frequently. Observe how
+  the agent handles incomplete turns, complaints about the system, and rapid
+  topic pivots.
+opening_line: "Yeah hi, I need an appointment, I don't have a lot of time."
+interruption_test: true
+facts:
+  name: Chris Navarro
+  date_of_birth: June 17, 1985
+  phone: 555-302-8847
+  insurance: United Healthcare
+  preferred_time: As soon as possible, any day
+  appointment_type: General checkup
+  voice_behavior: Use a faster pace and clipped acknowledgments like yeah, fine, okay, and got it.
+must_test: >
+  Agent recovers from interruptions without restarting from the beginning of
+  its previous turn. Agent does not escalate or express frustration when the
+  patient complains. Agent maintains all previously collected information
+  across interruption events.
+avoid:
+  - Restarting a full explanation after being cut off
+  - Becoming hostile or escalating the complaint beyond one frustrated line
+  - Losing the collected name, date of birth, phone, or insurance across turn breaks
+  - Interrupting every single agent turn
+branch_conditions:
+  - Interrupt the agent mid-sentence on designated turns, especially when the agent begins a standard verification question or adds context to a scheduling offer.
+  - After the agent begins verification, cut in with date of birth, insurance, and a request to get to scheduling.
+  - If the agent asks for a reason for visit, answer general checkup and say whatever is fastest.
+  - If there is silence longer than about 2 seconds during a processing turn, say "Hello? Is this thing working?" once with mild irritation.
+  - Do not escalate the complaint beyond that one expression of frustration; return to impatient but cooperative after it.
+  - If the agent offers an appointment slot with extra context, cut in and accept the date and time before the full explanation is finished.
+  - Use clipped acknowledgments like "yeah," "fine," "okay," and "got it" instead of full confirmations where possible.
+  - If the agent confirms the appointment, ask once what date Thursday is before asking what to bring.
+success_criteria: >
+  Appointment is booked correctly despite the interruption pattern. Agent
+  demonstrates recovery without restart. Complaint about the system is handled
+  calmly and without defensiveness.
+stop_conditions:
+  - Appointment confirmed
+  - Agent escalates inappropriately; log as quality issue
+  - Call exceeds 5 minutes

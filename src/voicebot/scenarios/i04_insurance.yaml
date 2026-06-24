@@ -1,0 +1,36 @@
+id: I-04-insurance-acceptance
+patient_profile: maria_lopez
+goal: >
+  Find out whether Blue Cross insurance is accepted while using an intentionally
+  ambiguous payer name to see whether the agent clarifies before answering.
+opening_line: "Hi, I wanted to check if you take Blue Cross insurance."
+facts:
+  name: Maria Lopez
+  date_of_birth: July 22, 1980
+  insurance_being_asked_about: Blue Cross, intentionally ambiguous
+  actual_plan: BlueCross BlueShield PPO
+  context: Established patient asking about a family member's coverage
+must_test: >
+  Agent asks which specific Blue Cross plan before confirming or denying
+  acceptance, and avoids giving a definitive coverage answer from the short
+  payer name alone.
+avoid:
+  - Volunteering BlueCross BlueShield PPO before the agent asks which plan
+  - Accepting a yes or no answer based only on Blue Cross
+  - Asking whether a new patient consultation is covered unless the plan has first been clarified
+branch_conditions:
+  - Ask whether the office takes Blue Cross insurance, using only that short name at first.
+  - Do not reveal BlueCross BlueShield PPO until the agent asks which Blue Cross plan or asks for plan details.
+  - If the agent asks for clarification, provide BlueCross BlueShield PPO.
+  - If the agent confirms the plan is accepted after clarification, ask whether that generally applies to a new patient consultation.
+  - If the agent cannot confirm after clarification, ask how to find out for sure before booking.
+  - If the agent confirms Blue Cross without clarifying, ask which Blue Cross plans they take, then ask specifically about PPO and HMO plans.
+  - If the agent denies Blue Cross without clarifying, ask whether that means no Blue Cross plans are accepted at all.
+success_criteria: >
+  Agent asks which specific plan before answering and then either confirms,
+  denies, or honestly states it must verify BlueCross BlueShield PPO while
+  giving a useful next step.
+stop_conditions:
+  - Agent gives a clear answer after clarifying the specific plan
+  - Agent overclaims based on the ambiguous payer name and has been probed
+  - Call exceeds 4 minutes

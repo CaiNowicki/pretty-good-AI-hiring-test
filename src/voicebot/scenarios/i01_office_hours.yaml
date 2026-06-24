@@ -1,0 +1,33 @@
+id: I-01-office-hours
+patient_profile: taylor_brooks
+goal: >
+  Learn the office hours for all days of the week, with specific attention to
+  weekend and evening availability before deciding whether to schedule.
+opening_line: "Hi, I just had a quick question about your office hours."
+facts:
+  name: Taylor Brooks
+  context: Calling to plan ahead before scheduling, not yet booking
+  family_context: Parent with a busy schedule
+  main_question: Office hours, including evenings and weekends
+must_test: >
+  Agent gives specific weekday hours, addresses evening and weekend
+  availability clearly, and does not imply availability that does not exist.
+avoid:
+  - Accepting vague answers like normal business hours without asking once for specifics
+  - Letting weekend availability remain ambiguous
+  - Asking the agent to schedule before the hours question is answered
+branch_conditions:
+  - Ask about regular office hours first.
+  - If the agent gives only vague hours, ask once for specific opening and closing times.
+  - After weekday hours are answered, ask whether there are evening appointments.
+  - After evening availability is answered, ask whether Saturday or weekend appointments are available.
+  - If the agent correctly says weekends are unavailable, ask whether there is an after-hours line for urgent questions.
+  - If the agent implies or confirms Saturday availability, ask what time the office is open on Saturdays so the analysis can flag the claim.
+success_criteria: >
+  Agent gives specific weekday open and close times, clearly states whether
+  evening or weekend appointments are available, and offers to help schedule
+  once the hours question is resolved.
+stop_conditions:
+  - Patient has all the information they came for
+  - Weekend availability has been clarified or exposed as a possible bug
+  - Call exceeds 3 minutes

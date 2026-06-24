@@ -1,0 +1,43 @@
+id: D-03-background-interruptions
+patient_profile: taylor_brooks
+goal: >
+  Schedule a pediatric appointment for Emma Brooks while managing background
+  interruptions from the child. Agent must hold context and not act on
+  background speech.
+opening_line: "Hi, I need to make an appointment for my daughter."
+facts:
+  name: Taylor Brooks
+  patient_name: Emma Brooks
+  patient_date_of_birth: April 9, 2015
+  parent_phone: 555-581-2204
+  insurance: United Healthcare
+  preferred_time: Weekday morning
+  appointment_type: Annual checkup
+  aside_delivery: Use soft, faster, warmer aside lines when speaking to Emma; use SSML prosody volume soft if supported, otherwise flag aside segments for gain reduction before Twilio audio.
+must_test: >
+  Agent does not respond to or act on background speech directed at the child.
+  Agent waits through off-phone pauses without filling the silence with
+  repeated questions. Agent resumes context cleanly when the parent returns.
+avoid:
+  - Treating background speech as patient input
+  - Repeating all previously collected details after each interruption
+  - Prompting impatiently during a background pause
+  - Confusing Emma's recital day with an appointment preference
+branch_conditions:
+  - Schedule for Emma Brooks, not for Taylor Brooks.
+  - Provide Emma's name, date of birth, annual checkup reason, insurance, and weekday morning preference when asked.
+  - Include occasional aside lines to Emma at reduced volume with a faster, warmer tone, such as "Emma, come sit down, I'm on the phone."
+  - If SSML is available, wrap aside content in <prosody volume="soft"> tags; otherwise make the aside a clearly flagged separate segment for post-processing gain reduction.
+  - During the recital exchange, pause for 4 to 6 seconds before returning to the agent.
+  - Do not pre-volunteer Wednesday as a scheduling preference; Wednesday appears only in an aside about Emma's recital.
+  - After the recital aside, return to the agent and ask for Thursday instead of Wednesday because Emma has something on Wednesday.
+  - Before ending, confirm the appointment is for Emma Brooks rather than Taylor Brooks.
+  - End with a natural apology for the chaos before hanging up.
+success_criteria: >
+  Appointment is booked correctly for Emma Brooks at a valid weekday morning
+  slot. Agent demonstrates patience during background pauses. No background
+  speech is treated as patient-directed input.
+stop_conditions:
+  - Appointment confirmed with correct patient name and details
+  - Agent acts on background speech; log as bug
+  - Call exceeds 6 minutes
