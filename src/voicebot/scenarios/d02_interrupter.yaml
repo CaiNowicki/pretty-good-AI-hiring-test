@@ -6,6 +6,12 @@ goal: >
   topic pivots.
 opening_line: "Yeah hi, I need an appointment, I don't have a lot of time."
 interruption_test: true
+interruption_behavior:
+  max_interruptions: 3
+  trigger: Agent begins a standard verification question, provides lengthy scheduling context, or leaves a processing silence.
+  patient_line: "Yeah, my birthday is June 17, 1985, and I just need whatever is fastest."
+  recovery_rule: Stay impatient but cooperative, do not interrupt every agent turn, and let the agent confirm key details.
+  measurement_focus: Agent recovers from multiple deliberate interruptions without losing collected information.
 facts:
   name: Chris Navarro
   date_of_birth: June 17, 1985

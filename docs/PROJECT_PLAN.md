@@ -102,8 +102,8 @@ Exit criteria:
 
 - [x] Represent each scenario as data: goal, patient profile, required facts, optional edge behavior, success criteria, and stop conditions.
 - [x] Add guardrails so the bot never reveals it is a test harness unless the scenario calls for meta behavior.
-- Give the bot an active but realistic strategy: answer direct questions, ask follow-ups, correct misunderstandings, and steer back to the goal.
-- Represent deliberate interruption tests with explicit scenario data so barge-in is measured separately from normal turn-taking.
+- [x] Give the bot an active but realistic strategy: answer direct questions, ask follow-ups, correct misunderstandings, and steer back to the goal.
+- [x] Represent deliberate interruption tests with explicit scenario data so barge-in is measured separately from normal turn-taking.
 - Add deterministic limits: max call duration, max silence, max turns, and emergency stop.
 - Before broader scenario runs, soften smoke-test deterministic identity
   handling into natural response guidance. The bot should still detect when the

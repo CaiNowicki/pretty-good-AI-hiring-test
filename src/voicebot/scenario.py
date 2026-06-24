@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +40,7 @@ class Scenario:
     success_criteria: str
     stop_conditions: list[str]
     interruption_test: bool = False
+    interruption_behavior: dict[str, str] = field(default_factory=dict)
 
 
 class ScenarioNotFoundError(FileNotFoundError):
@@ -142,6 +143,12 @@ def _as_string_list(value: Any, path: Path, field: str) -> list[str]:
     return [str(item) for item in value]
 
 
+def _as_string_mapping(value: Any, path: Path, field: str) -> dict[str, str]:
+    if not isinstance(value, dict):
+        raise ValueError(f"Scenario file {path} has non-mapping {field}.")
+    return {str(key): str(item) for key, item in value.items()}
+
+
 def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
     required = {
         "id",
@@ -176,6 +183,18 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
     optional_edge_behavior = _as_string_list(
         data["optional_edge_behavior"], path, "optional_edge_behavior"
     )
+    interruption_behavior = _as_string_mapping(
+        data.get("interruption_behavior", {}), path, "interruption_behavior"
+    )
+    interruption_test = _as_bool(data.get("interruption_test", False))
+    if interruption_test and not interruption_behavior:
+        raise ValueError(
+            f"Scenario file {path} marks interruption_test without interruption_behavior."
+        )
+    if not interruption_test and interruption_behavior:
+        raise ValueError(
+            f"Scenario file {path} defines interruption_behavior without interruption_test."
+        )
 
     return Scenario(
         id=str(data["id"]),
@@ -190,7 +209,8 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
         branch_conditions=optional_edge_behavior,
         success_criteria=str(data["success_criteria"]),
         stop_conditions=_as_string_list(data["stop_conditions"], path, "stop_conditions"),
-        interruption_test=_as_bool(data.get("interruption_test", False)),
+        interruption_test=interruption_test,
+        interruption_behavior=interruption_behavior,
     )
 
 
@@ -254,9 +274,15 @@ def build_patient_system_prompt(scenario: Scenario) -> str:
 Optional edge behavior:
 {edge_behavior}
 """
+    strategy_section = """
+Conversation strategy:
+- Answer direct questions with the relevant scenario fact and stop there.
+- Ask one brief follow-up when the agent's offer is incomplete or ambiguous.
+- Correct misunderstandings plainly, then return to the scheduling or information goal.
+- If the agent drifts, politely steer back to the goal without taking over the agent's role.
+"""
     interruption_guidance = (
-        "This is an interruption-handling scenario. You may interrupt the agent once, briefly, "
-        "only when the scenario explicitly calls for it; then let the agent recover."
+        _build_interruption_guidance(scenario)
         if scenario.interruption_test
         else (
             "Do not interrupt the agent. If the agent starts speaking while you are speaking, "
@@ -296,6 +322,7 @@ When you need to ask follow-up questions, ask one question at a time and wait
 for a complete answer before asking another.
 Wait for the agent to finish speaking before responding.
 Stay polite and conversational, like a real patient on a phone call.
+{strategy_section}
 {interruption_guidance}
 {meta_guidance}
 Say the opening line once only. If you already introduced yourself, do not repeat the
@@ -327,6 +354,27 @@ def build_realtime_bootstrap(scenario: Scenario) -> dict[str, Any]:
     return {
         "scenario_id": scenario.id,
         "patient_profile": scenario.patient_profile,
+        "interruption_test": scenario.interruption_test,
+        "interruption_behavior": scenario.interruption_behavior,
         "system_prompt": system_prompt,
         "initial_patient_utterance": scenario.opening_line,
     }
+
+
+def _build_interruption_guidance(scenario: Scenario) -> str:
+    behavior = scenario.interruption_behavior
+    trigger = behavior.get("trigger", "only when the scenario explicitly calls for it")
+    max_interruptions = behavior.get("max_interruptions", "1")
+    line = behavior.get("patient_line", "a brief clarification")
+    recovery_rule = behavior.get("recovery_rule", "then let the agent recover")
+    measurement_focus = behavior.get(
+        "measurement_focus",
+        "agent recovery from deliberate barge-in, separate from normal turn-taking",
+    )
+    return (
+        "This is an interruption-handling scenario with explicit barge-in data. "
+        f"Interrupt no more than {max_interruptions} time(s), triggered by: {trigger}. "
+        f"Use this interruption content: {line}. "
+        f"After the interruption: {recovery_rule}. "
+        f"Measurement focus: {measurement_focus}."
+    )

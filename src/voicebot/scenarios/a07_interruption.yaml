@@ -5,6 +5,12 @@ goal: >
   explanation or starts listing options that do not match the patient's availability.
 opening_line: "Hi, I need to move an appointment I already have."
 interruption_test: true
+interruption_behavior:
+  max_interruptions: 1
+  trigger: Agent gives a long explanation or starts listing options outside Thursday or Friday morning.
+  patient_line: "Sorry, just to clarify, Thursday or Friday morning is best for me."
+  recovery_rule: Return to normal turn-taking and let the agent finish after the single clarification.
+  measurement_focus: Agent keeps the reschedule context after a single deliberate patient barge-in.
 facts:
   name: James Carter
   date_of_birth: March 14, 1987

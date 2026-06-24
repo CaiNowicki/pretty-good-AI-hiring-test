@@ -61,6 +61,10 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("Do not volunteer everything at once.", prompt)
         self.assertIn("Respond to the agent's most recent question only.", prompt)
         self.assertIn("referral status, provider preference", prompt)
+        self.assertIn("Conversation strategy:", prompt)
+        self.assertIn("Answer direct questions with the relevant scenario fact", prompt)
+        self.assertIn("Correct misunderstandings plainly", prompt)
+        self.assertIn("politely steer back to the goal", prompt)
         self.assertIn("ask one question at a time", prompt)
         self.assertIn("Wait for the agent to finish speaking before responding.", prompt)
         self.assertIn("Say the opening line once only.", prompt)
@@ -89,6 +93,8 @@ class ScenarioTests(unittest.TestCase):
         bootstrap = build_realtime_bootstrap(scenario)
 
         self.assertEqual(bootstrap["patient_profile"], "james_carter")
+        self.assertFalse(bootstrap["interruption_test"])
+        self.assertEqual(bootstrap["interruption_behavior"], {})
         self.assertEqual(bootstrap["initial_patient_utterance"], scenario.opening_line)
         self.assertIn("James Carter", bootstrap["system_prompt"])
 
@@ -234,7 +240,9 @@ class ScenarioTests(unittest.TestCase):
 
         self.assertFalse(load_scenario("d01_hard_of_hearing").interruption_test)
         self.assertTrue(load_scenario("d02_interrupter").interruption_test)
+        self.assertTrue(load_scenario("d02_interrupter").interruption_behavior)
         self.assertFalse(load_scenario("d03_background_interruptions").interruption_test)
+        self.assertEqual(load_scenario("d03_background_interruptions").interruption_behavior, {})
 
         ordered = ordered_scenario_stems()
         first_difficult_index = ordered.index("d01_hard_of_hearing")
@@ -259,8 +267,12 @@ class ScenarioTests(unittest.TestCase):
         prompt = build_patient_system_prompt(scenario)
 
         self.assertTrue(scenario.interruption_test)
+        self.assertEqual(scenario.interruption_behavior["max_interruptions"], "1")
+        self.assertIn("Thursday or Friday morning", scenario.interruption_behavior["trigger"])
         self.assertIn("interruption-handling scenario", prompt)
-        self.assertIn("interrupt the agent once", prompt)
+        self.assertIn("explicit barge-in data", prompt)
+        self.assertIn("Interrupt no more than 1 time", prompt)
+        self.assertIn("Measurement focus", prompt)
 
     def test_closed_hours_analysis_note_exists(self):
         analysis_path = (
