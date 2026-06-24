@@ -110,7 +110,7 @@ Exit criteria:
   appropriate appointment date is prompt-driven by scenario rules: the bot stays
   relative and patient-general until the agent introduces exact calendar
   details, then may repeat those details for acceptance or confirmation.
-- Before broader scenario runs, soften smoke-test deterministic identity
+- [x] Before broader scenario runs, soften smoke-test deterministic identity
   handling into natural response guidance. The bot should still detect when the
   agent assumes the caller identity, but it should vary wording naturally except for
   critical exact facts such as DOB, phone number, or required identifiers.

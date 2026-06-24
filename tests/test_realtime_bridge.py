@@ -10,7 +10,7 @@ from voicebot.realtime_bridge import (
     BridgeState,
     EMERGENCY_STOP_DTMF_DIGITS,
     RealtimeBridge,
-    build_assumed_patient_identity_answer,
+    build_assumed_patient_identity_guidance,
     build_agent_turn_key,
     build_confusion_reply,
     build_confusion_response,
@@ -97,14 +97,14 @@ class RealtimeBridgeTests(unittest.TestCase):
             scenario,
             "Hello, am I speaking with Maya? How can I help you today?",
         )
+        instructions = event["response"]["instructions"]
 
-        self.assertIn(
-            (
-                "Oh, yes, this is Maya. I'm surprised you had that already. "
-                "Hi, I'm hoping to make an appointment."
-            ),
-            event["response"]["instructions"],
-        )
+        self.assertIn("Confirm the caller identity as Maya", instructions)
+        self.assertIn("preserving that name exactly", instructions)
+        self.assertIn("vary the surrounding wording naturally", instructions)
+        self.assertIn("opening intent", instructions)
+        self.assertIn(scenario.opening_line, instructions)
+        self.assertNotIn("Say only this exact patient answer", instructions)
 
     def test_turn_response_keeps_replies_short(self):
         event = build_turn_response()
@@ -173,7 +173,7 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertFalse(transcript_asks_about_meta_behavior(transcript))
         self.assertEqual(build_meta_guardrail_answer(scenario, transcript), "")
         self.assertIn(
-            "Oh, yes, this is Maya",
+            "Confirm the caller identity as Maya",
             build_pre_goal_response(scenario, transcript)["response"]["instructions"],
         )
 
@@ -345,47 +345,47 @@ class RealtimeBridgeTests(unittest.TestCase):
 
         self.assertTrue(transcript_asks_about_assumed_patient(transcript))
         self.assertFalse(transcript_is_ignorable_before_opening(transcript))
-        self.assertEqual(
-            build_assumed_patient_identity_answer(scenario, transcript),
-            "No, this is Maria Lopez. I think you may have the wrong patient.",
-        )
-        self.assertIn(
-            "No, this is Maria Lopez",
-            build_pre_goal_response(scenario, transcript)["response"]["instructions"],
-        )
+        self.assertEqual(build_exact_fact_answer(scenario, transcript), "")
+        instructions = build_pre_goal_response(scenario, transcript)["response"]["instructions"]
+        self.assertIn("the caller is Maria Lopez", instructions)
+        self.assertIn("preserve that name exactly", instructions)
+        self.assertIn("may have the wrong patient", instructions)
+        self.assertIn("vary the surrounding wording naturally", instructions)
+        self.assertNotIn("Say only this exact patient answer", instructions)
 
-    def test_only_matching_persona_confirms_assumed_identity(self):
+    def test_only_matching_persona_confirms_assumed_identity_guidance(self):
         maya_scenario = load_scenario("t01_smoke")
         maria_scenario = load_scenario("a01_specific_time")
 
-        self.assertEqual(
-            build_assumed_patient_identity_answer(maya_scenario, "Is this Maya?"),
-            "Oh, yes, this is Maya. I'm surprised you had that already.",
+        maya_instructions = build_assumed_patient_identity_guidance(
+            maya_scenario,
+            "Is this Maya?",
         )
-        self.assertEqual(
-            build_assumed_patient_identity_answer(maya_scenario, "Is this James?"),
-            "No, this is Maya Patel. I think you may have the wrong patient.",
+        wrong_maya_instructions = build_assumed_patient_identity_guidance(
+            maya_scenario,
+            "Is this James?",
         )
-        self.assertEqual(
-            build_assumed_patient_identity_answer(maria_scenario, "Is this James?"),
-            "No, this is Maria Lopez. I think you may have the wrong patient.",
+        maria_instructions = build_assumed_patient_identity_guidance(
+            maria_scenario,
+            "Is this James?",
         )
-        self.assertNotIn(
-            "Yes",
-            build_assumed_patient_identity_answer(maria_scenario, "Is this James?"),
-        )
+
+        self.assertIn("Confirm the caller identity as Maya", maya_instructions)
+        self.assertIn("mildly surprised", maya_instructions)
+        self.assertIn("the caller is Maya Patel", wrong_maya_instructions)
+        self.assertIn("the caller is Maria Lopez", maria_instructions)
+        self.assertNotIn("Confirm the caller identity", maria_instructions)
+        self.assertNotIn("Yes", maria_instructions)
 
     def test_assumed_james_identity_can_include_child_patient_context(self):
         scenario = load_scenario("a06_closed_hours")
         transcript = "Am I speaking with James?"
 
-        self.assertEqual(
-            build_assumed_patient_identity_answer(scenario, transcript),
-            (
-                "No, this is Taylor Brooks, calling for Emma Brooks. "
-                "I think you may have the wrong patient."
-            ),
-        )
+        instructions = build_assumed_patient_identity_guidance(scenario, transcript)
+
+        self.assertIn("caller is Taylor Brooks", instructions)
+        self.assertIn("calling for Emma Brooks", instructions)
+        self.assertIn("preserve both names exactly", instructions)
 
     def test_confusing_agent_turns_get_clarification_replies(self):
         scenario = load_scenario("t01_smoke")

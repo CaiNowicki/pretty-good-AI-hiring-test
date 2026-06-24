@@ -334,13 +334,13 @@ def build_opening_response(scenario: Scenario, transcript: str = "") -> dict[str
             },
         }
 
-    assumed_identity_answer = build_assumed_patient_identity_answer(
+    assumed_identity_guidance = build_assumed_patient_identity_guidance(
         scenario,
         transcript,
         include_opening=True,
     )
-    if assumed_identity_answer:
-        instructions = f"Say only this exact patient answer: {assumed_identity_answer}"
+    if assumed_identity_guidance:
+        instructions = assumed_identity_guidance
     else:
         instructions = (
             "Say this opening line exactly once, naturally, then wait for the agent: "
@@ -364,15 +364,22 @@ def build_turn_response(scenario: Scenario | None = None, transcript: str = "") 
         if exact_answer:
             instructions = f"Say only this exact patient answer: {exact_answer}"
         else:
-            scheduling_guidance = build_scheduling_turn_guidance(scenario)
-            instructions = (
-                "Respond now as the patient for the current call turn. Keep it short, "
-                "answer only what was asked, use the "
-                "scenario facts exactly, do not add unrelated preferences or comments, "
-                "do not mention tests, harnesses, bots, assistants, simulations, or "
-                "demos, and wait for the agent after speaking. "
-                f"{scheduling_guidance} {SCHEDULER_LANGUAGE_GUARDRAIL}"
+            assumed_identity_guidance = build_assumed_patient_identity_guidance(
+                scenario,
+                transcript,
             )
+            if assumed_identity_guidance:
+                instructions = assumed_identity_guidance
+            else:
+                scheduling_guidance = build_scheduling_turn_guidance(scenario)
+                instructions = (
+                    "Respond now as the patient for the current call turn. Keep it short, "
+                    "answer only what was asked, use the "
+                    "scenario facts exactly, do not add unrelated preferences or comments, "
+                    "do not mention tests, harnesses, bots, assistants, simulations, or "
+                    "demos, and wait for the agent after speaking. "
+                    f"{scheduling_guidance} {SCHEDULER_LANGUAGE_GUARDRAIL}"
+                )
 
     return {
         "type": "response.create",
@@ -391,14 +398,21 @@ def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = 
         if exact_answer:
             instructions = f"Say only this exact patient answer: {exact_answer}"
         else:
-            scheduling_guidance = build_scheduling_turn_guidance(scenario)
-            instructions = (
-                "Answer the agent's intake or profile setup question directly as the patient. "
-                "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
-                "facts exactly, do not add unrelated preferences or comments, do not mention "
-                "tests, harnesses, bots, assistants, simulations, or demos, and keep it brief. "
-                f"{scheduling_guidance} {SCHEDULER_LANGUAGE_GUARDRAIL}"
+            assumed_identity_guidance = build_assumed_patient_identity_guidance(
+                scenario,
+                transcript,
             )
+            if assumed_identity_guidance:
+                instructions = assumed_identity_guidance
+            else:
+                scheduling_guidance = build_scheduling_turn_guidance(scenario)
+                instructions = (
+                    "Answer the agent's intake or profile setup question directly as the patient. "
+                    "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
+                    "facts exactly, do not add unrelated preferences or comments, do not mention "
+                    "tests, harnesses, bots, assistants, simulations, or demos, and keep it brief. "
+                    f"{scheduling_guidance} {SCHEDULER_LANGUAGE_GUARDRAIL}"
+                )
 
     return {
         "type": "response.create",
@@ -472,7 +486,7 @@ def build_confusion_response(scenario: Scenario, transcript: str) -> dict[str, A
     }
 
 
-def build_assumed_patient_identity_answer(
+def build_assumed_patient_identity_guidance(
     scenario: Scenario | None,
     transcript: str,
     *,
@@ -484,25 +498,48 @@ def build_assumed_patient_identity_answer(
     caller_name = _caller_full_name(scenario)
     patient_name = scenario.facts.get("patient_name", "").strip()
     first_name = _caller_first_name(scenario)
+    opening_guidance = ""
+    if include_opening:
+        opening_guidance = (
+            f" Also introduce the call goal once in natural patient wording, using this "
+            f"opening intent without needing to repeat it verbatim: {scenario.opening_line}"
+        )
+
     if _scenario_identity_matches_assumed_patient(scenario, transcript):
-        if _scenario_is_new_patient(scenario):
-            answer = f"Oh, yes, this is {first_name}. I'm surprised you had that already."
-            if include_opening:
-                return f"{answer} {scenario.opening_line}"
-            return answer
-        if include_opening:
-            return f"Yes, this is {first_name}. {scenario.opening_line}"
-        return f"Yes, this is {first_name}."
+        name_to_confirm = first_name or caller_name or patient_name
+        surprise_guidance = (
+            " Since this is a new patient call, it is okay to sound mildly surprised "
+            "that the agent already had the name."
+            if _scenario_is_new_patient(scenario)
+            else ""
+        )
+        return (
+            "Respond as the patient to the agent's assumed identity question. "
+            f"Confirm the caller identity as {name_to_confirm}, preserving that name exactly, "
+            "but vary the surrounding wording naturally. Keep it short, do not volunteer "
+            "DOB, phone number, or other unrelated facts, and wait for the agent."
+            f"{surprise_guidance}{opening_guidance}"
+        )
 
     correction_name = caller_name or patient_name
     if caller_name and patient_name and patient_name.casefold() not in caller_name.casefold():
-        return (
-            f"No, this is {caller_name}, calling for {patient_name}. "
-            "I think you may have the wrong patient."
+        correction = (
+            f"Correct the assumption by saying the caller is {caller_name}, calling for "
+            f"{patient_name}; preserve both names exactly."
         )
-    if correction_name:
-        return f"No, this is {correction_name}. I think you may have the wrong patient."
-    return "No, I think you may have the wrong patient."
+    elif correction_name:
+        correction = (
+            f"Correct the assumption by saying the caller is {correction_name}; preserve "
+            "that name exactly."
+        )
+    else:
+        correction = "Correct the assumption without agreeing to the assumed patient name."
+    return (
+        "Respond as the patient to the agent's assumed identity question. "
+        f"{correction} Make clear the agent may have the wrong patient, vary the surrounding "
+        "wording naturally, keep it brief, do not provide DOB or phone unless separately "
+        f"asked, and wait for the agent.{opening_guidance}"
+    )
 
 
 def build_meta_guardrail_answer(scenario: Scenario | None, transcript: str) -> str:
@@ -523,9 +560,6 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     first_name = _caller_first_name(scenario)
     last_name = _caller_last_name(scenario)
 
-    assumed_identity_answer = build_assumed_patient_identity_answer(scenario, transcript)
-    if assumed_identity_answer:
-        return assumed_identity_answer
     name_spelling_answer = _name_spelling_answer(scenario, normalized)
     if name_spelling_answer:
         return name_spelling_answer
