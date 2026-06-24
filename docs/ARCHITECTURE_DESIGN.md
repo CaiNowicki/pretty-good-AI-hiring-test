@@ -28,7 +28,7 @@ This design favors a real phone call and real-time audio loop over an offline be
 - Accepts Twilio Media Stream WebSocket connections.
 - Converts or forwards phone audio frames as required by the speech model.
 - Tracks silence, interruptions, bot speech, and call stop conditions.
-- Emits structured `events.jsonl` for later debugging.
+- Emits structured `events.jsonl` for later debugging, including explicit per-call start/end markers or flags that transcript generation can use as boundaries.
 
 ### Scenario Engine
 
@@ -40,6 +40,8 @@ This design favors a real phone call and real-time audio loop over an offline be
 ### Transcript and Artifact Writer
 
 - Stores recordings, transcripts, model events, scenario data, and metadata under one call directory.
+- Treats any non-zero-length call as incomplete until both a recording file and speaker-labeled transcript are saved.
+- Uses the event-log call-boundary markers instead of guessing call ranges from a shared global log.
 - Produces speaker-labeled transcripts with timestamps.
 - Marks failed calls separately from final submission calls.
 

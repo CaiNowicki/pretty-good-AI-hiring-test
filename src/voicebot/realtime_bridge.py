@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hashlib
 import json
+import random
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -63,6 +65,7 @@ NON_CONVERSATIONAL_PHRASES = (
     "this call may be recorded",
     "thank you for calling",
     "thanks for calling",
+    "part of pretty good ai",
     "para espanol",
     "para espa",
     "press",
@@ -72,6 +75,8 @@ WAIT_FOR_AGENT_TO_CONTINUE_PHRASES = (
     "thanks for confirming",
     "specific provider you'd like to see or",
     "it looks",
+    "for this demo",
+    "for demo purposes",
     "for you",
 )
 CONFUSING_AGENT_PHRASES = (
@@ -88,6 +93,7 @@ META_DISCLOSURE_PHRASES = (
     "ai",
     "artificial intelligence",
     "assistant",
+    "demo",
     "simulation",
     "simulated",
     "scenario",
@@ -110,6 +116,34 @@ ASSUMED_PATIENT_IDENTITY_PHRASES = (
     "speaking to",
     "calling for",
     "looking for",
+)
+NEW_PATIENT_CONSULTATION_ANSWERS = (
+    "It's for a new patient consultation.",
+    "This would be a new patient consultation.",
+    "I'm trying to set up a new patient consultation.",
+    "It should be a new patient consultation, not a follow-up.",
+    "I'm a new patient, so I need a consultation appointment.",
+)
+REPEATED_INFO_THRESHOLDS = (
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    0.9,
+)
+REPEATED_INFO_LABELS = {
+    "appointment_type": "the appointment type",
+    "date_of_birth": "my date of birth",
+    "first_name": "my first name",
+    "full_name": "my name",
+    "last_name": "my last name",
+    "phone": "my phone number",
+}
+REPEATED_INFO_TEMPLATES = (
+    "I already gave you {label}, but {answer}",
+    "I mentioned {label} earlier, but {answer}",
+    "I did give you {label} already. {answer}",
+    "I've already shared {label}; {answer}",
 )
 
 
@@ -210,7 +244,7 @@ def build_turn_response(scenario: Scenario | None = None, transcript: str = "") 
                 "answer only what was asked, use the "
                 "scenario facts exactly, do not add unrelated preferences or comments, "
                 "do not mention tests, harnesses, bots, assistants, simulations, or "
-                "automation, and wait for the agent after speaking."
+                "demos, and wait for the agent after speaking."
             )
 
     return {
@@ -234,7 +268,7 @@ def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = 
                 "Answer the agent's intake or profile setup question directly as the patient. "
                 "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
                 "facts exactly, do not add unrelated preferences or comments, do not mention "
-                "tests, harnesses, bots, assistants, simulations, or automation, and keep it brief."
+                "tests, harnesses, bots, assistants, simulations, or demos, and keep it brief."
             )
 
     return {
@@ -314,6 +348,9 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
         dob = scenario.facts.get("date_of_birth", "").strip()
         return f"My date of birth is {dob}." if dob else ""
+    if _asks_to_confirm_known_date_of_birth(scenario, transcript, normalized):
+        dob = scenario.facts.get("date_of_birth", "").strip()
+        return f"Yes, my date of birth is {dob}." if dob else ""
     if _asks_about_full_name(normalized) and full_name:
         return full_name
     if "first name" in normalized and first_name:
@@ -327,7 +364,11 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
         return phone
     if _asks_about_appointment_type(normalized):
         if "new patient consultation" in goal:
-            return "It's a new patient consultation, not a follow-up."
+            return _select_stable_variant(
+                NEW_PATIENT_CONSULTATION_ANSWERS,
+                scenario.id,
+                transcript,
+            )
         if "routine visit" in goal:
             return "It's a routine visit."
         if "reschedule" in goal or "move an existing appointment" in goal:
@@ -337,8 +378,60 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     return ""
 
 
+def requested_info_key(scenario: Scenario | None, transcript: str) -> str:
+    if scenario is None:
+        return ""
+
+    normalized = transcript.casefold()
+    if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
+        return "date_of_birth"
+    if _asks_to_confirm_known_date_of_birth(scenario, transcript, normalized):
+        return "date_of_birth"
+    if _asks_about_full_name(normalized) or "your name" in normalized:
+        return "full_name"
+    if "first name" in normalized:
+        return "first_name"
+    if "last name" in normalized:
+        return "last_name"
+    if "phone" in normalized:
+        return "phone"
+    if _asks_about_appointment_type(normalized):
+        return "appointment_type"
+    return ""
+
+
+def repeated_info_probability(repeat_count: int) -> float:
+    if repeat_count < 0:
+        return 0.0
+    if repeat_count < len(REPEATED_INFO_THRESHOLDS):
+        return REPEATED_INFO_THRESHOLDS[repeat_count]
+    return REPEATED_INFO_THRESHOLDS[-1]
+
+
+def should_point_out_repeated_info(repeat_count: int, random_value: float) -> bool:
+    probability = repeated_info_probability(repeat_count)
+    return random_value < probability
+
+
+def build_repeated_info_answer(
+    info_key: str,
+    exact_answer: str,
+    template_index: int,
+) -> str:
+    label = REPEATED_INFO_LABELS.get(info_key, "that information")
+    template = REPEATED_INFO_TEMPLATES[template_index % len(REPEATED_INFO_TEMPLATES)]
+    return template.format(label=label, answer=exact_answer)
+
+
 def _caller_full_name(scenario: Scenario) -> str:
     return scenario.facts.get("full_name", scenario.facts.get("name", "")).strip()
+
+
+def _select_stable_variant(options: tuple[str, ...], *keys: str) -> str:
+    if not options:
+        return ""
+    digest = hashlib.sha256("|".join(keys).encode("utf-8")).digest()
+    return options[int.from_bytes(digest[:2], "big") % len(options)]
 
 
 def _caller_first_name(scenario: Scenario) -> str:
@@ -363,6 +456,23 @@ def _asks_about_full_name(normalized_transcript: str) -> bool:
         or "first and last" in normalized_transcript
         or "first name and last name" in normalized_transcript
     )
+
+
+def _asks_to_confirm_known_date_of_birth(
+    scenario: Scenario,
+    transcript: str,
+    normalized_transcript: str,
+) -> bool:
+    if "?" not in transcript:
+        return False
+
+    dob = scenario.facts.get("date_of_birth", "").strip()
+    if not dob:
+        return False
+
+    dob_tokens = re.findall(r"[a-z]+|\d+", dob.casefold())
+    transcript_tokens = set(re.findall(r"[a-z]+|\d+", normalized_transcript))
+    return any(token in transcript_tokens for token in dob_tokens)
 
 
 def build_confusion_reply(scenario: Scenario, transcript: str) -> str:
@@ -575,6 +685,9 @@ class RealtimeBridge:
         self._agent_turn_count = 0
         self._counted_agent_turns: set[str] = set()
         self._responded_agent_turns: set[str] = set()
+        self._provided_info_counts: dict[str, int] = {}
+        self._last_repeated_info_template_index: dict[str, int] = {}
+        self._random = random.Random()
 
     async def start(self, twilio_ws: WebSocket) -> None:
         if not self.settings.openai_api_key:
@@ -908,17 +1021,29 @@ class RealtimeBridge:
                 self._log({"event": "patient_response.skipped", "reason": "pre_opening_ivr"})
                 return
 
+            if transcript_needs_more_agent_context(transcript):
+                self._log({"event": "patient_response.skipped", "reason": "partial_agent_turn"})
+                return
+
+            if transcript_is_confusing_or_out_of_turn(self.state.scenario, transcript):
+                await self._create_patient_response(
+                    event,
+                    build_confusion_response(self.state.scenario, transcript),
+                    {"event": "patient_response.confusion", "trigger": transcript},
+                )
+                return
+
             if transcript_is_intake_before_goal(transcript):
                 await self._create_patient_response(
                     event,
-                    build_pre_goal_response(self.state.scenario, transcript),
+                    self._build_stateful_patient_response(event, pre_goal=True),
                     {"event": "patient_response.pre_goal", "trigger": transcript},
                 )
                 return
 
             await self._create_patient_response(
                 event,
-                build_pre_goal_response(self.state.scenario, transcript),
+                self._build_stateful_patient_response(event, pre_goal=True),
                 {"event": "patient_response.pre_goal", "trigger": transcript},
             )
             return
@@ -937,9 +1062,49 @@ class RealtimeBridge:
 
         await self._create_patient_response(
             event,
-            build_turn_response(self.state.scenario, transcript),
+            self._build_stateful_patient_response(event, pre_goal=False),
             {"event": "patient_response.turn", "trigger": transcript},
         )
+
+    def _build_stateful_patient_response(
+        self,
+        event: dict[str, Any],
+        *,
+        pre_goal: bool,
+    ) -> dict[str, Any]:
+        transcript = str(event.get("transcript", "")).strip()
+        meta_answer = build_meta_guardrail_answer(self.state.scenario, transcript)
+        if meta_answer:
+            if pre_goal:
+                return build_pre_goal_response(self.state.scenario, transcript)
+            return build_turn_response(self.state.scenario, transcript)
+
+        info_key = requested_info_key(self.state.scenario, transcript)
+        exact_answer = build_exact_fact_answer(self.state.scenario, transcript)
+        if info_key and exact_answer:
+            repeat_count = self._provided_info_counts.get(info_key, 0)
+            answer = exact_answer
+            if should_point_out_repeated_info(repeat_count, self._random.random()):
+                answer = self._build_repeated_info_answer(info_key, exact_answer)
+            self._provided_info_counts[info_key] = repeat_count + 1
+            return {
+                "type": "response.create",
+                "response": {"instructions": f"Say only this exact patient answer: {answer}"},
+            }
+
+        if pre_goal:
+            return build_pre_goal_response(self.state.scenario, transcript)
+        return build_turn_response(self.state.scenario, transcript)
+
+    def _build_repeated_info_answer(self, info_key: str, exact_answer: str) -> str:
+        previous_index = self._last_repeated_info_template_index.get(info_key)
+        template_count = len(REPEATED_INFO_TEMPLATES)
+        template_index = self._random.randrange(template_count)
+        if previous_index is not None and template_count > 1:
+            offset = self._random.randrange(template_count - 1)
+            template_index = (previous_index + 1 + offset) % template_count
+        self._last_repeated_info_template_index[info_key] = template_index
+        return build_repeated_info_answer(info_key, exact_answer, template_index)
 
     def _already_responded_or_busy(self, event: dict[str, Any]) -> bool:
         turn_key = build_agent_turn_key(event)

@@ -549,7 +549,7 @@ Conversation strategy:
         else (
             "Do not reveal that this is a test, test harness, evaluation, simulation, bot, "
             "assistant, or automated caller. If asked, stay in character as the patient and "
-            "redirect to the reason for the call."
+            "redirect to the reason for the call. Do not call it a demo."
         )
     )
 

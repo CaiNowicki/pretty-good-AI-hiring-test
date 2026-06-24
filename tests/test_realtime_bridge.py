@@ -18,12 +18,16 @@ from voicebot.realtime_bridge import (
     build_input_audio_append,
     build_meta_guardrail_answer,
     build_opening_response,
+    build_repeated_info_answer,
     build_response_cancel,
     build_pre_goal_response,
     build_session_update,
     build_twilio_clear,
     build_twilio_media,
     build_turn_response,
+    repeated_info_probability,
+    requested_info_key,
+    should_point_out_repeated_info,
     transcript_is_ignorable_before_opening,
     transcript_is_intake_before_goal,
     transcript_is_confusing_or_out_of_turn,
@@ -104,12 +108,14 @@ class RealtimeBridgeTests(unittest.TestCase):
 
         self.assertEqual(event["type"], "response.create")
         self.assertIn("Keep it short", event["response"]["instructions"])
+        self.assertIn("demos", event["response"]["instructions"])
 
     def test_pre_goal_response_answers_intake_without_scheduling(self):
         event = build_pre_goal_response()
 
         self.assertEqual(event["type"], "response.create")
         self.assertIn("Do not ask to schedule yet", event["response"]["instructions"])
+        self.assertIn("demos", event["response"]["instructions"])
 
     def test_meta_probe_gets_patient_redirect_by_default(self):
         scenario = load_scenario("t01_smoke")
@@ -185,6 +191,11 @@ class RealtimeBridgeTests(unittest.TestCase):
             build_exact_fact_answer(scenario, "Can you please provide your date of birth?"),
             "My date of birth is March 14, 1987.",
         )
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "1987?"),
+            "Yes, my date of birth is March 14, 1987.",
+        )
+        self.assertEqual(build_exact_fact_answer(scenario, "1987."), "")
         self.assertEqual(build_exact_fact_answer(scenario, "What is your first name?"), "James")
         self.assertEqual(build_exact_fact_answer(scenario, "What is your last name?"), "Carter")
         self.assertEqual(build_exact_fact_answer(scenario, "What is your full name?"), "James Carter")
@@ -204,6 +215,52 @@ class RealtimeBridgeTests(unittest.TestCase):
                 "response"
             ]["instructions"],
         )
+        appointment_type_answers = {
+            build_exact_fact_answer(scenario, prompt)
+            for prompt in (
+                "Is this a follow-up or routine visit?",
+                "What type of appointment are you looking for?",
+                "Is this for a new patient consultation?",
+                "Can you tell me the reason for visit?",
+            )
+        }
+        self.assertGreater(len(appointment_type_answers), 1)
+        for answer in appointment_type_answers:
+            self.assertIn("new patient", answer.casefold())
+            self.assertIn("consultation", answer.casefold())
+
+    def test_repeated_info_probability_increases_with_repeat_count(self):
+        probabilities = [repeated_info_probability(count) for count in range(5)]
+
+        self.assertEqual(probabilities[0], 0.0)
+        self.assertEqual(probabilities, sorted(probabilities))
+        self.assertGreater(probabilities[-1], probabilities[1])
+
+    def test_repeated_info_helpers_keep_the_fact_in_the_answer(self):
+        scenario = load_scenario("t01_smoke")
+
+        self.assertEqual(
+            requested_info_key(scenario, "Can you provide your date of birth again?"),
+            "date_of_birth",
+        )
+        self.assertEqual(
+            requested_info_key(scenario, "Is this a follow-up or routine visit?"),
+            "appointment_type",
+        )
+        self.assertIn(
+            "March 14, 1987",
+            build_repeated_info_answer(
+                "date_of_birth",
+                "My date of birth is March 14, 1987.",
+                0,
+            ),
+        )
+
+    def test_repeated_info_decision_uses_runtime_probability(self):
+        self.assertFalse(should_point_out_repeated_info(0, 0.0))
+        self.assertFalse(should_point_out_repeated_info(1, 0.26))
+        self.assertTrue(should_point_out_repeated_info(1, 0.24))
+        self.assertTrue(should_point_out_repeated_info(4, 0.89))
 
     def test_assumed_james_identity_gets_corrected_for_other_patients(self):
         scenario = load_scenario("a01_specific_time")
@@ -218,6 +275,23 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertIn(
             "No, this is Maria Lopez",
             build_pre_goal_response(scenario, transcript)["response"]["instructions"],
+        )
+
+    def test_only_james_persona_confirms_is_this_james(self):
+        james_scenario = load_scenario("t01_smoke")
+        maria_scenario = load_scenario("a01_specific_time")
+
+        self.assertEqual(
+            build_assumed_patient_identity_answer(james_scenario, "Is this James?"),
+            "Oh, yes, this is James. I'm surprised you had that already.",
+        )
+        self.assertEqual(
+            build_assumed_patient_identity_answer(maria_scenario, "Is this James?"),
+            "No, this is Maria Lopez. I think you may have the wrong patient.",
+        )
+        self.assertNotIn(
+            "Yes",
+            build_assumed_patient_identity_answer(maria_scenario, "Is this James?"),
         )
 
     def test_assumed_james_identity_can_include_child_patient_context(self):
@@ -280,6 +354,9 @@ class RealtimeBridgeTests(unittest.TestCase):
     def test_partial_agent_turns_wait_for_more_context(self):
         self.assertTrue(transcript_needs_more_agent_context("It looks"))
         self.assertTrue(transcript_needs_more_agent_context("specific provider you'd like to see or"))
+        self.assertTrue(transcript_needs_more_agent_context("for this demo"))
+        self.assertTrue(transcript_needs_more_agent_context("1987."))
+        self.assertFalse(transcript_needs_more_agent_context("1987?"))
         self.assertFalse(transcript_needs_more_agent_context("What would you like to do?"))
 
     def test_audio_payload_mapping(self):
@@ -321,6 +398,22 @@ class FakeTwilioWebSocket:
     async def close(self, code: int = 1000) -> None:
         self.closed = True
         self.close_code = code
+
+
+class FakeRandom:
+    def __init__(self, random_values: list[float], randrange_values: list[int]):
+        self.random_values = list(random_values)
+        self.randrange_values = list(randrange_values)
+
+    def random(self) -> float:
+        if self.random_values:
+            return self.random_values.pop(0)
+        return 1.0
+
+    def randrange(self, stop: int) -> int:
+        if self.randrange_values:
+            return self.randrange_values.pop(0) % stop
+        return 0
 
 
 class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
@@ -372,6 +465,77 @@ class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len(fake_ws.sent), 1)
             self.assertEqual(fake_ws.sent[0]["type"], "response.create")
             self.assertIn("I'm hoping to make an appointment", fake_ws.sent[0]["response"]["instructions"])
+
+    async def test_pre_goal_partial_agent_turn_is_skipped(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-1", "transcript": "for this demo"}
+            )
+
+            self.assertEqual(fake_ws.sent, [])
+            events = (Path(temp_dir) / "events.jsonl").read_text(encoding="utf-8")
+            self.assertIn('"reason": "partial_agent_turn"', events)
+
+    async def test_pre_goal_dob_confirmation_is_not_treated_as_fragment(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-1", "transcript": "1987?"}
+            )
+
+            self.assertEqual(len(fake_ws.sent), 1)
+            self.assertIn(
+                "Yes, my date of birth is March 14, 1987.",
+                fake_ws.sent[0]["response"]["instructions"],
+            )
+
+    async def test_repeated_info_callout_probability_and_wording_vary(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+            bridge._random = FakeRandom(
+                random_values=[1.0, 0.0, 0.0],
+                randrange_values=[0, 0, 0],
+            )
+
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-1", "transcript": "Can you provide your date of birth?"}
+            )
+            bridge._patient_response_in_progress = False
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-2", "transcript": "Can you provide your date of birth again?"}
+            )
+            bridge._patient_response_in_progress = False
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-3", "transcript": "Can you repeat your date of birth?"}
+            )
+
+            self.assertEqual(len(fake_ws.sent), 3)
+            first = fake_ws.sent[0]["response"]["instructions"]
+            second = fake_ws.sent[1]["response"]["instructions"]
+            third = fake_ws.sent[2]["response"]["instructions"]
+            self.assertNotIn("already", first.casefold())
+            self.assertIn("March 14, 1987", second)
+            self.assertIn("March 14, 1987", third)
+            self.assertNotEqual(second, third)
+
+    async def test_pre_goal_service_opening_after_demo_fragment_uses_patient_goal(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-1", "transcript": "for this demo"}
+            )
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-2", "transcript": "What can I help you with today?"}
+            )
+
+            self.assertEqual(len(fake_ws.sent), 1)
+            instructions = fake_ws.sent[0]["response"]["instructions"]
+            self.assertIn("I'm hoping to make an appointment", instructions)
+            self.assertNotIn("demo", instructions.casefold())
 
     async def test_max_turn_limit_closes_twilio_stream(self):
         with tempfile.TemporaryDirectory() as temp_dir:
