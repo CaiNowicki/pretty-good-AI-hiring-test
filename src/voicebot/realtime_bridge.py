@@ -106,7 +106,6 @@ META_DISCLOSURE_CONTEXT_EXEMPTIONS = (
     "pretty good ai",
     "part of pretty good ai",
 )
-ASSUMED_PATIENT_NAME = "james"
 ASSUMED_PATIENT_IDENTITY_PHRASES = (
     "am i speaking with",
     "am i speaking to",
@@ -117,6 +116,22 @@ ASSUMED_PATIENT_IDENTITY_PHRASES = (
     "calling for",
     "looking for",
 )
+ASSUMED_PATIENT_NAME_STOP_WORDS = {
+    "a",
+    "an",
+    "about",
+    "available",
+    "bot",
+    "calling",
+    "for",
+    "looking",
+    "open",
+    "patient",
+    "the",
+    "there",
+    "this",
+    "your",
+}
 NEW_PATIENT_CONSULTATION_ANSWERS = (
     "It's for a new patient consultation.",
     "This would be a new patient consultation.",
@@ -303,7 +318,7 @@ def build_assumed_patient_identity_answer(
     caller_name = _caller_full_name(scenario)
     patient_name = scenario.facts.get("patient_name", "").strip()
     first_name = _caller_first_name(scenario)
-    if _scenario_identity_matches_assumed_patient(scenario):
+    if _scenario_identity_matches_assumed_patient(scenario, transcript):
         if _scenario_is_new_patient(scenario):
             answer = f"Oh, yes, this is {first_name}. I'm surprised you had that already."
             if include_opening:
@@ -543,10 +558,7 @@ def build_response_cancel() -> dict[str, str]:
 
 
 def transcript_asks_about_assumed_patient(transcript: str) -> bool:
-    normalized = transcript.casefold()
-    if ASSUMED_PATIENT_NAME not in normalized:
-        return False
-    return any(phrase in normalized for phrase in ASSUMED_PATIENT_IDENTITY_PHRASES)
+    return bool(_assumed_patient_name_parts(transcript))
 
 
 def transcript_asks_about_meta_behavior(transcript: str) -> bool:
@@ -575,16 +587,34 @@ def _contains_meta_context_exemption(normalized_transcript: str) -> bool:
     return any(exemption in normalized_transcript for exemption in META_DISCLOSURE_CONTEXT_EXEMPTIONS)
 
 
-def _scenario_identity_matches_assumed_patient(scenario: Scenario) -> bool:
+def _assumed_patient_name_parts(transcript: str) -> list[tuple[str, ...]]:
+    normalized = transcript.casefold()
+    assumed_names: list[tuple[str, ...]] = []
+    for phrase in ASSUMED_PATIENT_IDENTITY_PHRASES:
+        match = re.search(rf"\b{re.escape(phrase)}\b\s*", normalized)
+        if match is None:
+            continue
+        remainder = re.split(r"[.?!,;:]", normalized[match.end() :], maxsplit=1)[0]
+        words = re.findall(r"[a-z]+", remainder)
+        if not words or words[0] in ASSUMED_PATIENT_NAME_STOP_WORDS:
+            continue
+        assumed_names.append(tuple(words[:2]))
+    return assumed_names
+
+
+def _scenario_identity_matches_assumed_patient(scenario: Scenario, transcript: str) -> bool:
     identity_values = [
         _caller_full_name(scenario),
         _caller_first_name(scenario),
+        _caller_last_name(scenario),
         scenario.facts.get("patient_name", ""),
     ]
+    assumed_names = _assumed_patient_name_parts(transcript)
     for value in identity_values:
-        name_parts = re.findall(r"[a-z]+", value.casefold())
-        if ASSUMED_PATIENT_NAME in name_parts:
-            return True
+        identity_parts = tuple(re.findall(r"[a-z]+", value.casefold()))
+        for assumed_parts in assumed_names:
+            if identity_parts[: len(assumed_parts)] == assumed_parts:
+                return True
     return False
 
 

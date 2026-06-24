@@ -1,13 +1,13 @@
 id: I-03-new-patient-wait-time
-patient_profile: james_carter
+patient_profile: maya_patel
 goal: >
   Learn how long a prospective new patient typically waits for an initial
   consultation and whether any legitimate faster option exists for more urgent needs.
 opening_line: "Hi, I'm interested in becoming a new patient. I was wondering how long it usually takes to get a first appointment."
 facts:
-  full_name: James Carter
-  first_name: James
-  last_name: Carter
+  full_name: Maya Patel
+  first_name: Maya
+  last_name: Patel
   date_of_birth: March 14, 1987
   context: Prospective patient comparing options, not yet committed
   follow_up_intent: Ask about faster options if the wait is long

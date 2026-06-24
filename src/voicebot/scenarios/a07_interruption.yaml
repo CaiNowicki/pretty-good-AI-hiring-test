@@ -1,5 +1,5 @@
 id: A-07-interruption-barge-in
-patient_profile: james_carter
+patient_profile: maya_patel
 goal: >
   Reschedule an existing appointment, and interrupt once if the agent gives a long
   explanation or starts listing options that do not match the patient's availability.
@@ -12,9 +12,9 @@ interruption_behavior:
   recovery_rule: Return to normal turn-taking and let the agent finish after the single clarification.
   measurement_focus: Agent keeps the reschedule context after a single deliberate patient barge-in.
 facts:
-  full_name: James Carter
-  first_name: James
-  last_name: Carter
+  full_name: Maya Patel
+  first_name: Maya
+  last_name: Patel
   date_of_birth: March 14, 1987
   phone: 555-204-7731
   existing_appointment: Wednesday next week at 2:00 PM

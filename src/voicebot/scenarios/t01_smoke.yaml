@@ -1,11 +1,11 @@
 id: T-01-smoke
-patient_profile: james_carter
+patient_profile: maya_patel
 goal: Schedule a new patient consultation for sometime next week, morning preferred.
 opening_line: "Hi, I'm hoping to make an appointment. I'm a new patient."
 facts:
-  full_name: James Carter
-  first_name: James
-  last_name: Carter
+  full_name: Maya Patel
+  first_name: Maya
+  last_name: Patel
   date_of_birth: March 14, 1987
   phone: 555-204-7731
   insurance: BlueCross BlueShield

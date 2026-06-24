@@ -1,14 +1,14 @@
 id: E-02-symptom-triage
-patient_profile: james_carter
+patient_profile: maya_patel
 goal: >
   Determine whether an orthopedic office is the right place to start
   for persistent knee pain after a hiking injury, or whether the
   caller should see a GP or physical therapist first.
 opening_line: "Hi, I had a quick question before I made an appointment. I've been having knee pain for a few weeks since a hike and I wasn't sure if I should be calling an orthopedist or starting somewhere else."
 facts:
-  full_name: James Carter
-  first_name: James
-  last_name: Carter
+  full_name: Maya Patel
+  first_name: Maya
+  last_name: Patel
   date_of_birth: March 14, 1987
   phone: 555-204-7731
   symptoms: Persistent knee pain for 3 to 4 weeks after hiking; worse with stairs and prolonged sitting; no visible swelling

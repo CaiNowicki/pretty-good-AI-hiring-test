@@ -19,15 +19,15 @@ class ScenarioTests(unittest.TestCase):
         scenario = load_scenario("t01_smoke")
 
         self.assertEqual(scenario.id, "T-01-smoke")
-        self.assertEqual(scenario.patient_profile, "james_carter")
+        self.assertEqual(scenario.patient_profile, "maya_patel")
         self.assertEqual(
             scenario.opening_line,
             "Hi, I'm hoping to make an appointment. I'm a new patient.",
         )
         self.assertNotIn("name", scenario.facts)
-        self.assertEqual(scenario.facts["full_name"], "James Carter")
-        self.assertEqual(scenario.facts["first_name"], "James")
-        self.assertEqual(scenario.facts["last_name"], "Carter")
+        self.assertEqual(scenario.facts["full_name"], "Maya Patel")
+        self.assertEqual(scenario.facts["first_name"], "Maya")
+        self.assertEqual(scenario.facts["last_name"], "Patel")
         self.assertEqual(scenario.facts["date_of_birth"], "March 14, 1987")
         self.assertIn("full_name", scenario.required_facts)
         self.assertIn("first_name", scenario.required_facts)
@@ -42,7 +42,7 @@ class ScenarioTests(unittest.TestCase):
     def test_loads_smoke_scenario_by_declared_id(self):
         scenario = load_scenario("T-01-smoke")
 
-        self.assertEqual(scenario.patient_profile, "james_carter")
+        self.assertEqual(scenario.patient_profile, "maya_patel")
 
     def test_all_scenarios_have_phase_2_data_shape(self):
         for file_stem in ordered_scenario_stems():
@@ -74,10 +74,10 @@ class ScenarioTests(unittest.TestCase):
         scenario = load_scenario("t01_smoke")
         prompt = build_patient_system_prompt(scenario)
 
-        self.assertIn("James Carter", prompt)
-        self.assertIn("full_name: James Carter", prompt)
-        self.assertIn("first_name: James", prompt)
-        self.assertIn("last_name: Carter", prompt)
+        self.assertIn("Maya Patel", prompt)
+        self.assertIn("full_name: Maya Patel", prompt)
+        self.assertIn("first_name: Maya", prompt)
+        self.assertIn("last_name: Patel", prompt)
         self.assertIn("date_of_birth: March 14, 1987", prompt)
         self.assertIn("Answer with the provided facts only when asked.", prompt)
         self.assertIn("Do not volunteer everything at once.", prompt)
@@ -115,12 +115,12 @@ class ScenarioTests(unittest.TestCase):
         scenario = load_scenario("t01_smoke")
         bootstrap = build_realtime_bootstrap(scenario)
 
-        self.assertEqual(bootstrap["patient_profile"], "james_carter")
+        self.assertEqual(bootstrap["patient_profile"], "maya_patel")
         self.assertFalse(bootstrap["interruption_test"])
         self.assertEqual(bootstrap["interruption_behavior"], {})
         self.assertEqual(bootstrap["initial_patient_utterance"], scenario.opening_line)
         self.assertEqual(bootstrap["limits"], scenario.limits.to_dict())
-        self.assertIn("James Carter", bootstrap["system_prompt"])
+        self.assertIn("Maya Patel", bootstrap["system_prompt"])
 
     def test_loads_sofia_persona_with_name_variations(self):
         persona = load_persona("sofia_reyes_montoya")
