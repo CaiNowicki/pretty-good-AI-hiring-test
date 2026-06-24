@@ -106,7 +106,6 @@ META_DISCLOSURE_CONTEXT_EXEMPTIONS = (
     "pretty good ai",
     "part of pretty good ai",
 )
-ASSUMED_PATIENT_NAME = "james"
 ASSUMED_PATIENT_IDENTITY_PHRASES = (
     "am i speaking with",
     "am i speaking to",
@@ -117,12 +116,56 @@ ASSUMED_PATIENT_IDENTITY_PHRASES = (
     "calling for",
     "looking for",
 )
+ASSUMED_PATIENT_NAME_STOP_WORDS = {
+    "a",
+    "an",
+    "about",
+    "available",
+    "bot",
+    "calling",
+    "for",
+    "looking",
+    "open",
+    "patient",
+    "the",
+    "there",
+    "this",
+    "your",
+}
 NEW_PATIENT_CONSULTATION_ANSWERS = (
     "It's for a new patient consultation.",
     "This would be a new patient consultation.",
     "I'm trying to set up a new patient consultation.",
     "It should be a new patient consultation, not a follow-up.",
     "I'm a new patient, so I need a consultation appointment.",
+)
+NEW_PATIENT_EXISTING_APPOINTMENT_PHRASES = (
+    "already have",
+    "already scheduled",
+    "appointment booked",
+    "appointment on file",
+    "appointment in our system",
+)
+NEW_PATIENT_CHANGE_APPOINTMENT_PHRASES = (
+    "reschedule or cancel",
+    "reschedule your appointment",
+    "reschedule your current appointment",
+    "cancel your current appointment",
+    "change to your existing appointment",
+    "change your existing appointment",
+    "change the date or time",
+)
+NEW_PATIENT_EXISTING_APPOINTMENT_ANSWERS = (
+    "Oh, I didn't realize there was already an appointment. Could you tell me when it is?",
+    "I wasn't aware I had one scheduled. What date and time do you see for it?",
+    "If there is already something booked, can you tell me the appointment date and time first?",
+    "I thought I was calling to make a new appointment. What appointment is on file?",
+)
+NEW_PATIENT_CHANGE_APPOINTMENT_ANSWERS = (
+    "Before I decide whether to reschedule or cancel, can you tell me what appointment is on file?",
+    "I don't want to cancel anything until I know what appointment you see. When is it scheduled?",
+    "Could you tell me the current appointment date and time before we change anything?",
+    "I thought I needed a new appointment, so can you first tell me what is already scheduled?",
 )
 REPEATED_INFO_THRESHOLDS = (
     0.0,
@@ -303,7 +346,7 @@ def build_assumed_patient_identity_answer(
     caller_name = _caller_full_name(scenario)
     patient_name = scenario.facts.get("patient_name", "").strip()
     first_name = _caller_first_name(scenario)
-    if _scenario_identity_matches_assumed_patient(scenario):
+    if _scenario_identity_matches_assumed_patient(scenario, transcript):
         if _scenario_is_new_patient(scenario):
             answer = f"Oh, yes, this is {first_name}. I'm surprised you had that already."
             if include_opening:
@@ -477,7 +520,6 @@ def _asks_to_confirm_known_date_of_birth(
 
 def build_confusion_reply(scenario: Scenario, transcript: str) -> str:
     normalized = transcript.casefold()
-    goal = scenario.goal.casefold()
 
     if "birthdate doesn't match" in normalized or "date of birth doesn't match" in normalized:
         dob = scenario.facts.get("date_of_birth", "").strip()
@@ -486,14 +528,37 @@ def build_confusion_reply(scenario: Scenario, transcript: str) -> str:
     if "dental" in normalized:
         return "I don't understand; I thought I called orthopedics."
 
-    if "new patient" in goal and (
-        "already have" in normalized
-        or "reschedule or cancel" in normalized
-        or "reschedule your appointment" in normalized
-    ):
-        return "I don't understand; I'm trying to schedule a new patient consultation."
+    new_patient_mismatch = _new_patient_appointment_mismatch(scenario, normalized)
+    if new_patient_mismatch == "existing":
+        return _select_stable_variant(
+            NEW_PATIENT_EXISTING_APPOINTMENT_ANSWERS,
+            scenario.id,
+            transcript,
+        )
+    if new_patient_mismatch == "change":
+        return _select_stable_variant(
+            NEW_PATIENT_CHANGE_APPOINTMENT_ANSWERS,
+            scenario.id,
+            transcript,
+        )
 
     return "I don't understand what you mean."
+
+
+def _new_patient_appointment_mismatch(
+    scenario: Scenario,
+    normalized_transcript: str,
+) -> str:
+    if "new patient" not in scenario.goal.casefold():
+        return ""
+    if any(phrase in normalized_transcript for phrase in NEW_PATIENT_CHANGE_APPOINTMENT_PHRASES):
+        return "change"
+    if any(
+        phrase in normalized_transcript
+        for phrase in NEW_PATIENT_EXISTING_APPOINTMENT_PHRASES
+    ):
+        return "existing"
+    return ""
 
 
 def _asks_about_appointment_type(normalized_transcript: str) -> bool:
@@ -543,10 +608,7 @@ def build_response_cancel() -> dict[str, str]:
 
 
 def transcript_asks_about_assumed_patient(transcript: str) -> bool:
-    normalized = transcript.casefold()
-    if ASSUMED_PATIENT_NAME not in normalized:
-        return False
-    return any(phrase in normalized for phrase in ASSUMED_PATIENT_IDENTITY_PHRASES)
+    return bool(_assumed_patient_name_parts(transcript))
 
 
 def transcript_asks_about_meta_behavior(transcript: str) -> bool:
@@ -575,16 +637,34 @@ def _contains_meta_context_exemption(normalized_transcript: str) -> bool:
     return any(exemption in normalized_transcript for exemption in META_DISCLOSURE_CONTEXT_EXEMPTIONS)
 
 
-def _scenario_identity_matches_assumed_patient(scenario: Scenario) -> bool:
+def _assumed_patient_name_parts(transcript: str) -> list[tuple[str, ...]]:
+    normalized = transcript.casefold()
+    assumed_names: list[tuple[str, ...]] = []
+    for phrase in ASSUMED_PATIENT_IDENTITY_PHRASES:
+        match = re.search(rf"\b{re.escape(phrase)}\b\s*", normalized)
+        if match is None:
+            continue
+        remainder = re.split(r"[.?!,;:]", normalized[match.end() :], maxsplit=1)[0]
+        words = re.findall(r"[a-z]+", remainder)
+        if not words or words[0] in ASSUMED_PATIENT_NAME_STOP_WORDS:
+            continue
+        assumed_names.append(tuple(words[:2]))
+    return assumed_names
+
+
+def _scenario_identity_matches_assumed_patient(scenario: Scenario, transcript: str) -> bool:
     identity_values = [
         _caller_full_name(scenario),
         _caller_first_name(scenario),
+        _caller_last_name(scenario),
         scenario.facts.get("patient_name", ""),
     ]
+    assumed_names = _assumed_patient_name_parts(transcript)
     for value in identity_values:
-        name_parts = re.findall(r"[a-z]+", value.casefold())
-        if ASSUMED_PATIENT_NAME in name_parts:
-            return True
+        identity_parts = tuple(re.findall(r"[a-z]+", value.casefold()))
+        for assumed_parts in assumed_names:
+            if identity_parts[: len(assumed_parts)] == assumed_parts:
+                return True
     return False
 
 
@@ -635,11 +715,7 @@ def transcript_is_confusing_or_out_of_turn(scenario: Scenario, transcript: str) 
     normalized = transcript.casefold().strip()
     if any(phrase in normalized for phrase in CONFUSING_AGENT_PHRASES):
         return True
-    if "new patient" in scenario.goal.casefold() and (
-        "already have" in normalized
-        or "reschedule or cancel" in normalized
-        or "reschedule your appointment" in normalized
-    ):
+    if _new_patient_appointment_mismatch(scenario, normalized):
         return True
     return _looks_like_garbled_transcript(transcript)
 

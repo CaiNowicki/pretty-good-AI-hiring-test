@@ -68,7 +68,7 @@ class RealtimeBridgeTests(unittest.TestCase):
             event["session"]["audio"]["input"]["turn_detection"]["silence_duration_ms"],
             450,
         )
-        self.assertIn("James Carter", event["session"]["instructions"])
+        self.assertIn("Maya Patel", event["session"]["instructions"])
 
     def test_interruption_test_uses_more_aggressive_turn_detection(self):
         scenario = replace(load_scenario("t01_smoke"), interruption_test=True)
@@ -92,12 +92,12 @@ class RealtimeBridgeTests(unittest.TestCase):
         scenario = load_scenario("t01_smoke")
         event = build_opening_response(
             scenario,
-            "Hello, am I speaking with James? How can I help you today?",
+            "Hello, am I speaking with Maya? How can I help you today?",
         )
 
         self.assertIn(
             (
-                "Oh, yes, this is James. I'm surprised you had that already. "
+                "Oh, yes, this is Maya. I'm surprised you had that already. "
                 "Hi, I'm hoping to make an appointment."
             ),
             event["response"]["instructions"],
@@ -142,12 +142,12 @@ class RealtimeBridgeTests(unittest.TestCase):
 
     def test_company_name_does_not_trigger_ai_meta_guardrail(self):
         scenario = load_scenario("t01_smoke")
-        transcript = "Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?"
+        transcript = "Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with Maya?"
 
         self.assertFalse(transcript_asks_about_meta_behavior(transcript))
         self.assertEqual(build_meta_guardrail_answer(scenario, transcript), "")
         self.assertIn(
-            "Oh, yes, this is James",
+            "Oh, yes, this is Maya",
             build_pre_goal_response(scenario, transcript)["response"]["instructions"],
         )
 
@@ -196,12 +196,12 @@ class RealtimeBridgeTests(unittest.TestCase):
             "Yes, my date of birth is March 14, 1987.",
         )
         self.assertEqual(build_exact_fact_answer(scenario, "1987."), "")
-        self.assertEqual(build_exact_fact_answer(scenario, "What is your first name?"), "James")
-        self.assertEqual(build_exact_fact_answer(scenario, "What is your last name?"), "Carter")
-        self.assertEqual(build_exact_fact_answer(scenario, "What is your full name?"), "James Carter")
+        self.assertEqual(build_exact_fact_answer(scenario, "What is your first name?"), "Maya")
+        self.assertEqual(build_exact_fact_answer(scenario, "What is your last name?"), "Patel")
+        self.assertEqual(build_exact_fact_answer(scenario, "What is your full name?"), "Maya Patel")
         self.assertEqual(
             build_exact_fact_answer(scenario, "Can you tell me your full name, first and last?"),
-            "James Carter",
+            "Maya Patel",
         )
         self.assertIn(
             "March 14, 1987",
@@ -277,13 +277,17 @@ class RealtimeBridgeTests(unittest.TestCase):
             build_pre_goal_response(scenario, transcript)["response"]["instructions"],
         )
 
-    def test_only_james_persona_confirms_is_this_james(self):
-        james_scenario = load_scenario("t01_smoke")
+    def test_only_matching_persona_confirms_assumed_identity(self):
+        maya_scenario = load_scenario("t01_smoke")
         maria_scenario = load_scenario("a01_specific_time")
 
         self.assertEqual(
-            build_assumed_patient_identity_answer(james_scenario, "Is this James?"),
-            "Oh, yes, this is James. I'm surprised you had that already.",
+            build_assumed_patient_identity_answer(maya_scenario, "Is this Maya?"),
+            "Oh, yes, this is Maya. I'm surprised you had that already.",
+        )
+        self.assertEqual(
+            build_assumed_patient_identity_answer(maya_scenario, "Is this James?"),
+            "No, this is Maya Patel. I think you may have the wrong patient.",
         )
         self.assertEqual(
             build_assumed_patient_identity_answer(maria_scenario, "Is this James?"),
@@ -323,13 +327,37 @@ class RealtimeBridgeTests(unittest.TestCase):
             "orthopedics",
             build_confusion_reply(scenario, "For dental purposes I'll accept it."),
         )
-        self.assertIn(
-            "new patient consultation",
-            build_confusion_response(
-                scenario,
-                "Would you like to reschedule or cancel that appointment?",
-            )["response"]["instructions"],
+        change_instructions = build_confusion_response(
+            scenario,
+            "Would you like to reschedule or cancel that appointment?",
+        )["response"]["instructions"]
+        self.assertNotIn("I don't understand; I'm trying to schedule", change_instructions)
+        self.assertIn("appointment", change_instructions.casefold())
+
+    def test_new_patient_existing_appointment_confusion_asks_for_details(self):
+        scenario = load_scenario("t01_smoke")
+        answer = build_confusion_reply(
+            scenario,
+            "It looks like you already have a new patient consultation appointment booked.",
         )
+
+        self.assertNotIn("I don't understand; I'm trying to schedule", answer)
+        self.assertIn("appointment", answer.casefold())
+        self.assertTrue("when" in answer.casefold() or "date" in answer.casefold())
+
+    def test_new_patient_change_prompt_gets_contextual_variant(self):
+        scenario = load_scenario("t01_smoke")
+        prompts = (
+            "Would you like to reschedule or cancel that appointment?",
+            "I can help. Would you like to reschedule or cancel your current appointment?",
+            "If you want to change the date or time, I can help reschedule or cancel it.",
+        )
+        answers = {build_confusion_reply(scenario, prompt) for prompt in prompts}
+
+        self.assertGreater(len(answers), 1)
+        for answer in answers:
+            self.assertNotIn("I don't understand; I'm trying to schedule", answer)
+            self.assertIn("appointment", answer.casefold())
 
     def test_agent_turn_key_prefers_realtime_item_id(self):
         self.assertEqual(build_agent_turn_key({"item_id": "abc", "transcript": "hello"}), "item:abc")

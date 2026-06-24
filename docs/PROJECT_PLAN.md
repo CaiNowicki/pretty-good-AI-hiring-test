@@ -81,7 +81,7 @@ Call-007 pause remediation notes:
 - Call-007 measured sub-second to roughly two-second response gaps after agent
   prompts, with no repeated long four-second fixed pause pattern.
 - Opening IVR handling was improved so identity prompts such as "May I speak
-  with James?" are answered instead of being swallowed as pre-opening IVR.
+  with the patient?" are answered instead of being swallowed as pre-opening IVR.
 - Remaining issue: the bot's answer to "How can I help you today?" can still be
   too generic and should be handled as a Phase 2 prompt/turn-state refinement.
 
@@ -107,7 +107,7 @@ Exit criteria:
 - [x] Add deterministic limits: max call duration, max silence, max turns, and emergency stop.
 - Before broader scenario runs, soften smoke-test deterministic identity
   handling into natural response guidance. The bot should still detect when the
-  agent assumes "James," but it should vary wording naturally except for
+  agent assumes the caller identity, but it should vary wording naturally except for
   critical exact facts such as DOB, phone number, or required identifiers.
 
 Phase 2.5 deterministic limit notes:

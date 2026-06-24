@@ -1,13 +1,13 @@
 id: I-02-who-practices-there
-patient_profile: james_carter
+patient_profile: maya_patel
 goal: >
   Learn which providers practice at the office, what their roles are, and
   whether a female physician is available before deciding whether to book.
 opening_line: "Hi, I'm thinking about becoming a patient there and I was wondering who the doctors are."
 facts:
-  full_name: James Carter
-  first_name: James
-  last_name: Carter
+  full_name: Maya Patel
+  first_name: Maya
+  last_name: Patel
   date_of_birth: March 14, 1987
   context: Prospective new patient, has not scheduled yet
   unstated_preference: Female physician, but do not mention this until after the provider roster is discussed
