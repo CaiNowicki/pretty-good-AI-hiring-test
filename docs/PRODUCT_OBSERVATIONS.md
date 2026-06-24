@@ -31,3 +31,5 @@ Observed flow:
 - Probe appointment-window negotiation: broad windows, unavailable windows, conflicting windows, and correction after the agent proposes a time.
 - Probe repetition and closure: patient says no to additional help, asks if appointment is already confirmed, or becomes confused by repeated confirmations.
 - Probe transfer language: whether the handoff to a scheduling agent causes repeated questions, lost context, or unnatural looping.
+- Probe appointment-type classification: whether "new patient consultation" is preserved or followed by incompatible follow-up/routine-visit prompts.
+- Probe transfer completion: whether an offered transfer actually connects, fails with explanation, or ends the call unexpectedly.

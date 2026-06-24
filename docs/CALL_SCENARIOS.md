@@ -90,6 +90,8 @@ The patient bot should not:
 - Refusal or escalation when a normal request should be handled.
 - Inconsistent confirmation details.
 - Repetitive scheduling handoff or duplicate final confirmations that make the patient unsure whether the appointment is booked.
+- Repeated appointment-type questions that contradict or erase the caller's previous answer.
+- Transfer offers that are followed by call termination instead of handoff or clear closure.
 
 ## Call Review Rubric
 

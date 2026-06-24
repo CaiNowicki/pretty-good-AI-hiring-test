@@ -58,6 +58,14 @@ Calibration review from `artifacts/calls/call-001/transcript.txt`:
 - Detailed notes are in `docs/CALL_001_REVIEW.md`.
 - Treat call-001 as proof that the audio bridge works, not as proof that Phase 1 has passed.
 
+Call-002 calibration notes:
+
+- The bot still volunteered unrelated details, including no-referral and morning-preference comments, and still interrupted during scheduling.
+- The agent asked whether the call was for a new patient consultation, then repeated the classification question as follow-up versus routine visit.
+- The agent offered to transfer the caller but then ended the call.
+- Detailed notes are in `docs/CALL_002_REVIEW.md`.
+- Prompt and timing defaults now need to keep normal calls tightly responsive to the latest agent question and slower to speak.
+
 Exit criteria:
 
 - The call lasts at least 60 seconds.
@@ -69,6 +77,7 @@ Exit criteria:
 - Normal scenarios use conservative VAD timing and clear/cancel buffered bot audio when the agent starts speaking.
 - Interruption tests are opt-in scenario behavior, not accidental overlap.
 - The bot stops after a confirmed outcome instead of drifting into extra turns.
+- The bot does not volunteer referral status, time preferences, provider preferences, or other scenario facts unless the agent asks or the bot is correcting a misunderstanding.
 
 ### Phase 2: Scenario Engine
 
