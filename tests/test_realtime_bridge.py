@@ -50,7 +50,7 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(event["session"]["audio"]["input"]["turn_detection"]["prefix_padding_ms"], 500)
         self.assertEqual(
             event["session"]["audio"]["input"]["turn_detection"]["silence_duration_ms"],
-            1500,
+            850,
         )
         self.assertIn("James Carter", event["session"]["instructions"])
 
