@@ -5,7 +5,9 @@ goal: >
   what documentation is needed, and book an appointment if possible.
 opening_line: "Hi, I hurt my ankle at work a couple days ago and I need to come in. My employer said it should go through workers' comp. Do you handle that?"
 facts:
-  name: Marcus Webb
+  full_name: Marcus Webb
+  first_name: Marcus
+  last_name: Webb
   date_of_birth: August 22, 1979
   phone: 555-814-3309
   injury: Twisted ankle after stepping off a loading dock
@@ -14,7 +16,9 @@ facts:
   personal_insurance: Has personal insurance, but injury is work-related
   preferred_time: As soon as possible
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - injury

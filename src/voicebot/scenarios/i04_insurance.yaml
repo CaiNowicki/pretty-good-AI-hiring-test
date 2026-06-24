@@ -5,13 +5,17 @@ goal: >
   ambiguous payer name to see whether the agent clarifies before answering.
 opening_line: "Hi, I wanted to check if you take Blue Cross insurance."
 facts:
-  name: Maria Lopez
+  full_name: Maria Lopez
+  first_name: Maria
+  last_name: Lopez
   date_of_birth: July 22, 1980
   insurance_being_asked_about: Blue Cross, intentionally ambiguous
   actual_plan: BlueCross BlueShield PPO
   context: Established patient asking about a family member's coverage
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - insurance_being_asked_about
   - actual_plan

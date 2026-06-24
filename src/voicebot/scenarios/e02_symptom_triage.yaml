@@ -6,7 +6,9 @@ goal: >
   caller should see a GP or physical therapist first.
 opening_line: "Hi, I had a quick question before I made an appointment. I've been having knee pain for a few weeks since a hike and I wasn't sure if I should be calling an orthopedist or starting somewhere else."
 facts:
-  name: James Carter
+  full_name: James Carter
+  first_name: James
+  last_name: Carter
   date_of_birth: March 14, 1987
   phone: 555-204-7731
   symptoms: Persistent knee pain for 3 to 4 weeks after hiking; worse with stairs and prolonged sitting; no visible swelling
@@ -14,7 +16,9 @@ facts:
   preferred_times: Mornings if scheduling becomes appropriate
   concern: Not sure whether orthopedics is the right entry point
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - symptoms

@@ -5,14 +5,18 @@ goal: >
   only after the agent proposes something the patient declines.
 opening_line: "Yes, hello. I need to see the doctor sometime next week if possible."
 facts:
-  name: Robert Hayes
+  full_name: Robert Hayes
+  first_name: Robert
+  last_name: Hayes
   date_of_birth: November 3, 1951
   phone: 555-447-9023
   insurance: Medicare
   preferred_times: Morning, but patient does not volunteer this up front
   provider_preference: No preference
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - insurance

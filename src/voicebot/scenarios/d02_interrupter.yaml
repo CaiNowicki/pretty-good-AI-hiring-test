@@ -13,7 +13,9 @@ interruption_behavior:
   recovery_rule: Stay impatient but cooperative, do not interrupt every agent turn, and let the agent confirm key details.
   measurement_focus: Agent recovers from multiple deliberate interruptions without losing collected information.
 facts:
-  name: Chris Navarro
+  full_name: Chris Navarro
+  first_name: Chris
+  last_name: Navarro
   date_of_birth: June 17, 1985
   phone: 555-302-8847
   insurance: United Healthcare
@@ -21,7 +23,9 @@ facts:
   appointment_type: General checkup
   voice_behavior: Use a faster pace and clipped acknowledgments like yeah, fine, okay, and got it.
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - insurance

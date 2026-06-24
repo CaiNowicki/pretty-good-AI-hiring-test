@@ -12,14 +12,18 @@ interruption_behavior:
   recovery_rule: Return to normal turn-taking and let the agent finish after the single clarification.
   measurement_focus: Agent keeps the reschedule context after a single deliberate patient barge-in.
 facts:
-  name: James Carter
+  full_name: James Carter
+  first_name: James
+  last_name: Carter
   date_of_birth: March 14, 1987
   phone: 555-204-7731
   existing_appointment: Wednesday next week at 2:00 PM
   preferred_times: Thursday or Friday morning next week
   provider_preference: Same provider if possible
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - existing_appointment

@@ -8,7 +8,7 @@ from pathlib import Path
 from voicebot.artifacts import append_jsonl, utc_now_iso
 from voicebot.config import load_settings
 from voicebot.constants import DEFAULT_SCENARIO_ID
-from voicebot.realtime_bridge import BridgeState, RealtimeBridge
+from voicebot.realtime_bridge import EMERGENCY_STOP_DTMF_DIGITS, BridgeState, RealtimeBridge
 from voicebot.scenario import ScenarioNotFoundError, load_scenario
 
 try:
@@ -127,7 +127,16 @@ async def twilio_media(websocket: WebSocket) -> None:
                     bridge = None
                 break
 
-            if event_type in {"connected", "mark", "dtmf"}:
+            if event_type == "dtmf":
+                append_jsonl(events_path, {"time": utc_now_iso(), "twilio": message})
+                digit = str(message.get("dtmf", {}).get("digits", ""))
+                if bridge is not None and digit in EMERGENCY_STOP_DTMF_DIGITS:
+                    await bridge.request_emergency_stop(websocket, f"dtmf:{digit}")
+                    bridge = None
+                    break
+                continue
+
+            if event_type in {"connected", "mark"}:
                 append_jsonl(events_path, {"time": utc_now_iso(), "twilio": message})
     except WebSocketDisconnect:
         append_jsonl(events_path, {"time": utc_now_iso(), "event": "websocket.disconnected"})

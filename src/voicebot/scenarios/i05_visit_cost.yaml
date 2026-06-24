@@ -5,13 +5,17 @@ goal: >
   cost without insurance before deciding whether to make an appointment.
 opening_line: "Hi, I had a question about what it costs to come in for a visit."
 facts:
-  name: Robert Hayes
+  full_name: Robert Hayes
+  first_name: Robert
+  last_name: Hayes
   date_of_birth: November 3, 1951
   insurance: Medicare
   financial_concern: On a fixed income and wants to understand out-of-pocket costs
   visit_type: Standard office visit
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - insurance
   - financial_concern

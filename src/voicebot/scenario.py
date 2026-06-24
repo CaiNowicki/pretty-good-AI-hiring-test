@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import re
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +26,27 @@ META_BEHAVIOR_ALLOW_PHRASES = (
     "test harness",
     "meta behavior",
 )
+DEFAULT_EMERGENCY_STOP_PHRASES = (
+    "emergency stop",
+    "stop the test",
+    "stop this test",
+    "end the test call",
+    "abort the call",
+    "hang up now",
+)
+
+
+@dataclass(frozen=True)
+class CallLimits:
+    max_call_seconds: int
+    max_silence_seconds: int
+    max_turns: int
+    emergency_stop_phrases: list[str] = field(
+        default_factory=lambda: list(DEFAULT_EMERGENCY_STOP_PHRASES)
+    )
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -44,6 +66,13 @@ class Scenario:
     interruption_test: bool = False
     interruption_behavior: dict[str, str] = field(default_factory=dict)
     name_variations: list[str] = field(default_factory=list)
+    limits: CallLimits = field(
+        default_factory=lambda: CallLimits(
+            max_call_seconds=240,
+            max_silence_seconds=20,
+            max_turns=22,
+        )
+    )
 
 
 class ScenarioNotFoundError(FileNotFoundError):
@@ -176,6 +205,115 @@ def _persona_facts_for_profile(patient_profile: str) -> tuple[dict[str, Any], li
     return facts, persona.name_variations
 
 
+def _as_positive_int(value: Any, path: Path, field: str) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"Scenario file {path} has non-integer {field}.") from exc
+    if parsed <= 0:
+        raise ValueError(f"Scenario file {path} has non-positive {field}.")
+    return parsed
+
+
+def _call_duration_from_stop_conditions(stop_conditions: list[str]) -> int | None:
+    for condition in stop_conditions:
+        match = re.search(r"call exceeds\s+(\d+)\s+minute", condition, re.IGNORECASE)
+        if match:
+            return int(match.group(1)) * 60
+    return None
+
+
+def _default_limits_for_scenario(
+    scenario_id: str,
+    patient_profile: str,
+    stop_conditions: list[str],
+    interruption_test: bool,
+) -> CallLimits:
+    max_call_seconds = _call_duration_from_stop_conditions(stop_conditions) or 240
+    normalized_id = scenario_id.casefold()
+
+    if patient_profile == "distressed_adult_caller" or "medical-emergency" in normalized_id:
+        return CallLimits(
+            max_call_seconds=max_call_seconds,
+            max_silence_seconds=10,
+            max_turns=12,
+        )
+    if interruption_test or patient_profile == "impatient_adult_caller":
+        return CallLimits(
+            max_call_seconds=max_call_seconds,
+            max_silence_seconds=8,
+            max_turns=34,
+        )
+    if "hard-of-hearing" in normalized_id:
+        return CallLimits(
+            max_call_seconds=max_call_seconds,
+            max_silence_seconds=24,
+            max_turns=36,
+        )
+    if "background-interruptions" in normalized_id:
+        return CallLimits(
+            max_call_seconds=max_call_seconds,
+            max_silence_seconds=18,
+            max_turns=34,
+        )
+    if normalized_id.startswith("i-"):
+        return CallLimits(
+            max_call_seconds=max_call_seconds,
+            max_silence_seconds=18,
+            max_turns=16,
+        )
+    return CallLimits(
+        max_call_seconds=max_call_seconds,
+        max_silence_seconds=20,
+        max_turns=22,
+    )
+
+
+def _call_limits_from_mapping(
+    data: dict[str, Any],
+    path: Path,
+    stop_conditions: list[str],
+    interruption_test: bool,
+) -> CallLimits:
+    defaults = _default_limits_for_scenario(
+        str(data["id"]),
+        str(data["patient_profile"]),
+        stop_conditions,
+        interruption_test,
+    )
+    raw_limits = data.get("limits", {})
+    if not raw_limits:
+        return defaults
+    if not isinstance(raw_limits, dict):
+        raise ValueError(f"Scenario file {path} has non-mapping limits.")
+
+    emergency_stop_phrases = raw_limits.get(
+        "emergency_stop_phrases",
+        defaults.emergency_stop_phrases,
+    )
+    if not isinstance(emergency_stop_phrases, list):
+        raise ValueError(f"Scenario file {path} has non-list limits.emergency_stop_phrases.")
+
+    return CallLimits(
+        max_call_seconds=_as_positive_int(
+            raw_limits.get("max_call_seconds", defaults.max_call_seconds),
+            path,
+            "limits.max_call_seconds",
+        ),
+        max_silence_seconds=_as_positive_int(
+            raw_limits.get("max_silence_seconds", defaults.max_silence_seconds),
+            path,
+            "limits.max_silence_seconds",
+        ),
+        max_turns=_as_positive_int(
+            raw_limits.get("max_turns", defaults.max_turns),
+            path,
+            "limits.max_turns",
+        ),
+        emergency_stop_phrases=[str(phrase) for phrase in emergency_stop_phrases],
+    )
+
+
 def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
     required = {
         "id",
@@ -224,6 +362,8 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
         raise ValueError(
             f"Scenario file {path} defines interruption_behavior without interruption_test."
         )
+    stop_conditions = _as_string_list(data["stop_conditions"], path, "stop_conditions")
+    limits = _call_limits_from_mapping(data, path, stop_conditions, interruption_test)
 
     return Scenario(
         id=str(data["id"]),
@@ -237,7 +377,7 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
         optional_edge_behavior=optional_edge_behavior,
         branch_conditions=optional_edge_behavior,
         success_criteria=str(data["success_criteria"]),
-        stop_conditions=_as_string_list(data["stop_conditions"], path, "stop_conditions"),
+        stop_conditions=stop_conditions,
         interruption_test=interruption_test,
         interruption_behavior=interruption_behavior,
         name_variations=_as_string_list(
@@ -245,6 +385,7 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
             path,
             "name_variations",
         ),
+        limits=limits,
     )
 
 
@@ -470,6 +611,7 @@ def build_realtime_bootstrap(scenario: Scenario) -> dict[str, Any]:
         "patient_profile": scenario.patient_profile,
         "interruption_test": scenario.interruption_test,
         "interruption_behavior": scenario.interruption_behavior,
+        "limits": scenario.limits.to_dict(),
         "system_prompt": system_prompt,
         "initial_patient_utterance": scenario.opening_line,
     }

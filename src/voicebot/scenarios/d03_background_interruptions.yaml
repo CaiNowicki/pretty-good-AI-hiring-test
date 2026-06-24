@@ -6,7 +6,9 @@ goal: >
   background speech.
 opening_line: "Hi, I need to make an appointment for my daughter."
 facts:
-  name: Taylor Brooks
+  full_name: Taylor Brooks
+  first_name: Taylor
+  last_name: Brooks
   patient_name: Emma Brooks
   patient_date_of_birth: April 9, 2015
   parent_phone: 555-581-2204
@@ -15,7 +17,9 @@ facts:
   appointment_type: Annual checkup
   aside_delivery: Use soft, faster, warmer aside lines when speaking to Emma; use SSML prosody volume soft if supported, otherwise flag aside segments for gain reduction before Twilio audio.
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - patient_name
   - patient_date_of_birth
   - parent_phone

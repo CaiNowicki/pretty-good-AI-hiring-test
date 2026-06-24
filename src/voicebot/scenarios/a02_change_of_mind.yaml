@@ -5,14 +5,18 @@ goal: >
   and confirm the new slot cleanly.
 opening_line: "Hi, I need to make an appointment sometime next week."
 facts:
-  name: Maria Lopez
+  full_name: Maria Lopez
+  first_name: Maria
+  last_name: Lopez
   date_of_birth: July 22, 1980
   phone: 555-318-4492
   insurance: Aetna
   preferred_times: Morning, next week, but flexible
   provider_preference: No preference
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - insurance

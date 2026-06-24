@@ -5,7 +5,9 @@ goal: >
   Confirm the request is submitted and get a sense of turnaround time.
 opening_line: "Hi, I'm calling to request a refill on one of my medications."
 facts:
-  name: Denise Wong
+  full_name: Denise Wong
+  first_name: Denise
+  last_name: Wong
   date_of_birth: February 28, 1973
   phone: 555-629-3817
   insurance: Cigna
@@ -14,7 +16,9 @@ facts:
   last_refill: Approximately 30 days ago
   pills_remaining: About 5 days worth
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - insurance

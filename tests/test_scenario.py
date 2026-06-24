@@ -3,6 +3,7 @@ from dataclasses import fields, replace
 from pathlib import Path
 
 from voicebot.scenario import (
+    CallLimits,
     Scenario,
     build_patient_system_prompt,
     build_realtime_bootstrap,
@@ -23,10 +24,20 @@ class ScenarioTests(unittest.TestCase):
             scenario.opening_line,
             "Hi, I'm hoping to make an appointment. I'm a new patient.",
         )
-        self.assertEqual(scenario.facts["name"], "James Carter")
+        self.assertNotIn("name", scenario.facts)
+        self.assertEqual(scenario.facts["full_name"], "James Carter")
+        self.assertEqual(scenario.facts["first_name"], "James")
+        self.assertEqual(scenario.facts["last_name"], "Carter")
         self.assertEqual(scenario.facts["date_of_birth"], "March 14, 1987")
+        self.assertIn("full_name", scenario.required_facts)
+        self.assertIn("first_name", scenario.required_facts)
+        self.assertIn("last_name", scenario.required_facts)
         self.assertIn("date_of_birth", scenario.required_facts)
         self.assertTrue(scenario.optional_edge_behavior)
+        self.assertEqual(scenario.limits.max_call_seconds, 240)
+        self.assertNotEqual(scenario.limits.max_call_seconds, 60)
+        self.assertEqual(scenario.limits.max_silence_seconds, 20)
+        self.assertEqual(scenario.limits.max_turns, 22)
 
     def test_loads_smoke_scenario_by_declared_id(self):
         scenario = load_scenario("T-01-smoke")
@@ -51,12 +62,22 @@ class ScenarioTests(unittest.TestCase):
                 )
                 for fact_key in scenario.required_facts:
                     self.assertIn(fact_key, scenario.facts)
+                if "full_name" in scenario.facts:
+                    self.assertNotIn("name", scenario.facts)
+                    self.assertTrue(scenario.facts["first_name"])
+                    self.assertTrue(scenario.facts["last_name"])
+                    self.assertIn("first_name", scenario.required_facts)
+                    self.assertIn("last_name", scenario.required_facts)
+                    self.assertIn("full_name", scenario.required_facts)
 
     def test_prompt_uses_scenario_facts_without_scripted_dialogue(self):
         scenario = load_scenario("t01_smoke")
         prompt = build_patient_system_prompt(scenario)
 
         self.assertIn("James Carter", prompt)
+        self.assertIn("full_name: James Carter", prompt)
+        self.assertIn("first_name: James", prompt)
+        self.assertIn("last_name: Carter", prompt)
         self.assertIn("date_of_birth: March 14, 1987", prompt)
         self.assertIn("Answer with the provided facts only when asked.", prompt)
         self.assertIn("Do not volunteer everything at once.", prompt)
@@ -97,6 +118,7 @@ class ScenarioTests(unittest.TestCase):
         self.assertFalse(bootstrap["interruption_test"])
         self.assertEqual(bootstrap["interruption_behavior"], {})
         self.assertEqual(bootstrap["initial_patient_utterance"], scenario.opening_line)
+        self.assertEqual(bootstrap["limits"], scenario.limits.to_dict())
         self.assertIn("James Carter", bootstrap["system_prompt"])
 
     def test_loads_sofia_persona_with_name_variations(self):
@@ -176,6 +198,23 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("internal escalation counter", prompt)
         self.assertIn("level 3 is disengaging", prompt)
         self.assertIn("Alright. Bye. is the ceiling", prompt)
+
+    def test_scenario_limits_can_be_overridden_explicitly(self):
+        scenario = replace(
+            load_scenario("t01_smoke"),
+            limits=CallLimits(
+                max_call_seconds=180,
+                max_silence_seconds=12,
+                max_turns=15,
+                emergency_stop_phrases=["operator stop"],
+            ),
+        )
+        bootstrap = build_realtime_bootstrap(scenario)
+
+        self.assertEqual(bootstrap["limits"]["max_call_seconds"], 180)
+        self.assertEqual(bootstrap["limits"]["max_silence_seconds"], 12)
+        self.assertEqual(bootstrap["limits"]["max_turns"], 15)
+        self.assertEqual(bootstrap["limits"]["emergency_stop_phrases"], ["operator stop"])
 
     def test_loads_all_appointment_scheduling_scenarios(self):
         scenario_files = {
@@ -321,6 +360,9 @@ class ScenarioTests(unittest.TestCase):
         self.assertFalse(load_scenario("d01_hard_of_hearing").interruption_test)
         self.assertTrue(load_scenario("d02_interrupter").interruption_test)
         self.assertTrue(load_scenario("d02_interrupter").interruption_behavior)
+        self.assertEqual(load_scenario("d02_interrupter").limits.max_call_seconds, 300)
+        self.assertEqual(load_scenario("d02_interrupter").limits.max_silence_seconds, 8)
+        self.assertEqual(load_scenario("d02_interrupter").limits.max_turns, 34)
         self.assertFalse(load_scenario("d03_background_interruptions").interruption_test)
         self.assertEqual(load_scenario("d03_background_interruptions").interruption_behavior, {})
 

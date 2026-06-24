@@ -3,14 +3,18 @@ patient_profile: maria_lopez
 goal: Book an appointment at 10 AM next Tuesday.
 opening_line: "Hi, I'd like to make an appointment for next Tuesday at 10 AM."
 facts:
-  name: Maria Lopez
+  full_name: Maria Lopez
+  first_name: Maria
+  last_name: Lopez
   date_of_birth: July 22, 1980
   phone: 555-318-4492
   insurance: Aetna
   preferred_time: 10 AM, next Tuesday
   provider_preference: No preference
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - insurance

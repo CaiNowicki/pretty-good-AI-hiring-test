@@ -5,12 +5,16 @@ goal: >
   whether a female physician is available before deciding whether to book.
 opening_line: "Hi, I'm thinking about becoming a patient there and I was wondering who the doctors are."
 facts:
-  name: James Carter
+  full_name: James Carter
+  first_name: James
+  last_name: Carter
   date_of_birth: March 14, 1987
   context: Prospective new patient, has not scheduled yet
   unstated_preference: Female physician, but do not mention this until after the provider roster is discussed
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - context
   - unstated_preference

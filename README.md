@@ -58,3 +58,8 @@ python -m voicebot.cli call --scenario t01_smoke
 ```
 
 Artifacts are written under `artifacts/calls/`.
+
+Calls are bounded by scenario/persona-specific runtime limits: max duration,
+max conversational silence, max agent turns, and emergency stop. The old
+60-second smoke-call threshold was only a calibration check, not an active cap.
+Pressing `9` during a live call triggers the emergency stop path.

@@ -6,7 +6,9 @@ goal: >
   how the agent handles consent and scheduling for a minor.
 opening_line: "Hi, um, I hurt my wrist playing basketball yesterday and I want to make an appointment."
 facts:
-  name: Jordan Ellis
+  full_name: Jordan Ellis
+  first_name: Jordan
+  last_name: Ellis
   date_of_birth: February 11, 2010
   phone: Parent's phone, borrowed for the call
   injury: Sprained or possibly fractured wrist after impact during a basketball game
@@ -14,7 +16,9 @@ facts:
   insurance: On parent's plan; details unknown to caller
   voice_behavior: Younger-sounding, slightly uncertain, with natural teenage hedging
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - injury

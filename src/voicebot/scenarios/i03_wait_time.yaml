@@ -5,13 +5,17 @@ goal: >
   consultation and whether any legitimate faster option exists for more urgent needs.
 opening_line: "Hi, I'm interested in becoming a new patient. I was wondering how long it usually takes to get a first appointment."
 facts:
-  name: James Carter
+  full_name: James Carter
+  first_name: James
+  last_name: Carter
   date_of_birth: March 14, 1987
   context: Prospective patient comparing options, not yet committed
   follow_up_intent: Ask about faster options if the wait is long
   time_preference: Morning if scheduling becomes appropriate
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - context
   - follow_up_intent
