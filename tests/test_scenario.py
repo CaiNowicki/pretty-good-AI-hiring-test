@@ -30,6 +30,8 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("date_of_birth: March 14, 1987", prompt)
         self.assertIn("Answer with the provided facts only when asked.", prompt)
         self.assertIn("Do not volunteer everything at once.", prompt)
+        self.assertIn("Respond to the agent's most recent question only.", prompt)
+        self.assertIn("referral status, provider preference", prompt)
         self.assertIn("Wait for the agent to finish speaking before responding.", prompt)
         self.assertIn("Say the opening line once only.", prompt)
         self.assertIn("Do not interrupt the agent.", prompt)

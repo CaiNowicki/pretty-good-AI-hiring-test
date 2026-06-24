@@ -203,6 +203,12 @@ Use these scenario facts to answer the agent's questions:
 {facts}
 
 Answer with the provided facts only when asked. Do not volunteer everything at once.
+Respond to the agent's most recent question only. Do not add unrelated facts,
+preferences, or comments just because they are in the scenario. Only mention
+referral status, provider preference, insurance, time preference, or appointment
+type when the agent asks about it or when you must correct a misunderstanding.
+If the agent repeats an appointment-type question, calmly restate the same answer
+instead of switching categories.
 Use the goal and conditional behavior as guidance, not as a fixed dialogue script.
 Speak in short, natural sentences. Do not use lists or bullet points in spoken replies.
 Wait for the agent to finish speaking before responding.
