@@ -327,13 +327,37 @@ class RealtimeBridgeTests(unittest.TestCase):
             "orthopedics",
             build_confusion_reply(scenario, "For dental purposes I'll accept it."),
         )
-        self.assertIn(
-            "new patient consultation",
-            build_confusion_response(
-                scenario,
-                "Would you like to reschedule or cancel that appointment?",
-            )["response"]["instructions"],
+        change_instructions = build_confusion_response(
+            scenario,
+            "Would you like to reschedule or cancel that appointment?",
+        )["response"]["instructions"]
+        self.assertNotIn("I don't understand; I'm trying to schedule", change_instructions)
+        self.assertIn("appointment", change_instructions.casefold())
+
+    def test_new_patient_existing_appointment_confusion_asks_for_details(self):
+        scenario = load_scenario("t01_smoke")
+        answer = build_confusion_reply(
+            scenario,
+            "It looks like you already have a new patient consultation appointment booked.",
         )
+
+        self.assertNotIn("I don't understand; I'm trying to schedule", answer)
+        self.assertIn("appointment", answer.casefold())
+        self.assertTrue("when" in answer.casefold() or "date" in answer.casefold())
+
+    def test_new_patient_change_prompt_gets_contextual_variant(self):
+        scenario = load_scenario("t01_smoke")
+        prompts = (
+            "Would you like to reschedule or cancel that appointment?",
+            "I can help. Would you like to reschedule or cancel your current appointment?",
+            "If you want to change the date or time, I can help reschedule or cancel it.",
+        )
+        answers = {build_confusion_reply(scenario, prompt) for prompt in prompts}
+
+        self.assertGreater(len(answers), 1)
+        for answer in answers:
+            self.assertNotIn("I don't understand; I'm trying to schedule", answer)
+            self.assertIn("appointment", answer.casefold())
 
     def test_agent_turn_key_prefers_realtime_item_id(self):
         self.assertEqual(build_agent_turn_key({"item_id": "abc", "transcript": "hello"}), "item:abc")
