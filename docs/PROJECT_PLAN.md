@@ -46,18 +46,36 @@ The first implementation milestone should prove one coherent live call end-to-en
 - [ ] Confirm the bot can greet, listen, answer, and hang up naturally. Smoke call proved conversation, but prompt and automatic stopping need polish before final calls.
 - [x] Save one test recording and transcript as an internal calibration artifact.
 
+Calibration review from `artifacts/calls/call-001/transcript.txt`:
+
+- The bot began speaking during the recorded/Spanish preamble and repeated its opening after the agent started talking.
+- The bot asked to schedule before the agent had offered a natural service opening, and its name handoff did not fit the intake flow.
+- The bot frequently interrupted or talked over the agent; default calls now need conservative turn-taking, with interruption allowed only in explicit barge-in scenarios.
+- The bot briefly used scheduler-like language, e.g. saying it would check or adjust the time itself.
+- The bot accepted shifting confirmations, but did not end the call cleanly after the final details/text-message exchange.
+- The agent invented a birthdate before the new patient provided one; track this as a candidate bug.
+- The agent appeared to start a hallucinated scheduling/rescheduling thread after the initial booking acceptance; treat the degraded tail as lower-confidence evidence.
+- Detailed notes are in `docs/CALL_001_REVIEW.md`.
+- Treat call-001 as proof that the audio bridge works, not as proof that Phase 1 has passed.
+
 Exit criteria:
 
 - The call lasts at least 60 seconds.
 - Both sides are intelligible.
 - Bot does not talk over the agent except when intentionally testing barge-in.
 - The bot can pursue a simple scheduling goal without freezing.
+- The bot opens only after the agent is ready and does not repeat the initial greeting.
+- If the agent starts profile setup before a service opening, the bot answers intake questions directly and waits to introduce the scheduling goal.
+- Normal scenarios use conservative VAD timing and clear/cancel buffered bot audio when the agent starts speaking.
+- Interruption tests are opt-in scenario behavior, not accidental overlap.
+- The bot stops after a confirmed outcome instead of drifting into extra turns.
 
 ### Phase 2: Scenario Engine
 
 - Represent each scenario as data: goal, patient profile, required facts, optional edge behavior, success criteria, and stop conditions.
 - Add guardrails so the bot never reveals it is a test harness unless the scenario calls for meta behavior.
 - Give the bot an active but realistic strategy: answer direct questions, ask follow-ups, correct misunderstandings, and steer back to the goal.
+- Represent deliberate interruption tests with explicit scenario data so barge-in is measured separately from normal turn-taking.
 - Add deterministic limits: max call duration, max silence, max turns, and emergency stop.
 
 Exit criteria:

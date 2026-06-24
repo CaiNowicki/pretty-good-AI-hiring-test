@@ -22,6 +22,7 @@ class Scenario:
     branch_conditions: list[str]
     success_criteria: str
     stop_conditions: list[str]
+    interruption_test: bool = False
 
 
 class ScenarioNotFoundError(FileNotFoundError):
@@ -110,6 +111,14 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     return data
 
 
+def _as_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().casefold() in {"1", "true", "yes", "y", "on"}
+    return bool(value)
+
+
 def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
     required = {
         "id",
@@ -142,6 +151,7 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
         branch_conditions=[str(item) for item in data.get("branch_conditions", [])],
         success_criteria=str(data["success_criteria"]),
         stop_conditions=[str(item) for item in data["stop_conditions"]],
+        interruption_test=_as_bool(data.get("interruption_test", False)),
     )
 
 
@@ -175,6 +185,15 @@ def build_patient_system_prompt(scenario: Scenario) -> str:
 Conditional behavior:
 {branch_conditions}
 """
+    interruption_guidance = (
+        "This is an interruption-handling scenario. You may interrupt the agent once, briefly, "
+        "only when the scenario explicitly calls for it; then let the agent recover."
+        if scenario.interruption_test
+        else (
+            "Do not interrupt the agent. If the agent starts speaking while you are speaking, "
+            "stop and let the agent finish."
+        )
+    )
 
     return f"""You are playing the role of {patient_name} in a phone call with a medical scheduling agent.
 Patient persona id: {scenario.patient_profile}
@@ -188,6 +207,9 @@ Use the goal and conditional behavior as guidance, not as a fixed dialogue scrip
 Speak in short, natural sentences. Do not use lists or bullet points in spoken replies.
 Wait for the agent to finish speaking before responding.
 Stay polite and conversational, like a real patient on a phone call.
+{interruption_guidance}
+Say the opening line once only. If you already introduced yourself, do not repeat the
+opening line later; answer the current question or steer back to the goal instead.
 You are the patient, not the clinic staff or scheduling agent. Never say you are checking,
 scheduling, booking, creating, adjusting, or rescheduling appointments yourself. Ask the
 agent to do those things for you.

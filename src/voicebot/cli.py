@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
 from voicebot.artifacts import next_call_dir, utc_now_iso, write_json
 from voicebot.config import load_settings

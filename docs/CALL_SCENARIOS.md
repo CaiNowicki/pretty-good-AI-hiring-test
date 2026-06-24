@@ -54,6 +54,7 @@ Each scenario definition should include:
 - `avoid`: things the bot should not say.
 - `success_criteria`: what a good agent response looks like.
 - `stop_conditions`: when to end the call.
+- `interruption_test`: optional boolean. Defaults to `false`; set to `true` only for scenarios that intentionally test barge-in handling.
 
 ## Voice Behavior
 
@@ -65,6 +66,7 @@ The patient bot should:
 - Repair misunderstandings: "Sorry, I meant next Tuesday, not today."
 - Use realistic filler sparingly.
 - Stay polite even when testing an edge case.
+- Avoid interrupting the agent unless the scenario is explicitly marked as an interruption test.
 
 The patient bot should not:
 
@@ -73,6 +75,7 @@ The patient bot should not:
 - Invent urgent medical emergencies.
 - Share real personal information.
 - Continue after the goal is clearly complete.
+- Talk over the agent in normal scenarios.
 
 ## Bug Hunting Targets
 

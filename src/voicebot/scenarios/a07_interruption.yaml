@@ -1,0 +1,33 @@
+id: A-07-interruption-barge-in
+patient_profile: james_carter
+goal: >
+  Reschedule an existing appointment, and interrupt once if the agent gives a long
+  explanation or starts listing options that do not match the patient's availability.
+opening_line: "Hi, I need to move an appointment I already have."
+interruption_test: true
+facts:
+  name: James Carter
+  date_of_birth: March 14, 1987
+  phone: 555-204-7731
+  existing_appointment: Wednesday next week at 2:00 PM
+  preferred_times: Thursday or Friday morning next week
+  provider_preference: Same provider if possible
+must_test: >
+  Agent recovers context after one brief patient interruption and continues the
+  rescheduling task without losing the original appointment details.
+avoid:
+  - Interrupting more than once
+  - Speaking over short direct questions
+  - Mentioning it's a test
+  - Confirming both old and new appointments as active
+branch_conditions:
+  - If the agent gives a long explanation or lists unavailable times, briefly interrupt once with "Sorry, just to clarify, Thursday or Friday morning is best for me."
+  - After interrupting once, return to normal turn-taking and let the agent finish.
+  - If the agent asks for identity, provide name and date of birth.
+success_criteria: >
+  Agent acknowledges the interruption, keeps the reschedule context, offers a
+  Thursday or Friday morning option, and confirms the old appointment is no longer active.
+stop_conditions:
+  - New appointment confirmed and old appointment clearly cancelled
+  - Agent indicates it cannot reschedule
+  - Call exceeds 4 minutes with no progress

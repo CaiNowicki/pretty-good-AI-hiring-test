@@ -31,6 +31,8 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("Answer with the provided facts only when asked.", prompt)
         self.assertIn("Do not volunteer everything at once.", prompt)
         self.assertIn("Wait for the agent to finish speaking before responding.", prompt)
+        self.assertIn("Say the opening line once only.", prompt)
+        self.assertIn("Do not interrupt the agent.", prompt)
 
     def test_realtime_bootstrap_includes_opening_utterance(self):
         scenario = load_scenario("t01_smoke")
@@ -48,6 +50,7 @@ class ScenarioTests(unittest.TestCase):
             "a04_cancel_no_date": "A-04-cancel-no-date",
             "a05_reschedule_day": "A-05-reschedule-different-day",
             "a06_closed_hours": "A-06-closed-hours-trap",
+            "a07_interruption": "A-07-interruption-barge-in",
         }
 
         for file_stem, declared_id in scenario_files.items():
@@ -65,6 +68,14 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("If the agent confirms Saturday", prompt)
         self.assertIn("Use the goal and conditional behavior as guidance", prompt)
         self.assertIn("not as a fixed dialogue script", prompt)
+
+    def test_interruption_scenario_is_explicitly_marked(self):
+        scenario = load_scenario("a07_interruption")
+        prompt = build_patient_system_prompt(scenario)
+
+        self.assertTrue(scenario.interruption_test)
+        self.assertIn("interruption-handling scenario", prompt)
+        self.assertIn("interrupt the agent once", prompt)
 
     def test_closed_hours_analysis_note_exists(self):
         analysis_path = (
