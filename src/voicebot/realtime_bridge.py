@@ -21,10 +21,10 @@ from voicebot.scenario import Scenario, build_realtime_bootstrap
 OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime"
 PCMU_FORMAT = {"type": "audio/pcmu"}
 DEFAULT_PREFIX_PADDING_MS = 500
-DEFAULT_SILENCE_DURATION_MS = 650
-DEFAULT_RESPONSE_DELAY_SECONDS = 0.1
-POST_VAD_SILENCE_CONFIRMATION_SECONDS = 0.15
-POST_RESPONSE_COOLDOWN_SECONDS = 0.5
+DEFAULT_SILENCE_DURATION_MS = 450
+DEFAULT_RESPONSE_DELAY_SECONDS = 0.0
+POST_VAD_SILENCE_CONFIRMATION_SECONDS = 0.05
+POST_RESPONSE_COOLDOWN_SECONDS = 0.25
 INTERRUPTION_PREFIX_PADDING_MS = 300
 INTERRUPTION_SILENCE_DURATION_MS = 650
 INTERRUPTION_RESPONSE_DELAY_SECONDS = 0.25
@@ -76,6 +76,17 @@ CONFUSING_AGENT_PHRASES = (
     "dental purposes",
     "birthdate doesn't match",
     "date of birth doesn't match",
+)
+ASSUMED_PATIENT_NAME = "james"
+ASSUMED_PATIENT_IDENTITY_PHRASES = (
+    "am i speaking with",
+    "am i speaking to",
+    "are you",
+    "is this",
+    "speaking with",
+    "speaking to",
+    "calling for",
+    "looking for",
 )
 
 
@@ -130,15 +141,24 @@ def build_session_update(settings: Settings, scenario: Scenario) -> dict[str, An
     }
 
 
-def build_opening_response(scenario: Scenario) -> dict[str, Any]:
+def build_opening_response(scenario: Scenario, transcript: str = "") -> dict[str, Any]:
+    assumed_identity_answer = build_assumed_patient_identity_answer(
+        scenario,
+        transcript,
+        include_opening=True,
+    )
+    if assumed_identity_answer:
+        instructions = f"Say only this exact patient answer: {assumed_identity_answer}"
+    else:
+        instructions = (
+            "Say this opening line exactly once, naturally, then wait for the agent: "
+            f"{scenario.opening_line}"
+        )
+
     return {
         "type": "response.create",
         "response": {
-            "instructions": (
-                "Only speak if the agent has clearly finished. Say this opening line exactly "
-                "once, naturally, then wait for the agent: "
-                f"{scenario.opening_line}"
-            ),
+            "instructions": instructions,
         },
     }
 
@@ -149,8 +169,8 @@ def build_turn_response(scenario: Scenario | None = None, transcript: str = "") 
         instructions = f"Say only this exact patient answer: {exact_answer}"
     else:
         instructions = (
-            "Only speak if the agent has clearly finished. Respond as the patient for "
-            "the current call turn. Keep it short, answer only what was asked, use the "
+            "Respond now as the patient for the current call turn. Keep it short, "
+            "answer only what was asked, use the "
             "scenario facts exactly, do not add unrelated preferences or comments, and "
             "wait for the agent after speaking."
         )
@@ -169,7 +189,6 @@ def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = 
         instructions = f"Say only this exact patient answer: {exact_answer}"
     else:
         instructions = (
-            "Only speak if the agent has clearly finished. "
             "Answer the agent's intake or profile setup question directly as the patient. "
             "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
             "facts exactly, do not add unrelated preferences or comments, and keep it brief."
@@ -195,6 +214,39 @@ def build_confusion_response(scenario: Scenario, transcript: str) -> dict[str, A
     }
 
 
+def build_assumed_patient_identity_answer(
+    scenario: Scenario | None,
+    transcript: str,
+    *,
+    include_opening: bool = False,
+) -> str:
+    if scenario is None or not transcript_asks_about_assumed_patient(transcript):
+        return ""
+
+    caller_name = scenario.facts.get("name", "").strip()
+    patient_name = scenario.facts.get("patient_name", "").strip()
+    first_name = caller_name.split()[0] if caller_name.split() else caller_name
+    if _scenario_identity_matches_assumed_patient(scenario):
+        if _scenario_is_new_patient(scenario):
+            answer = f"Oh, yes, this is {first_name}. I'm surprised you had that already."
+            if include_opening:
+                return f"{answer} {scenario.opening_line}"
+            return answer
+        if include_opening:
+            return f"Yes, this is {first_name}. {scenario.opening_line}"
+        return f"Yes, this is {first_name}."
+
+    correction_name = caller_name or patient_name
+    if caller_name and patient_name and patient_name.casefold() not in caller_name.casefold():
+        return (
+            f"No, this is {caller_name}, calling for {patient_name}. "
+            "I think you may have the wrong patient."
+        )
+    if correction_name:
+        return f"No, this is {correction_name}. I think you may have the wrong patient."
+    return "No, I think you may have the wrong patient."
+
+
 def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     if scenario is None:
         return ""
@@ -206,6 +258,9 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     first_name = name_parts[0] if name_parts else ""
     last_name = name_parts[-1] if len(name_parts) > 1 else ""
 
+    assumed_identity_answer = build_assumed_patient_identity_answer(scenario, transcript)
+    if assumed_identity_answer:
+        return assumed_identity_answer
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
         dob = scenario.facts.get("date_of_birth", "").strip()
         return f"My date of birth is {dob}." if dob else ""
@@ -297,6 +352,36 @@ def build_response_cancel() -> dict[str, str]:
     return {"type": "response.cancel"}
 
 
+def transcript_asks_about_assumed_patient(transcript: str) -> bool:
+    normalized = transcript.casefold()
+    if ASSUMED_PATIENT_NAME not in normalized:
+        return False
+    return any(phrase in normalized for phrase in ASSUMED_PATIENT_IDENTITY_PHRASES)
+
+
+def _scenario_identity_matches_assumed_patient(scenario: Scenario) -> bool:
+    identity_values = [
+        scenario.facts.get("name", ""),
+        scenario.facts.get("patient_name", ""),
+    ]
+    for value in identity_values:
+        name_parts = re.findall(r"[a-z]+", value.casefold())
+        if ASSUMED_PATIENT_NAME in name_parts:
+            return True
+    return False
+
+
+def _scenario_is_new_patient(scenario: Scenario) -> bool:
+    searchable_text = " ".join(
+        [
+            scenario.goal,
+            scenario.opening_line,
+            scenario.facts.get("patient_status", ""),
+        ]
+    ).casefold()
+    return "new patient" in searchable_text
+
+
 def transcript_is_service_opening(transcript: str) -> bool:
     normalized = transcript.casefold()
     return any(phrase in normalized for phrase in AGENT_SERVICE_OPENING_PHRASES)
@@ -308,6 +393,8 @@ def transcript_is_intake_before_goal(transcript: str) -> bool:
 
 
 def transcript_is_ignorable_before_opening(transcript: str) -> bool:
+    if transcript_asks_about_assumed_patient(transcript):
+        return False
     normalized = transcript.casefold()
     return any(phrase in normalized for phrase in NON_CONVERSATIONAL_PHRASES)
 
@@ -559,7 +646,7 @@ class RealtimeBridge:
                 self._goal_introduced = True
                 await self._create_patient_response(
                     event,
-                    build_opening_response(self.state.scenario),
+                    build_opening_response(self.state.scenario, transcript),
                     {"event": "patient_response.goal_opening", "trigger": transcript},
                 )
                 return

@@ -74,6 +74,17 @@ Call-004 completion notes:
 - The call lasted 157 seconds, both sides were intelligible, and artifacts were saved under `artifacts/calls/call-004/`.
 - Remaining duplicate response to a split appointment-type prompt is a Phase 2 turn-state refinement, not a Phase 1 blocker.
 
+Call-007 pause remediation notes:
+
+- Pause issue marked remediated for smoke testing after VAD turn gating and
+  response-delay tuning.
+- Call-007 measured sub-second to roughly two-second response gaps after agent
+  prompts, with no repeated long four-second fixed pause pattern.
+- Opening IVR handling was improved so identity prompts such as "May I speak
+  with James?" are answered instead of being swallowed as pre-opening IVR.
+- Remaining issue: the bot's answer to "How can I help you today?" can still be
+  too generic and should be handled as a Phase 2 prompt/turn-state refinement.
+
 Exit criteria:
 
 - The call lasts at least 60 seconds.
@@ -94,6 +105,10 @@ Exit criteria:
 - Give the bot an active but realistic strategy: answer direct questions, ask follow-ups, correct misunderstandings, and steer back to the goal.
 - Represent deliberate interruption tests with explicit scenario data so barge-in is measured separately from normal turn-taking.
 - Add deterministic limits: max call duration, max silence, max turns, and emergency stop.
+- Before broader scenario runs, soften smoke-test deterministic identity
+  handling into natural response guidance. The bot should still detect when the
+  agent assumes "James," but it should vary wording naturally except for
+  critical exact facts such as DOB, phone number, or required identifiers.
 
 Exit criteria:
 

@@ -9,7 +9,7 @@ from typing import Any
 
 
 def utc_now_iso() -> str:
-    return datetime.now(UTC).isoformat(timespec="seconds")
+    return datetime.now(UTC).isoformat(timespec="milliseconds")
 
 
 def next_call_dir(root: Path = Path("artifacts/calls")) -> Path:

@@ -9,6 +9,7 @@ from voicebot.config import Settings
 from voicebot.realtime_bridge import (
     BridgeState,
     RealtimeBridge,
+    build_assumed_patient_identity_answer,
     build_agent_turn_key,
     build_confusion_reply,
     build_confusion_response,
@@ -26,6 +27,7 @@ from voicebot.realtime_bridge import (
     transcript_is_confusing_or_out_of_turn,
     transcript_needs_more_agent_context,
     transcript_is_service_opening,
+    transcript_asks_about_assumed_patient,
 )
 from voicebot.scenario import load_scenario
 
@@ -56,7 +58,7 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(event["session"]["audio"]["input"]["turn_detection"]["prefix_padding_ms"], 500)
         self.assertEqual(
             event["session"]["audio"]["input"]["turn_detection"]["silence_duration_ms"],
-            650,
+            450,
         )
         self.assertIn("James Carter", event["session"]["instructions"])
 
@@ -77,6 +79,21 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(event["type"], "response.create")
         self.assertIn(scenario.opening_line, event["response"]["instructions"])
         self.assertIn("exactly once", event["response"]["instructions"])
+
+    def test_opening_response_confirms_matching_assumed_identity(self):
+        scenario = load_scenario("t01_smoke")
+        event = build_opening_response(
+            scenario,
+            "Hello, am I speaking with James? How can I help you today?",
+        )
+
+        self.assertIn(
+            (
+                "Oh, yes, this is James. I'm surprised you had that already. "
+                "Hi, I'm hoping to make an appointment."
+            ),
+            event["response"]["instructions"],
+        )
 
     def test_turn_response_keeps_replies_short(self):
         event = build_turn_response()
@@ -110,6 +127,33 @@ class RealtimeBridgeTests(unittest.TestCase):
             build_turn_response(scenario, "Is this a follow-up or routine visit?")[
                 "response"
             ]["instructions"],
+        )
+
+    def test_assumed_james_identity_gets_corrected_for_other_patients(self):
+        scenario = load_scenario("a01_specific_time")
+        transcript = "Thanks for calling Pivot Point Orthopedics. Am I speaking with James?"
+
+        self.assertTrue(transcript_asks_about_assumed_patient(transcript))
+        self.assertFalse(transcript_is_ignorable_before_opening(transcript))
+        self.assertEqual(
+            build_assumed_patient_identity_answer(scenario, transcript),
+            "No, this is Maria Lopez. I think you may have the wrong patient.",
+        )
+        self.assertIn(
+            "No, this is Maria Lopez",
+            build_pre_goal_response(scenario, transcript)["response"]["instructions"],
+        )
+
+    def test_assumed_james_identity_can_include_child_patient_context(self):
+        scenario = load_scenario("a06_closed_hours")
+        transcript = "Am I speaking with James?"
+
+        self.assertEqual(
+            build_assumed_patient_identity_answer(scenario, transcript),
+            (
+                "No, this is Taylor Brooks, parent of Emma Brooks. "
+                "I think you may have the wrong patient."
+            ),
         )
 
     def test_confusing_agent_turns_get_clarification_replies(self):
