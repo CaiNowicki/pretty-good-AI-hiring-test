@@ -1,8 +1,14 @@
+import asyncio
+import json
+import tempfile
 import unittest
 from dataclasses import replace
+from pathlib import Path
 
 from voicebot.config import Settings
 from voicebot.realtime_bridge import (
+    BridgeState,
+    RealtimeBridge,
     build_agent_turn_key,
     build_confusion_reply,
     build_confusion_response,
@@ -50,7 +56,7 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(event["session"]["audio"]["input"]["turn_detection"]["prefix_padding_ms"], 500)
         self.assertEqual(
             event["session"]["audio"]["input"]["turn_detection"]["silence_duration_ms"],
-            850,
+            650,
         )
         self.assertIn("James Carter", event["session"]["instructions"])
 
@@ -169,6 +175,65 @@ class RealtimeBridgeTests(unittest.TestCase):
         )
         self.assertEqual(build_twilio_clear("MZ123"), {"event": "clear", "streamSid": "MZ123"})
         self.assertEqual(build_response_cancel(), {"type": "response.cancel"})
+
+
+class FakeOpenAIWebSocket:
+    def __init__(self):
+        self.sent: list[dict] = []
+
+    async def send(self, message: str) -> None:
+        self.sent.append(json.loads(message))
+
+
+class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
+    def settings(self):
+        return Settings(
+            twilio_account_sid="ACxxx",
+            twilio_auth_token="secret",
+            twilio_from_number="+19418420514",
+            public_base_url="https://example.ngrok-free.dev",
+            openai_api_key="sk-test",
+            realtime_model="gpt-realtime-2",
+            transcription_model="gpt-4o-transcribe",
+        )
+
+    def bridge(self, events_path: Path) -> tuple[RealtimeBridge, FakeOpenAIWebSocket]:
+        fake_ws = FakeOpenAIWebSocket()
+        bridge = RealtimeBridge(
+            self.settings(),
+            BridgeState(
+                stream_sid="MZ123",
+                scenario=load_scenario("t01_smoke"),
+                events_path=events_path,
+            ),
+        )
+        bridge._openai_ws = fake_ws
+        return bridge, fake_ws
+
+    async def test_transcript_completed_waits_for_vad_speech_stopped(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+            bridge._agent_speech_in_progress = True
+
+            bridge._schedule_patient_response(
+                {
+                    "item_id": "agent-1",
+                    "transcript": (
+                        "Hello, thanks for calling Pivot Point Orthopedics. "
+                        "How can I help you today?"
+                    ),
+                }
+            )
+            await asyncio.sleep(0.2)
+
+            self.assertEqual(fake_ws.sent, [])
+
+            bridge._handle_agent_speech_stopped()
+            await asyncio.sleep(0.3)
+
+            self.assertEqual(len(fake_ws.sent), 1)
+            self.assertEqual(fake_ws.sent[0]["type"], "response.create")
+            self.assertIn("I'm hoping to make an appointment", fake_ws.sent[0]["response"]["instructions"])
 
 
 if __name__ == "__main__":

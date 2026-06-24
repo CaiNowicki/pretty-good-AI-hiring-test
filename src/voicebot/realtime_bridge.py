@@ -21,8 +21,9 @@ from voicebot.scenario import Scenario, build_realtime_bootstrap
 OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime"
 PCMU_FORMAT = {"type": "audio/pcmu"}
 DEFAULT_PREFIX_PADDING_MS = 500
-DEFAULT_SILENCE_DURATION_MS = 850
-DEFAULT_RESPONSE_DELAY_SECONDS = 0.35
+DEFAULT_SILENCE_DURATION_MS = 650
+DEFAULT_RESPONSE_DELAY_SECONDS = 0.1
+POST_VAD_SILENCE_CONFIRMATION_SECONDS = 0.15
 POST_RESPONSE_COOLDOWN_SECONDS = 0.5
 INTERRUPTION_PREFIX_PADDING_MS = 300
 INTERRUPTION_SILENCE_DURATION_MS = 650
@@ -366,6 +367,9 @@ class RealtimeBridge:
         self._openai_ws: Any | None = None
         self._openai_to_twilio_task: asyncio.Task[None] | None = None
         self._pending_response_task: asyncio.Task[None] | None = None
+        self._pending_transcript_event: dict[str, Any] | None = None
+        self._agent_speech_in_progress = False
+        self._last_agent_speech_stopped_at = 0.0
         self._goal_introduced = False
         self._bot_audio_in_progress = False
         self._patient_response_in_progress = False
@@ -447,6 +451,9 @@ class RealtimeBridge:
             if event_type == "input_audio_buffer.speech_started":
                 await self._handle_agent_speech_started(twilio_ws)
 
+            if event_type == "input_audio_buffer.speech_stopped":
+                self._handle_agent_speech_stopped()
+
             if event_type in {
                 "error",
                 "session.created",
@@ -465,17 +472,45 @@ class RealtimeBridge:
         append_jsonl(self.state.events_path, {"time": utc_now_iso(), **payload})
 
     def _schedule_patient_response(self, event: dict[str, Any]) -> None:
+        self._pending_transcript_event = dict(event)
+        if self._agent_speech_in_progress and not self.state.scenario.interruption_test:
+            self._log(
+                {
+                    "event": "patient_response.held",
+                    "reason": "agent_speech_in_progress",
+                    "trigger": str(event.get("transcript", "")),
+                }
+            )
+            return
+        self._schedule_pending_patient_response()
+
+    def _schedule_pending_patient_response(self) -> None:
+        if self._pending_transcript_event is None:
+            return
+
         if self._pending_response_task is not None:
             self._pending_response_task.cancel()
         loop_time = asyncio.get_running_loop().time()
         cooldown_delay = max(0.0, self._cooldown_until - loop_time)
+        vad_delay = 0.0
+        if (
+            not self.state.scenario.interruption_test
+            and self._last_agent_speech_stopped_at > 0.0
+        ):
+            elapsed_since_speech_stopped = loop_time - self._last_agent_speech_stopped_at
+            vad_delay = max(
+                0.0,
+                POST_VAD_SILENCE_CONFIRMATION_SECONDS - elapsed_since_speech_stopped,
+            )
         delay = (
             INTERRUPTION_RESPONSE_DELAY_SECONDS
             if self.state.scenario.interruption_test
             else DEFAULT_RESPONSE_DELAY_SECONDS
         )
+        event = self._pending_transcript_event
+        self._pending_transcript_event = None
         self._pending_response_task = asyncio.create_task(
-            self._delayed_patient_response(dict(event), max(delay, cooldown_delay))
+            self._delayed_patient_response(event, max(delay, cooldown_delay, vad_delay))
         )
 
     async def _delayed_patient_response(self, event: dict[str, Any], delay: float) -> None:
@@ -487,6 +522,8 @@ class RealtimeBridge:
             raise
 
     async def _handle_agent_speech_started(self, twilio_ws: WebSocket) -> None:
+        self._agent_speech_in_progress = True
+        self._pending_transcript_event = None
         if self._pending_response_task is not None:
             self._pending_response_task.cancel()
             self._pending_response_task = None
@@ -503,6 +540,11 @@ class RealtimeBridge:
         self._log({"event": "agent_speech_during_bot_audio", "action": "yielded"})
         await self._send_openai(build_response_cancel())
         await twilio_ws.send_json(build_twilio_clear(self.state.stream_sid))
+
+    def _handle_agent_speech_stopped(self) -> None:
+        self._agent_speech_in_progress = False
+        self._last_agent_speech_stopped_at = asyncio.get_running_loop().time()
+        self._schedule_pending_patient_response()
 
     async def _maybe_create_patient_response(self, event: dict[str, Any]) -> None:
         transcript = str(event.get("transcript", "")).strip()
