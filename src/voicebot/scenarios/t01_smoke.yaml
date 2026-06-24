@@ -1,0 +1,23 @@
+id: T-01-smoke
+patient_profile: james_carter
+goal: Schedule a new patient consultation for sometime next week, morning preferred.
+opening_line: "Hi, I'm hoping to make an appointment. I'm a new patient."
+facts:
+  name: James Carter
+  date_of_birth: March 14, 1987
+  phone: 555-204-7731
+  insurance: BlueCross BlueShield
+  preferred_times: Weekday mornings, next week
+  provider_preference: No preference
+must_test: Agent gathers name, DOB, and offers a valid weekday slot.
+avoid:
+  - Volunteering DOB before asked
+  - Mentioning it's a test
+  - Asking multiple questions at once
+success_criteria: >
+  Agent collects basic intake info, offers a slot that falls on a weekday
+  during normal business hours, and gives a clear confirmation before ending.
+stop_conditions:
+  - Appointment is confirmed and agent asks if there's anything else
+  - Call exceeds 4 minutes with no progress
+  - Agent indicates it cannot help

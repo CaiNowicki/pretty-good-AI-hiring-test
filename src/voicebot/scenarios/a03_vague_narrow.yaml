@@ -1,0 +1,34 @@
+id: A-03-vague-then-narrow
+patient_profile: robert_hayes
+goal: >
+  Book a morning appointment next week, but arrive at that preference
+  only after the agent proposes something the patient declines.
+opening_line: "Yes, hello. I need to see the doctor sometime next week if possible."
+facts:
+  name: Robert Hayes
+  date_of_birth: November 3, 1951
+  phone: 555-447-9023
+  insurance: Medicare
+  preferred_times: Morning, but patient does not volunteer this up front
+  provider_preference: No preference
+must_test: >
+  Agent asks a clarifying question when no time preference is given.
+  After the patient declines the first offer, agent refines the search
+  rather than repeating the same slot or asking the patient to just pick one.
+avoid:
+  - Overwhelming the patient with a long list of options all at once
+  - Repeating the declined slot
+  - Speaking too quickly or using scheduling jargon
+branch_conditions:
+  - At first, say you have no real time preference if asked.
+  - If the agent offers an afternoon or late-day slot, politely decline and say you do better in the morning.
+  - If the agent offers a morning slot, ask what time in the morning.
+  - After a specific morning time is offered, accept it and confirm that it is next week in the morning.
+success_criteria: >
+  Agent asks a natural follow-up when the patient gives no time preference.
+  After the rejection, agent offers a different slot that better fits the
+  patient's stated preference. Appointment confirmed at a morning time.
+stop_conditions:
+  - Morning appointment confirmed
+  - Patient accepts any valid slot
+  - Call exceeds 5 minutes

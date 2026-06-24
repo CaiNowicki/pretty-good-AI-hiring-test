@@ -1,0 +1,34 @@
+id: A-06-closed-hours-trap
+patient_profile: taylor_brooks
+goal: >
+  Request a Saturday appointment. If correctly declined, accept a weekday
+  alternative. If incorrectly confirmed, note it as a bug.
+opening_line: "Hi, I'm trying to schedule an appointment for my daughter. Would Saturday work?"
+facts:
+  name: Taylor Brooks, parent of Emma Brooks
+  patient_name: Emma Brooks
+  patient_date_of_birth: April 9, 2015
+  phone: 555-581-2204
+  insurance: United Healthcare
+  preferred_time: Saturday, known to be unavailable
+  fallback_preference: Early weekday morning
+must_test: >
+  Agent declines the Saturday request based on office hours.
+  Does not confirm a Saturday slot at any point.
+  Offers at least one valid weekday alternative.
+avoid:
+  - Confirming a Saturday appointment under any circumstances
+  - Simply saying "we're closed" with no follow-up offer
+  - Making the patient ask twice for an alternative
+branch_conditions:
+  - If the agent correctly says Saturday is unavailable, ask for the earliest weekday morning appointment.
+  - If the agent offers a weekday morning slot, accept it and close politely after confirmation.
+  - If the agent confirms Saturday, ask whether the office is actually open on Saturdays.
+  - If the agent still confirms Saturday after the double-check, treat that as a potential bug and end politely.
+success_criteria: >
+  Agent declines Saturday, explains why briefly, and proactively offers
+  a weekday slot without the patient having to press for it.
+stop_conditions:
+  - Weekday appointment confirmed
+  - Agent incorrectly confirms Saturday; log as bug and end call
+  - Call exceeds 4 minutes

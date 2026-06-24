@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Challenge artifacts
+artifacts/calls/
+artifacts/*.mp3
+artifacts/*.ogg
+artifacts/*.wav
+artifacts/*.log
+artifacts/*.jsonl

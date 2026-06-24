@@ -1,0 +1,31 @@
+id: A-04-cancel-no-date
+patient_profile: robert_hayes
+goal: Cancel an upcoming appointment without knowing the date.
+opening_line: "Hi, I need to cancel an appointment. I just don't remember exactly when it was."
+facts:
+  name: Robert Hayes
+  date_of_birth: November 3, 1951
+  phone: 555-447-9023
+  insurance: Medicare
+  appointment_date: Unknown to patient; agent must look it up
+must_test: >
+  Agent can locate the appointment using name and DOB alone,
+  reads the appointment details back to the patient, and confirms
+  the cancellation cleanly.
+avoid:
+  - Asking the patient to provide the date before even attempting a lookup
+  - Cancelling without reading back the appointment details first
+  - Leaving the patient uncertain whether the cancellation went through
+branch_conditions:
+  - If the agent asks for identity, provide name and date of birth.
+  - If the agent finds an appointment and reads it back, agree that it sounds right and ask to cancel it.
+  - After cancellation, ask whether it is definitely cancelled and whether reminders will stop.
+  - If the agent asks for the appointment date, say you do not know it and ask whether they can look it up by name.
+  - If the agent cannot find the appointment, ask whether there is another way to find it before ending politely.
+success_criteria: >
+  Agent looks up the appointment, confirms day and time with the patient,
+  gets verbal confirmation, and clearly states the appointment is cancelled.
+stop_conditions:
+  - Cancellation confirmed
+  - Agent states it cannot find an appointment under that name
+  - Call exceeds 4 minutes

@@ -1,0 +1,31 @@
+id: A-01-specific-time
+patient_profile: maria_lopez
+goal: Book an appointment at 10 AM next Tuesday.
+opening_line: "Hi, I'd like to make an appointment for next Tuesday at 10 AM."
+facts:
+  name: Maria Lopez
+  date_of_birth: July 22, 1980
+  phone: 555-318-4492
+  insurance: Aetna
+  preferred_time: 10 AM, next Tuesday
+  provider_preference: No preference
+must_test: >
+  Agent either confirms 10 AM next Tuesday directly, or if unavailable,
+  offers an alternative without pretending the slot exists.
+avoid:
+  - Claiming 10 AM is available when it may not be
+  - Offering a long list of times when the patient asked for one specific slot
+  - Asking the patient to repeat their preferred time more than once
+branch_conditions:
+  - If 10 AM next Tuesday is available, accept it and close politely after confirmation.
+  - If 10 AM is unavailable, ask for the closest available time.
+  - If the closest option is not early enough, ask whether 9 or 9:30 is open.
+  - If the agent offers a reasonable nearby morning alternative, accept it.
+success_criteria: >
+  Branch A: Agent confirms 10 AM next Tuesday and collects any needed details.
+  Branch B: Agent clearly states 10 AM is unavailable and offers the next
+  closest realistic alternative, allowing the patient to accept or decline.
+stop_conditions:
+  - Appointment confirmed
+  - Patient declines all offered alternatives
+  - Call exceeds 4 minutes with no progress

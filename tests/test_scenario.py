@@ -1,0 +1,83 @@
+import unittest
+from pathlib import Path
+
+from voicebot.scenario import build_patient_system_prompt, build_realtime_bootstrap, load_scenario
+
+
+class ScenarioTests(unittest.TestCase):
+    def test_loads_smoke_scenario_by_file_stem(self):
+        scenario = load_scenario("t01_smoke")
+
+        self.assertEqual(scenario.id, "T-01-smoke")
+        self.assertEqual(scenario.patient_profile, "james_carter")
+        self.assertEqual(
+            scenario.opening_line,
+            "Hi, I'm hoping to make an appointment. I'm a new patient.",
+        )
+        self.assertEqual(scenario.facts["name"], "James Carter")
+        self.assertEqual(scenario.facts["date_of_birth"], "March 14, 1987")
+
+    def test_loads_smoke_scenario_by_declared_id(self):
+        scenario = load_scenario("T-01-smoke")
+
+        self.assertEqual(scenario.patient_profile, "james_carter")
+
+    def test_prompt_uses_scenario_facts_without_scripted_dialogue(self):
+        scenario = load_scenario("t01_smoke")
+        prompt = build_patient_system_prompt(scenario)
+
+        self.assertIn("James Carter", prompt)
+        self.assertIn("date_of_birth: March 14, 1987", prompt)
+        self.assertIn("Answer with the provided facts only when asked.", prompt)
+        self.assertIn("Do not volunteer everything at once.", prompt)
+        self.assertIn("Wait for the agent to finish speaking before responding.", prompt)
+
+    def test_realtime_bootstrap_includes_opening_utterance(self):
+        scenario = load_scenario("t01_smoke")
+        bootstrap = build_realtime_bootstrap(scenario)
+
+        self.assertEqual(bootstrap["patient_profile"], "james_carter")
+        self.assertEqual(bootstrap["initial_patient_utterance"], scenario.opening_line)
+        self.assertIn("James Carter", bootstrap["system_prompt"])
+
+    def test_loads_all_appointment_scheduling_scenarios(self):
+        scenario_files = {
+            "a01_specific_time": "A-01-specific-time",
+            "a02_change_of_mind": "A-02-change-of-mind",
+            "a03_vague_narrow": "A-03-vague-then-narrow",
+            "a04_cancel_no_date": "A-04-cancel-no-date",
+            "a05_reschedule_day": "A-05-reschedule-different-day",
+            "a06_closed_hours": "A-06-closed-hours-trap",
+        }
+
+        for file_stem, declared_id in scenario_files.items():
+            with self.subTest(file_stem=file_stem):
+                scenario = load_scenario(file_stem)
+                self.assertEqual(scenario.id, declared_id)
+                self.assertTrue(scenario.branch_conditions)
+                self.assertEqual(load_scenario(declared_id).id, declared_id)
+
+    def test_prompt_includes_conditional_guidance_without_scripted_dialogue(self):
+        scenario = load_scenario("a06_closed_hours")
+        prompt = build_patient_system_prompt(scenario)
+
+        self.assertIn("Conditional behavior:", prompt)
+        self.assertIn("If the agent confirms Saturday", prompt)
+        self.assertIn("Use the goal and conditional behavior as guidance", prompt)
+        self.assertIn("not as a fixed dialogue script", prompt)
+
+    def test_closed_hours_analysis_note_exists(self):
+        analysis_path = (
+            Path(__file__).parents[1]
+            / "src"
+            / "voicebot"
+            / "scenarios"
+            / "a06_closed_hours.analysis.md"
+        )
+
+        self.assertTrue(analysis_path.exists())
+        self.assertIn("potential bug", analysis_path.read_text(encoding="utf-8"))
+
+
+if __name__ == "__main__":
+    unittest.main()

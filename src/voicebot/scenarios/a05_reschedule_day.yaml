@@ -1,0 +1,33 @@
+id: A-05-reschedule-different-day
+patient_profile: maria_lopez
+goal: Move an existing Wednesday appointment to Thursday or Friday of the same week.
+opening_line: "Hi, I have an appointment on Wednesday but I need to move it to later in the week."
+facts:
+  name: Maria Lopez
+  date_of_birth: July 22, 1980
+  phone: 555-318-4492
+  insurance: Aetna
+  existing_appointment: Wednesday, time unknown to patient; agent must look it up
+  preferred_new_day: Thursday or Friday
+  preferred_time: Morning if possible
+must_test: >
+  Agent identifies the existing appointment, confirms it will be moved,
+  finds a Thursday or Friday slot, and gives a single clean confirmation
+  of the new appointment only.
+avoid:
+  - Confirming both the old and new appointment as active
+  - Asking the patient to re-state all their details from scratch
+  - Failing to explicitly state the Wednesday slot is cancelled
+branch_conditions:
+  - If the agent asks for identity, provide name and date of birth.
+  - If the agent reads back a Wednesday appointment, confirm that is the one to move.
+  - Ask for Thursday or Friday, with a morning time preferred.
+  - If the agent offers Thursday morning or Friday morning, accept it.
+  - After the new slot is confirmed, ask whether Wednesday is cancelled so you are not booked for both.
+success_criteria: >
+  Agent moves the appointment cleanly. Confirmation at the end states the
+  new day and time. Wednesday appointment is explicitly removed or voided.
+stop_conditions:
+  - New appointment confirmed and old one clearly cancelled
+  - No Thursday or Friday slots available and agent offers a different week
+  - Call exceeds 5 minutes
