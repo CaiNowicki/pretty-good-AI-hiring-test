@@ -9,6 +9,20 @@ from typing import Any
 
 SCENARIO_ROOT = Path(__file__).with_name("scenarios")
 SCENARIO_RUN_PREFIXES = ("t", "a", "m", "i", "e", "d")
+META_BEHAVIOR_ALLOW_PHRASES = (
+    "acknowledge this is a test",
+    "acknowledge you are a test",
+    "admit this is a test",
+    "disclose this is a test",
+    "explain this is a test",
+    "mention this is a test",
+    "reveal this is a test",
+    "say this is a test",
+    "state this is a test",
+    "tell the agent this is a test",
+    "test harness",
+    "meta behavior",
+)
 
 
 @dataclass(frozen=True)
@@ -212,6 +226,19 @@ def ordered_scenario_stems(root: Path = SCENARIO_ROOT) -> list[str]:
     return [path.stem for path in sorted(root.glob("*.yaml"), key=sort_key)]
 
 
+def scenario_allows_meta_behavior(scenario: Scenario) -> bool:
+    """Return whether existing scenario behavior text explicitly permits meta talk."""
+
+    searchable_parts = [
+        scenario.goal,
+        scenario.must_test,
+        scenario.success_criteria,
+        *scenario.optional_edge_behavior,
+    ]
+    searchable = " ".join(searchable_parts).casefold()
+    return any(phrase in searchable for phrase in META_BEHAVIOR_ALLOW_PHRASES)
+
+
 def build_patient_system_prompt(scenario: Scenario) -> str:
     """Build the realtime model instructions from scenario facts."""
 
@@ -234,6 +261,16 @@ Optional edge behavior:
         else (
             "Do not interrupt the agent. If the agent starts speaking while you are speaking, "
             "stop and let the agent finish."
+        )
+    )
+    meta_guidance = (
+        "This scenario explicitly calls for meta behavior. Follow only those meta instructions, "
+        "keep them brief, and then return to the patient task."
+        if scenario_allows_meta_behavior(scenario)
+        else (
+            "Do not reveal that this is a test, test harness, evaluation, simulation, bot, "
+            "assistant, or automated caller. If asked, stay in character as the patient and "
+            "redirect to the reason for the call."
         )
     )
 
@@ -260,6 +297,7 @@ for a complete answer before asking another.
 Wait for the agent to finish speaking before responding.
 Stay polite and conversational, like a real patient on a phone call.
 {interruption_guidance}
+{meta_guidance}
 Say the opening line once only. If you already introduced yourself, do not repeat the
 opening line later; answer the current question or steer back to the goal instead.
 You are the patient, not the clinic staff or scheduling agent. Never say you are checking,

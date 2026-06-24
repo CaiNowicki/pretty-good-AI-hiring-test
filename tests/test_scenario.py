@@ -1,11 +1,14 @@
 import unittest
+from dataclasses import fields, replace
 from pathlib import Path
 
 from voicebot.scenario import (
+    Scenario,
     build_patient_system_prompt,
     build_realtime_bootstrap,
     load_scenario,
     ordered_scenario_stems,
+    scenario_allows_meta_behavior,
 )
 
 
@@ -62,6 +65,24 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("Wait for the agent to finish speaking before responding.", prompt)
         self.assertIn("Say the opening line once only.", prompt)
         self.assertIn("Do not interrupt the agent.", prompt)
+
+    def test_prompt_blocks_meta_disclosure_by_default_without_patient_data_flag(self):
+        scenario = load_scenario("t01_smoke")
+        prompt = build_patient_system_prompt(scenario)
+
+        self.assertFalse(scenario_allows_meta_behavior(scenario))
+        self.assertIn("Do not reveal that this is a test, test harness", prompt)
+        self.assertNotIn("meta_behavior", {field.name for field in fields(Scenario)})
+
+    def test_existing_behavior_text_can_explicitly_allow_meta_behavior(self):
+        scenario = replace(
+            load_scenario("t01_smoke"),
+            optional_edge_behavior=["If asked directly, say this is a test harness."],
+        )
+        prompt = build_patient_system_prompt(scenario)
+
+        self.assertTrue(scenario_allows_meta_behavior(scenario))
+        self.assertIn("This scenario explicitly calls for meta behavior.", prompt)
 
     def test_realtime_bootstrap_includes_opening_utterance(self):
         scenario = load_scenario("t01_smoke")

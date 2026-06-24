@@ -101,7 +101,7 @@ Exit criteria:
 ### Phase 2: Scenario Engine
 
 - [x] Represent each scenario as data: goal, patient profile, required facts, optional edge behavior, success criteria, and stop conditions.
-- Add guardrails so the bot never reveals it is a test harness unless the scenario calls for meta behavior.
+- [x] Add guardrails so the bot never reveals it is a test harness unless the scenario calls for meta behavior.
 - Give the bot an active but realistic strategy: answer direct questions, ask follow-ups, correct misunderstandings, and steer back to the goal.
 - Represent deliberate interruption tests with explicit scenario data so barge-in is measured separately from normal turn-taking.
 - Add deterministic limits: max call duration, max silence, max turns, and emergency stop.
@@ -109,6 +109,14 @@ Exit criteria:
   handling into natural response guidance. The bot should still detect when the
   agent assumes "James," but it should vary wording naturally except for
   critical exact facts such as DOB, phone number, or required identifiers.
+
+Phase 2.2 guardrail notes:
+
+- Default patient instructions now forbid revealing test, harness, bot,
+  assistant, simulation, or evaluation identity.
+- Direct meta probes receive a deterministic in-character patient redirect.
+- Meta behavior remains opt-in through existing scenario behavior text only;
+  no meta flag was added to scenario patient data.
 
 Exit criteria:
 

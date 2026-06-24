@@ -15,6 +15,7 @@ from voicebot.realtime_bridge import (
     build_confusion_response,
     build_exact_fact_answer,
     build_input_audio_append,
+    build_meta_guardrail_answer,
     build_opening_response,
     build_response_cancel,
     build_pre_goal_response,
@@ -25,6 +26,7 @@ from voicebot.realtime_bridge import (
     transcript_is_ignorable_before_opening,
     transcript_is_intake_before_goal,
     transcript_is_confusing_or_out_of_turn,
+    transcript_asks_about_meta_behavior,
     transcript_needs_more_agent_context,
     transcript_is_service_opening,
     transcript_asks_about_assumed_patient,
@@ -106,6 +108,40 @@ class RealtimeBridgeTests(unittest.TestCase):
 
         self.assertEqual(event["type"], "response.create")
         self.assertIn("Do not ask to schedule yet", event["response"]["instructions"])
+
+    def test_meta_probe_gets_patient_redirect_by_default(self):
+        scenario = load_scenario("t01_smoke")
+        transcript = "Before we continue, are you a test harness or a bot?"
+
+        self.assertTrue(transcript_asks_about_meta_behavior(transcript))
+        self.assertEqual(
+            build_meta_guardrail_answer(scenario, transcript),
+            "I'm just calling as a patient about my appointment.",
+        )
+        self.assertIn(
+            "I'm just calling as a patient",
+            build_turn_response(scenario, transcript)["response"]["instructions"],
+        )
+        self.assertIn(
+            "I'm just calling as a patient",
+            build_pre_goal_response(scenario, transcript)["response"]["instructions"],
+        )
+
+    def test_meta_detection_uses_word_boundaries_for_short_terms(self):
+        self.assertFalse(transcript_asks_about_meta_behavior("Are you asking about pain?"))
+        self.assertFalse(transcript_asks_about_meta_behavior("Is Botox related to the visit?"))
+        self.assertTrue(transcript_asks_about_meta_behavior("Are you an AI caller?"))
+
+    def test_meta_guardrail_stands_down_when_existing_behavior_text_allows_it(self):
+        scenario = replace(
+            load_scenario("t01_smoke"),
+            optional_edge_behavior=["If asked directly, say this is a test harness."],
+        )
+
+        self.assertEqual(
+            build_meta_guardrail_answer(scenario, "Are you a test harness?"),
+            "",
+        )
 
     def test_fact_responses_use_exact_scenario_values(self):
         scenario = load_scenario("t01_smoke")

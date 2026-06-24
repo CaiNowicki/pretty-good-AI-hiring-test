@@ -15,7 +15,7 @@ from starlette.websockets import WebSocket
 
 from voicebot.artifacts import append_jsonl, utc_now_iso
 from voicebot.config import Settings
-from voicebot.scenario import Scenario, build_realtime_bootstrap
+from voicebot.scenario import Scenario, build_realtime_bootstrap, scenario_allows_meta_behavior
 
 
 OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime"
@@ -76,6 +76,23 @@ CONFUSING_AGENT_PHRASES = (
     "dental purposes",
     "birthdate doesn't match",
     "date of birth doesn't match",
+)
+META_DISCLOSURE_PHRASES = (
+    "test harness",
+    "automated tester",
+    "automated caller",
+    "bot",
+    "voice bot",
+    "ai",
+    "artificial intelligence",
+    "assistant",
+    "simulation",
+    "simulated",
+    "scenario",
+    "evaluation",
+    "benchmark",
+    "testing",
+    "a test",
 )
 ASSUMED_PATIENT_NAME = "james"
 ASSUMED_PATIENT_IDENTITY_PHRASES = (
@@ -142,6 +159,16 @@ def build_session_update(settings: Settings, scenario: Scenario) -> dict[str, An
 
 
 def build_opening_response(scenario: Scenario, transcript: str = "") -> dict[str, Any]:
+    meta_answer = build_meta_guardrail_answer(scenario, transcript)
+    if meta_answer:
+        instructions = f"Say only this exact patient answer: {meta_answer}"
+        return {
+            "type": "response.create",
+            "response": {
+                "instructions": instructions,
+            },
+        }
+
     assumed_identity_answer = build_assumed_patient_identity_answer(
         scenario,
         transcript,
@@ -164,16 +191,21 @@ def build_opening_response(scenario: Scenario, transcript: str = "") -> dict[str
 
 
 def build_turn_response(scenario: Scenario | None = None, transcript: str = "") -> dict[str, Any]:
-    exact_answer = build_exact_fact_answer(scenario, transcript) if scenario is not None else ""
-    if exact_answer:
-        instructions = f"Say only this exact patient answer: {exact_answer}"
+    meta_answer = build_meta_guardrail_answer(scenario, transcript)
+    if meta_answer:
+        instructions = f"Say only this exact patient answer: {meta_answer}"
     else:
-        instructions = (
-            "Respond now as the patient for the current call turn. Keep it short, "
-            "answer only what was asked, use the "
-            "scenario facts exactly, do not add unrelated preferences or comments, and "
-            "wait for the agent after speaking."
-        )
+        exact_answer = build_exact_fact_answer(scenario, transcript) if scenario is not None else ""
+        if exact_answer:
+            instructions = f"Say only this exact patient answer: {exact_answer}"
+        else:
+            instructions = (
+                "Respond now as the patient for the current call turn. Keep it short, "
+                "answer only what was asked, use the "
+                "scenario facts exactly, do not add unrelated preferences or comments, "
+                "do not mention tests, harnesses, bots, assistants, simulations, or "
+                "automation, and wait for the agent after speaking."
+            )
 
     return {
         "type": "response.create",
@@ -184,15 +216,20 @@ def build_turn_response(scenario: Scenario | None = None, transcript: str = "") 
 
 
 def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = "") -> dict[str, Any]:
-    exact_answer = build_exact_fact_answer(scenario, transcript) if scenario is not None else ""
-    if exact_answer:
-        instructions = f"Say only this exact patient answer: {exact_answer}"
+    meta_answer = build_meta_guardrail_answer(scenario, transcript)
+    if meta_answer:
+        instructions = f"Say only this exact patient answer: {meta_answer}"
     else:
-        instructions = (
-            "Answer the agent's intake or profile setup question directly as the patient. "
-            "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
-            "facts exactly, do not add unrelated preferences or comments, and keep it brief."
-        )
+        exact_answer = build_exact_fact_answer(scenario, transcript) if scenario is not None else ""
+        if exact_answer:
+            instructions = f"Say only this exact patient answer: {exact_answer}"
+        else:
+            instructions = (
+                "Answer the agent's intake or profile setup question directly as the patient. "
+                "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
+                "facts exactly, do not add unrelated preferences or comments, do not mention "
+                "tests, harnesses, bots, assistants, simulations, or automation, and keep it brief."
+            )
 
     return {
         "type": "response.create",
@@ -245,6 +282,14 @@ def build_assumed_patient_identity_answer(
     if correction_name:
         return f"No, this is {correction_name}. I think you may have the wrong patient."
     return "No, I think you may have the wrong patient."
+
+
+def build_meta_guardrail_answer(scenario: Scenario | None, transcript: str) -> str:
+    if scenario is not None and scenario_allows_meta_behavior(scenario):
+        return ""
+    if not transcript_asks_about_meta_behavior(transcript):
+        return ""
+    return "I'm just calling as a patient about my appointment."
 
 
 def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
@@ -357,6 +402,17 @@ def transcript_asks_about_assumed_patient(transcript: str) -> bool:
     if ASSUMED_PATIENT_NAME not in normalized:
         return False
     return any(phrase in normalized for phrase in ASSUMED_PATIENT_IDENTITY_PHRASES)
+
+
+def transcript_asks_about_meta_behavior(transcript: str) -> bool:
+    normalized = transcript.casefold()
+    return any(_contains_meta_disclosure_phrase(normalized, phrase) for phrase in META_DISCLOSURE_PHRASES)
+
+
+def _contains_meta_disclosure_phrase(normalized_transcript: str, phrase: str) -> bool:
+    if phrase in {"ai", "bot", "assistant"}:
+        return re.search(rf"\b{re.escape(phrase)}\b", normalized_transcript) is not None
+    return phrase in normalized_transcript
 
 
 def _scenario_identity_matches_assumed_patient(scenario: Scenario) -> bool:
