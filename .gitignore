@@ -224,4 +224,4 @@ artifacts/*.ogg
 artifacts/*.wav
 artifacts/*.log
 artifacts/*.jsonl
-/Recording *.mp4
+*.mp4
