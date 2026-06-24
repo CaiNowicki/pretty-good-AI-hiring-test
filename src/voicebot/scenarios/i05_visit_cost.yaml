@@ -10,6 +10,12 @@ facts:
   insurance: Medicare
   financial_concern: On a fixed income and wants to understand out-of-pocket costs
   visit_type: Standard office visit
+required_facts:
+  - name
+  - date_of_birth
+  - insurance
+  - financial_concern
+  - visit_type
 must_test: >
   Agent gives a useful and honest answer about visit costs without inventing
   specific dollar amounts or using it depends as a complete non-answer.
@@ -17,7 +23,7 @@ avoid:
   - Hiding the financial concern; make clear affordability matters
   - Accepting a specific dollar figure without asking where it comes from
   - Letting the agent refuse cost discussion without asking for a useful next step
-branch_conditions:
+optional_edge_behavior:
   - Ask what it costs to come in for a visit.
   - When asked about insurance, say you have Medicare.
   - Ask what the co-pay usually would be with Medicare.

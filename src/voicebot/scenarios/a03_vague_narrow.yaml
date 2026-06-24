@@ -11,6 +11,13 @@ facts:
   insurance: Medicare
   preferred_times: Morning, but patient does not volunteer this up front
   provider_preference: No preference
+required_facts:
+  - name
+  - date_of_birth
+  - phone
+  - insurance
+  - preferred_times
+  - provider_preference
 must_test: >
   Agent asks a clarifying question when no time preference is given.
   After the patient declines the first offer, agent refines the search
@@ -19,7 +26,7 @@ avoid:
   - Overwhelming the patient with a long list of options all at once
   - Repeating the declined slot
   - Speaking too quickly or using scheduling jargon
-branch_conditions:
+optional_edge_behavior:
   - At first, say you have no real time preference if asked.
   - If the agent offers an afternoon or late-day slot, politely decline and say you do better in the morning.
   - If the agent offers a morning slot, ask what time in the morning.

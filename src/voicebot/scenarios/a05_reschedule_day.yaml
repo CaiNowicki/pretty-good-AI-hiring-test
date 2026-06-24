@@ -10,6 +10,14 @@ facts:
   existing_appointment: Wednesday, time unknown to patient; agent must look it up
   preferred_new_day: Thursday or Friday
   preferred_time: Morning if possible
+required_facts:
+  - name
+  - date_of_birth
+  - phone
+  - insurance
+  - existing_appointment
+  - preferred_new_day
+  - preferred_time
 must_test: >
   Agent identifies the existing appointment, confirms it will be moved,
   finds a Thursday or Friday slot, and gives a single clean confirmation
@@ -18,7 +26,7 @@ avoid:
   - Confirming both the old and new appointment as active
   - Asking the patient to re-state all their details from scratch
   - Failing to explicitly state the Wednesday slot is cancelled
-branch_conditions:
+optional_edge_behavior:
   - If the agent asks for identity, provide name and date of birth.
   - If the agent reads back a Wednesday appointment, confirm that is the one to move.
   - Ask for Thursday or Friday, with a morning time preferred.

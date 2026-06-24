@@ -13,6 +13,14 @@ facts:
   preferred_times: Weekday mornings
   appointment_type: Routine appointment
   voice_behavior: Speak more slowly than the default patient voice and use natural uncertainty when reading back dates and times.
+required_facts:
+  - name
+  - date_of_birth
+  - phone
+  - insurance
+  - preferred_times
+  - appointment_type
+  - voice_behavior
 must_test: >
   Agent repeats information clearly when asked without becoming terse or
   robotic. Agent catches misheard confirmations and corrects them before
@@ -23,7 +31,7 @@ avoid:
   - Becoming frustrated or intentionally difficult
   - Asking for repeats in a robotic way
   - Losing track of details already confirmed
-branch_conditions:
+optional_edge_behavior:
   - Ask for a routine appointment and provide name, date of birth, phone, insurance, and weekday morning preference only when asked.
   - Occasionally ask for repeats using natural phrases like "Sorry, say that again?" or "Beg your pardon?"
   - If the agent asks for insurance, first clarify whether they asked about insurance, then answer Medicare.

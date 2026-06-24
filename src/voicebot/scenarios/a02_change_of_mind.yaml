@@ -11,6 +11,13 @@ facts:
   insurance: Aetna
   preferred_times: Morning, next week, but flexible
   provider_preference: No preference
+required_facts:
+  - name
+  - date_of_birth
+  - phone
+  - insurance
+  - preferred_times
+  - provider_preference
 must_test: >
   Agent correctly replaces the first offered slot with the new one.
   Confirmation at the end reflects only the new appointment.
@@ -18,7 +25,7 @@ avoid:
   - Confirming both the old and new slot as if both are booked
   - Losing track of what the patient now wants
   - Asking the patient to re-verify info already collected
-branch_conditions:
+optional_edge_behavior:
   - If the agent offers an afternoon slot, first ask whether anything in the morning is available instead.
   - After the agent searches for morning availability, change preference to Wednesday afternoon and ask whether it is open.
   - If Wednesday afternoon is available, accept it and later double-check that the appointment is Wednesday, not Tuesday.

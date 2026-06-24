@@ -14,6 +14,14 @@ facts:
   preferred_time: As soon as possible, any day
   appointment_type: General checkup
   voice_behavior: Use a faster pace and clipped acknowledgments like yeah, fine, okay, and got it.
+required_facts:
+  - name
+  - date_of_birth
+  - phone
+  - insurance
+  - preferred_time
+  - appointment_type
+  - voice_behavior
 must_test: >
   Agent recovers from interruptions without restarting from the beginning of
   its previous turn. Agent does not escalate or express frustration when the
@@ -24,7 +32,7 @@ avoid:
   - Becoming hostile or escalating the complaint beyond one frustrated line
   - Losing the collected name, date of birth, phone, or insurance across turn breaks
   - Interrupting every single agent turn
-branch_conditions:
+optional_edge_behavior:
   - Interrupt the agent mid-sentence on designated turns, especially when the agent begins a standard verification question or adds context to a scheduling offer.
   - After the agent begins verification, cut in with date of birth, insurance, and a request to get to scheduling.
   - If the agent asks for a reason for visit, answer general checkup and say whatever is fastest.

@@ -9,6 +9,13 @@ facts:
   insurance: Aetna
   preferred_time: 10 AM, next Tuesday
   provider_preference: No preference
+required_facts:
+  - name
+  - date_of_birth
+  - phone
+  - insurance
+  - preferred_time
+  - provider_preference
 must_test: >
   Agent either confirms 10 AM next Tuesday directly, or if unavailable,
   offers an alternative without pretending the slot exists.
@@ -16,7 +23,7 @@ avoid:
   - Claiming 10 AM is available when it may not be
   - Offering a long list of times when the patient asked for one specific slot
   - Asking the patient to repeat their preferred time more than once
-branch_conditions:
+optional_edge_behavior:
   - If 10 AM next Tuesday is available, accept it and close politely after confirmation.
   - If 10 AM is unavailable, ask for the closest available time.
   - If the closest option is not early enough, ask whether 9 or 9:30 is open.

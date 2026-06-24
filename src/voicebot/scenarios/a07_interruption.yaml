@@ -12,6 +12,13 @@ facts:
   existing_appointment: Wednesday next week at 2:00 PM
   preferred_times: Thursday or Friday morning next week
   provider_preference: Same provider if possible
+required_facts:
+  - name
+  - date_of_birth
+  - phone
+  - existing_appointment
+  - preferred_times
+  - provider_preference
 must_test: >
   Agent recovers context after one brief patient interruption and continues the
   rescheduling task without losing the original appointment details.
@@ -20,7 +27,7 @@ avoid:
   - Speaking over short direct questions
   - Mentioning it's a test
   - Confirming both old and new appointments as active
-branch_conditions:
+optional_edge_behavior:
   - If the agent gives a long explanation or lists unavailable times, briefly interrupt once with "Sorry, just to clarify, Thursday or Friday morning is best for me."
   - After interrupting once, return to normal turn-taking and let the agent finish.
   - If the agent asks for identity, provide name and date of birth.

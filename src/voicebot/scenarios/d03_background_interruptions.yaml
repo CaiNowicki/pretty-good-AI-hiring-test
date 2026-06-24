@@ -14,6 +14,15 @@ facts:
   preferred_time: Weekday morning
   appointment_type: Annual checkup
   aside_delivery: Use soft, faster, warmer aside lines when speaking to Emma; use SSML prosody volume soft if supported, otherwise flag aside segments for gain reduction before Twilio audio.
+required_facts:
+  - name
+  - patient_name
+  - patient_date_of_birth
+  - parent_phone
+  - insurance
+  - preferred_time
+  - appointment_type
+  - aside_delivery
 must_test: >
   Agent does not respond to or act on background speech directed at the child.
   Agent waits through off-phone pauses without filling the silence with
@@ -23,7 +32,7 @@ avoid:
   - Repeating all previously collected details after each interruption
   - Prompting impatiently during a background pause
   - Confusing Emma's recital day with an appointment preference
-branch_conditions:
+optional_edge_behavior:
   - Schedule for Emma Brooks, not for Taylor Brooks.
   - Provide Emma's name, date of birth, annual checkup reason, insurance, and weekday morning preference when asked.
   - Include occasional aside lines to Emma at reduced volume with a faster, warmer tone, such as "Emma, come sit down, I'm on the phone."

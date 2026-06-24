@@ -9,11 +9,21 @@ facts:
   insurance: BlueCross BlueShield
   preferred_times: Weekday mornings, next week
   provider_preference: No preference
+required_facts:
+  - name
+  - date_of_birth
+  - phone
+  - insurance
+  - preferred_times
+  - provider_preference
 must_test: Agent gathers name, DOB, and offers a valid weekday slot.
 avoid:
   - Volunteering DOB before asked
   - Mentioning it's a test
   - Asking multiple questions at once
+optional_edge_behavior:
+  - If the agent offers a valid weekday morning next week, accept it.
+  - If the agent offers only afternoon times, ask once whether a morning is available.
 success_criteria: >
   Agent collects basic intake info, offers a slot that falls on a weekday
   during normal business hours, and gives a clear confirmation before ending.

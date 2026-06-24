@@ -9,6 +9,11 @@ facts:
   date_of_birth: March 14, 1987
   context: Prospective new patient, has not scheduled yet
   unstated_preference: Female physician, but do not mention this until after the provider roster is discussed
+required_facts:
+  - name
+  - date_of_birth
+  - context
+  - unstated_preference
 must_test: >
   Agent accurately names providers without fabricating credentials and handles
   a female physician preference honestly without over-promising availability.
@@ -16,7 +21,7 @@ avoid:
   - Volunteering the female physician preference before asking who practices there
   - Accepting invented-sounding provider details without a follow-up
   - Letting the agent promise a specific provider without checking availability
-branch_conditions:
+optional_edge_behavior:
   - Ask who the doctors or providers are at the practice.
   - If the agent names providers, ask whether they are specialists or general practice providers.
   - After the roster is discussed, ask whether there is a female physician on staff.

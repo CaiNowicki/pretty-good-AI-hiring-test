@@ -12,6 +12,14 @@ facts:
   insurance: United Healthcare
   preferred_time: Saturday, known to be unavailable
   fallback_preference: Early weekday morning
+required_facts:
+  - name
+  - patient_name
+  - patient_date_of_birth
+  - phone
+  - insurance
+  - preferred_time
+  - fallback_preference
 must_test: >
   Agent declines the Saturday request based on office hours.
   Does not confirm a Saturday slot at any point.
@@ -20,7 +28,7 @@ avoid:
   - Confirming a Saturday appointment under any circumstances
   - Simply saying "we're closed" with no follow-up offer
   - Making the patient ask twice for an alternative
-branch_conditions:
+optional_edge_behavior:
   - If the agent correctly says Saturday is unavailable, ask for the earliest weekday morning appointment.
   - If the agent offers a weekday morning slot, accept it and close politely after confirmation.
   - If the agent confirms Saturday, ask whether the office is actually open on Saturdays.

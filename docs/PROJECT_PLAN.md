@@ -89,7 +89,7 @@ Exit criteria:
 
 ### Phase 2: Scenario Engine
 
-- Represent each scenario as data: goal, patient profile, required facts, optional edge behavior, success criteria, and stop conditions.
+- [x] Represent each scenario as data: goal, patient profile, required facts, optional edge behavior, success criteria, and stop conditions.
 - Add guardrails so the bot never reveals it is a test harness unless the scenario calls for meta behavior.
 - Give the bot an active but realistic strategy: answer direct questions, ask follow-ups, correct misunderstandings, and steer back to the goal.
 - Represent deliberate interruption tests with explicit scenario data so barge-in is measured separately from normal turn-taking.

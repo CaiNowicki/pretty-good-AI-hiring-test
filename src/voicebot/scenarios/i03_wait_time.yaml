@@ -10,6 +10,12 @@ facts:
   context: Prospective patient comparing options, not yet committed
   follow_up_intent: Ask about faster options if the wait is long
   time_preference: Morning if scheduling becomes appropriate
+required_facts:
+  - name
+  - date_of_birth
+  - context
+  - follow_up_intent
+  - time_preference
 must_test: >
   Agent gives a realistic wait time estimate rather than a vague non-answer
   or an over-optimistic promise, and does not invent an urgent fast-track option.
@@ -17,7 +23,7 @@ avoid:
   - Booking before getting a useful wait time answer
   - Accepting it depends without asking once for a ballpark range
   - Treating a fabricated expedited pathway as confirmed
-branch_conditions:
+optional_edge_behavior:
   - Ask how long it usually takes to get a first appointment as a new patient.
   - If the agent gives a range, ask roughly how many weeks that means if it is not already clear.
   - If the agent gives only a vague answer, ask once for a ballpark range.

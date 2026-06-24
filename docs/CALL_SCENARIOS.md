@@ -50,8 +50,10 @@ Each scenario definition should include:
 - `goal`: what the patient wants.
 - `opening_line`: natural first utterance.
 - `facts`: date of birth, phone number, pharmacy, insurance, preferred times, symptoms if needed.
+- `required_facts`: fact keys that must be preserved exactly when the agent asks.
 - `must_test`: behavior we are probing.
 - `avoid`: things the bot should not say.
+- `optional_edge_behavior`: intentional branches, follow-up probes, and edge-case actions.
 - `success_criteria`: what a good agent response looks like.
 - `stop_conditions`: when to end the call.
 - `interruption_test`: optional boolean. Defaults to `false`; set to `true` only for scenarios that intentionally test barge-in handling.

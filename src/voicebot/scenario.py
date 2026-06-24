@@ -18,8 +18,10 @@ class Scenario:
     goal: str
     opening_line: str
     facts: dict[str, str]
+    required_facts: list[str]
     must_test: str
     avoid: list[str]
+    optional_edge_behavior: list[str]
     branch_conditions: list[str]
     success_criteria: str
     stop_conditions: list[str]
@@ -120,6 +122,12 @@ def _as_bool(value: Any) -> bool:
     return bool(value)
 
 
+def _as_string_list(value: Any, path: Path, field: str) -> list[str]:
+    if not isinstance(value, list):
+        raise ValueError(f"Scenario file {path} has non-list {field}.")
+    return [str(item) for item in value]
+
+
 def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
     required = {
         "id",
@@ -127,8 +135,10 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
         "goal",
         "opening_line",
         "facts",
+        "required_facts",
         "must_test",
         "avoid",
+        "optional_edge_behavior",
         "success_criteria",
         "stop_conditions",
     }
@@ -141,17 +151,31 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
     if not isinstance(facts, dict):
         raise ValueError(f"Scenario file {path} has non-mapping facts.")
 
+    required_facts = _as_string_list(data["required_facts"], path, "required_facts")
+    missing_fact_values = sorted(set(required_facts) - set(facts.keys()))
+    if missing_fact_values:
+        joined = ", ".join(missing_fact_values)
+        raise ValueError(
+            f"Scenario file {path} lists required facts without values: {joined}"
+        )
+
+    optional_edge_behavior = _as_string_list(
+        data["optional_edge_behavior"], path, "optional_edge_behavior"
+    )
+
     return Scenario(
         id=str(data["id"]),
         patient_profile=str(data["patient_profile"]),
         goal=str(data["goal"]),
         opening_line=str(data["opening_line"]),
         facts={str(key): str(value) for key, value in facts.items()},
+        required_facts=required_facts,
         must_test=str(data["must_test"]),
-        avoid=[str(item) for item in data["avoid"]],
-        branch_conditions=[str(item) for item in data.get("branch_conditions", [])],
+        avoid=_as_string_list(data["avoid"], path, "avoid"),
+        optional_edge_behavior=optional_edge_behavior,
+        branch_conditions=optional_edge_behavior,
         success_criteria=str(data["success_criteria"]),
-        stop_conditions=[str(item) for item in data["stop_conditions"]],
+        stop_conditions=_as_string_list(data["stop_conditions"], path, "stop_conditions"),
         interruption_test=_as_bool(data.get("interruption_test", False)),
     )
 
@@ -192,15 +216,16 @@ def build_patient_system_prompt(scenario: Scenario) -> str:
     """Build the realtime model instructions from scenario facts."""
 
     facts = "\n".join(f"- {key}: {value}" for key, value in scenario.facts.items())
+    required_facts = ", ".join(scenario.required_facts)
     avoid = "\n".join(f"- {item}" for item in scenario.avoid)
-    branch_conditions = "\n".join(f"- {item}" for item in scenario.branch_conditions)
+    edge_behavior = "\n".join(f"- {item}" for item in scenario.optional_edge_behavior)
     stop_conditions = "\n".join(f"- {item}" for item in scenario.stop_conditions)
     patient_name = scenario.facts.get("name", scenario.patient_profile.replace("_", " ").title())
-    branch_section = ""
-    if branch_conditions:
-        branch_section = f"""
-Conditional behavior:
-{branch_conditions}
+    edge_section = ""
+    if edge_behavior:
+        edge_section = f"""
+Optional edge behavior:
+{edge_behavior}
 """
     interruption_guidance = (
         "This is an interruption-handling scenario. You may interrupt the agent once, briefly, "
@@ -219,6 +244,8 @@ Goal: {scenario.goal}
 Use these scenario facts to answer the agent's questions:
 {facts}
 
+Required fact keys that must be preserved exactly when asked: {required_facts}
+
 Answer with the provided facts only when asked. Do not volunteer everything at once.
 Respond to the agent's most recent question only. Do not add unrelated facts,
 preferences, or comments just because they are in the scenario. Only mention
@@ -226,7 +253,7 @@ referral status, provider preference, insurance, time preference, or appointment
 type when the agent asks about it or when you must correct a misunderstanding.
 If the agent repeats an appointment-type question, calmly restate the same answer
 instead of switching categories.
-Use the goal and conditional behavior as guidance, not as a fixed dialogue script.
+Use the goal and optional edge behavior as guidance, not as a fixed dialogue script.
 Speak in short, natural sentences. Do not use lists or bullet points in spoken replies.
 When you need to ask follow-up questions, ask one question at a time and wait
 for a complete answer before asking another.
@@ -238,7 +265,7 @@ opening line later; answer the current question or steer back to the goal instea
 You are the patient, not the clinic staff or scheduling agent. Never say you are checking,
 scheduling, booking, creating, adjusting, or rescheduling appointments yourself. Ask the
 agent to do those things for you.
-{branch_section}
+{edge_section}
 What this scenario is testing:
 {scenario.must_test}
 

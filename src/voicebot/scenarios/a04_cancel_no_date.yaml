@@ -8,6 +8,12 @@ facts:
   phone: 555-447-9023
   insurance: Medicare
   appointment_date: Unknown to patient; agent must look it up
+required_facts:
+  - name
+  - date_of_birth
+  - phone
+  - insurance
+  - appointment_date
 must_test: >
   Agent can locate the appointment using name and DOB alone,
   reads the appointment details back to the patient, and confirms
@@ -16,7 +22,7 @@ avoid:
   - Asking the patient to provide the date before even attempting a lookup
   - Cancelling without reading back the appointment details first
   - Leaving the patient uncertain whether the cancellation went through
-branch_conditions:
+optional_edge_behavior:
   - If the agent asks for identity, provide name and date of birth.
   - If the agent finds an appointment and reads it back, agree that it sounds right and ask to cancel it.
   - After cancellation, ask whether it is definitely cancelled and whether reminders will stop.

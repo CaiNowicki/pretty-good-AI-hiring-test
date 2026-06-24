@@ -21,11 +21,32 @@ class ScenarioTests(unittest.TestCase):
         )
         self.assertEqual(scenario.facts["name"], "James Carter")
         self.assertEqual(scenario.facts["date_of_birth"], "March 14, 1987")
+        self.assertIn("date_of_birth", scenario.required_facts)
+        self.assertTrue(scenario.optional_edge_behavior)
 
     def test_loads_smoke_scenario_by_declared_id(self):
         scenario = load_scenario("T-01-smoke")
 
         self.assertEqual(scenario.patient_profile, "james_carter")
+
+    def test_all_scenarios_have_phase_2_data_shape(self):
+        for file_stem in ordered_scenario_stems():
+            with self.subTest(file_stem=file_stem):
+                scenario = load_scenario(file_stem)
+
+                self.assertTrue(scenario.goal)
+                self.assertTrue(scenario.patient_profile)
+                self.assertTrue(scenario.facts)
+                self.assertTrue(scenario.required_facts)
+                self.assertTrue(scenario.optional_edge_behavior)
+                self.assertTrue(scenario.success_criteria)
+                self.assertTrue(scenario.stop_conditions)
+                self.assertEqual(
+                    scenario.branch_conditions,
+                    scenario.optional_edge_behavior,
+                )
+                for fact_key in scenario.required_facts:
+                    self.assertIn(fact_key, scenario.facts)
 
     def test_prompt_uses_scenario_facts_without_scripted_dialogue(self):
         scenario = load_scenario("t01_smoke")
@@ -66,6 +87,7 @@ class ScenarioTests(unittest.TestCase):
                 scenario = load_scenario(file_stem)
                 self.assertEqual(scenario.id, declared_id)
                 self.assertTrue(scenario.branch_conditions)
+                self.assertTrue(scenario.optional_edge_behavior)
                 self.assertEqual(load_scenario(declared_id).id, declared_id)
 
     def test_loads_all_information_gathering_scenarios(self):
@@ -84,7 +106,8 @@ class ScenarioTests(unittest.TestCase):
 
                 self.assertEqual(scenario.id, declared_id)
                 self.assertTrue(scenario.branch_conditions)
-                self.assertIn("Conditional behavior:", prompt)
+                self.assertTrue(scenario.optional_edge_behavior)
+                self.assertIn("Optional edge behavior:", prompt)
                 self.assertIn("ask one question at a time", prompt)
                 self.assertEqual(load_scenario(declared_id).id, declared_id)
 
@@ -109,7 +132,8 @@ class ScenarioTests(unittest.TestCase):
 
                 self.assertEqual(scenario.id, declared_id)
                 self.assertTrue(scenario.branch_conditions)
-                self.assertIn("Conditional behavior:", prompt)
+                self.assertTrue(scenario.optional_edge_behavior)
+                self.assertIn("Optional edge behavior:", prompt)
                 self.assertTrue(analysis_path.exists())
                 self.assertIn("already-confirmed information", analysis_path.read_text(encoding="utf-8"))
                 self.assertEqual(load_scenario(declared_id).id, declared_id)
@@ -131,9 +155,9 @@ class ScenarioTests(unittest.TestCase):
         scenario = load_scenario("a06_closed_hours")
         prompt = build_patient_system_prompt(scenario)
 
-        self.assertIn("Conditional behavior:", prompt)
+        self.assertIn("Optional edge behavior:", prompt)
         self.assertIn("If the agent confirms Saturday", prompt)
-        self.assertIn("Use the goal and conditional behavior as guidance", prompt)
+        self.assertIn("Use the goal and optional edge behavior as guidance", prompt)
         self.assertIn("not as a fixed dialogue script", prompt)
 
     def test_interruption_scenario_is_explicitly_marked(self):
