@@ -19,7 +19,7 @@ facts:
   phone: 555-204-7731
   existing_appointment: Wednesday next week at 2:00 PM
   preferred_times: Thursday or Friday morning next week
-  provider_preference: Same provider if possible
+  provider_preference: I don't have a provider preference
 required_facts:
   - full_name
   - first_name

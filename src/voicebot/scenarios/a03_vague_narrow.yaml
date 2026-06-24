@@ -12,7 +12,7 @@ facts:
   phone: 555-447-9023
   insurance: Medicare
   preferred_times: Morning, but patient does not volunteer this up front
-  provider_preference: No preference
+  provider_preference: No preference on provider
 required_facts:
   - full_name
   - first_name

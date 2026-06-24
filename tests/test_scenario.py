@@ -69,6 +69,12 @@ class ScenarioTests(unittest.TestCase):
                     self.assertIn("first_name", scenario.required_facts)
                     self.assertIn("last_name", scenario.required_facts)
                     self.assertIn("full_name", scenario.required_facts)
+                if "provider_preference" in scenario.facts:
+                    provider_preference = scenario.facts["provider_preference"].casefold()
+                    self.assertTrue(
+                        "no preference" in provider_preference
+                        or "don't have" in provider_preference
+                    )
 
     def test_prompt_uses_scenario_facts_without_scripted_dialogue(self):
         scenario = load_scenario("t01_smoke")

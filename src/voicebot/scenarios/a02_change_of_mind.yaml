@@ -12,7 +12,7 @@ facts:
   phone: 555-318-4492
   insurance: Aetna
   preferred_times: Morning, next week, but flexible
-  provider_preference: No preference
+  provider_preference: I don't have a specific provider in mind
 required_facts:
   - full_name
   - first_name

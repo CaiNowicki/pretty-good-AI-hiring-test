@@ -203,6 +203,16 @@ class RealtimeBridgeTests(unittest.TestCase):
             build_exact_fact_answer(scenario, "Can you tell me your full name, first and last?"),
             "Maya Patel",
         )
+        provider_answer = build_exact_fact_answer(
+            scenario,
+            "Do you have a specific provider you'd like to see or is this for a new patient consultation?",
+        )
+        self.assertIn("provider", provider_answer.casefold())
+        self.assertTrue(
+            "no preference" in provider_answer.casefold()
+            or "don't have" in provider_answer.casefold()
+        )
+        self.assertNotIn("new patient consultation", provider_answer.casefold())
         self.assertIn(
             "March 14, 1987",
             build_turn_response(scenario, "Can you please provide your date of birth?")[
@@ -246,6 +256,10 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(
             requested_info_key(scenario, "Is this a follow-up or routine visit?"),
             "appointment_type",
+        )
+        self.assertEqual(
+            requested_info_key(scenario, "Any preferred provider, or are you open to anyone?"),
+            "provider_preference",
         )
         self.assertIn(
             "March 14, 1987",

@@ -10,7 +10,7 @@ facts:
   phone: 555-204-7731
   insurance: BlueCross BlueShield
   preferred_times: Weekday mornings, next week
-  provider_preference: No preference
+  provider_preference: I don't have a provider preference
 required_facts:
   - full_name
   - first_name

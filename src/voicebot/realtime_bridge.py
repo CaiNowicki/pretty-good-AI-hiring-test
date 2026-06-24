@@ -139,6 +139,12 @@ NEW_PATIENT_CONSULTATION_ANSWERS = (
     "It should be a new patient consultation, not a follow-up.",
     "I'm a new patient, so I need a consultation appointment.",
 )
+PROVIDER_PREFERENCE_ANSWERS = (
+    "I don't have a provider preference.",
+    "I don't have a specific provider in mind.",
+    "No provider preference; whoever is available is fine.",
+    "I don't have a preference on provider.",
+)
 NEW_PATIENT_EXISTING_APPOINTMENT_PHRASES = (
     "already have",
     "already scheduled",
@@ -181,6 +187,7 @@ REPEATED_INFO_LABELS = {
     "full_name": "my name",
     "last_name": "my last name",
     "phone": "my phone number",
+    "provider_preference": "my provider preference",
 }
 REPEATED_INFO_TEMPLATES = (
     "I already gave you {label}, but {answer}",
@@ -405,6 +412,12 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     if "phone" in normalized:
         phone = scenario.facts.get("phone", "").strip()
         return phone
+    if _asks_about_provider_preference(normalized):
+        return _select_stable_variant(
+            PROVIDER_PREFERENCE_ANSWERS,
+            scenario.id,
+            transcript,
+        )
     if _asks_about_appointment_type(normalized):
         if "new patient consultation" in goal:
             return _select_stable_variant(
@@ -438,6 +451,8 @@ def requested_info_key(scenario: Scenario | None, transcript: str) -> str:
         return "last_name"
     if "phone" in normalized:
         return "phone"
+    if _asks_about_provider_preference(normalized):
+        return "provider_preference"
     if _asks_about_appointment_type(normalized):
         return "appointment_type"
     return ""
@@ -572,6 +587,27 @@ def _asks_about_appointment_type(normalized_transcript: str) -> bool:
             "follow-up",
             "followup",
             "routine visit",
+        )
+    )
+
+
+def _asks_about_provider_preference(normalized_transcript: str) -> bool:
+    return any(
+        phrase in normalized_transcript
+        for phrase in (
+            "provider preference",
+            "preferred provider",
+            "provider you'd like",
+            "provider you would like",
+            "specific provider",
+            "particular provider",
+            "doctor you'd like",
+            "doctor you would like",
+            "specific doctor",
+            "particular doctor",
+            "open to anyone",
+            "any provider",
+            "whoever is available",
         )
     )
 

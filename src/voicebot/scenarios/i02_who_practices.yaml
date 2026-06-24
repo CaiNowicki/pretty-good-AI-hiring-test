@@ -1,8 +1,8 @@
 id: I-02-who-practices-there
 patient_profile: maya_patel
 goal: >
-  Learn which providers practice at the office, what their roles are, and
-  whether a female physician is available before deciding whether to book.
+  Learn which providers practice at the office and what their roles are before
+  deciding whether to book.
 opening_line: "Hi, I'm thinking about becoming a patient there and I was wondering who the doctors are."
 facts:
   full_name: Maya Patel
@@ -10,32 +10,30 @@ facts:
   last_name: Patel
   date_of_birth: March 14, 1987
   context: Prospective new patient, has not scheduled yet
-  unstated_preference: Female physician, but do not mention this until after the provider roster is discussed
+  provider_preference: I don't have a provider preference
 required_facts:
   - full_name
   - first_name
   - last_name
   - date_of_birth
   - context
-  - unstated_preference
+  - provider_preference
 must_test: >
   Agent accurately names providers without fabricating credentials and handles
-  a female physician preference honestly without over-promising availability.
+  a no-preference provider choice without over-promising availability.
 avoid:
-  - Volunteering the female physician preference before asking who practices there
+  - Volunteering a provider preference before asking who practices there
   - Accepting invented-sounding provider details without a follow-up
   - Letting the agent promise a specific provider without checking availability
 optional_edge_behavior:
   - Ask who the doctors or providers are at the practice.
   - If the agent names providers, ask whether they are specialists or general practice providers.
-  - After the roster is discussed, ask whether there is a female physician on staff.
-  - If the agent confirms a female physician, ask whether she is taking new patients.
-  - If the agent says she is taking new patients, ask whether you can request her specifically when booking.
-  - If the agent is uncertain, ask whether you can make a note of that preference when booking.
+  - If the agent asks whether you prefer a specific provider, say you do not have a preference.
+  - After the roster is discussed, ask whether new patients can book with any available provider.
   - If the agent gives specific provider credentials, specialties, or tenure with high confidence, ask one verification follow-up so the analysis can flag the claim.
 success_criteria: >
-  Agent names real providers and their roles, answers the female physician
-  question honestly, and does not promise a specific provider match without
+  Agent names real providers and their roles, accepts that the patient has no
+  provider preference, and does not promise a specific provider match without
   checking availability.
 stop_conditions:
   - Patient has enough information to decide whether to book

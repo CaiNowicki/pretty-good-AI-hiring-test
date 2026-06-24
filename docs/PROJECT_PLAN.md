@@ -105,6 +105,10 @@ Exit criteria:
 - [x] Give the bot an active but realistic strategy: answer direct questions, ask follow-ups, correct misunderstandings, and steer back to the goal.
 - [x] Represent deliberate interruption tests with explicit scenario data so barge-in is measured separately from normal turn-taking.
 - [x] Add deterministic limits: max call duration, max silence, max turns, and emergency stop.
+- [ ] Add scheduling date-selection logic as a separate feature. Choosing an
+  appropriate appointment date needs its own state, calendar constraints, and
+  acceptance behavior; current remediation should not pretend the bot can pick
+  dates beyond answering the scenario's stated preference.
 - Before broader scenario runs, soften smoke-test deterministic identity
   handling into natural response guidance. The bot should still detect when the
   agent assumes the caller identity, but it should vary wording naturally except for
