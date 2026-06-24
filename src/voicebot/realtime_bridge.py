@@ -21,8 +21,10 @@ OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime"
 PCMU_FORMAT = {"type": "audio/pcmu"}
 DEFAULT_PREFIX_PADDING_MS = 500
 DEFAULT_SILENCE_DURATION_MS = 1200
+DEFAULT_RESPONSE_DELAY_SECONDS = 1.75
 INTERRUPTION_PREFIX_PADDING_MS = 300
 INTERRUPTION_SILENCE_DURATION_MS = 650
+INTERRUPTION_RESPONSE_DELAY_SECONDS = 0.25
 AGENT_SERVICE_OPENING_PHRASES = (
     "how may i help",
     "how can i help",
@@ -60,6 +62,12 @@ NON_CONVERSATIONAL_PHRASES = (
     "para espa",
     "press",
     "oprima",
+)
+WAIT_FOR_AGENT_TO_CONTINUE_PHRASES = (
+    "thanks for confirming",
+    "specific provider you'd like to see or",
+    "it looks",
+    "for you",
 )
 
 
@@ -127,30 +135,68 @@ def build_opening_response(scenario: Scenario) -> dict[str, Any]:
     }
 
 
-def build_turn_response() -> dict[str, Any]:
+def build_turn_response(scenario: Scenario | None = None, transcript: str = "") -> dict[str, Any]:
+    exact_answer = build_exact_fact_answer(scenario, transcript) if scenario is not None else ""
+    if exact_answer:
+        instructions = f"Say only this exact patient answer: {exact_answer}"
+    else:
+        instructions = (
+            "Only speak if the agent has clearly finished. Respond as the patient for "
+            "the current call turn. Keep it short, answer only what was asked, use the "
+            "scenario facts exactly, and wait for the agent after speaking."
+        )
+
     return {
         "type": "response.create",
         "response": {
-            "instructions": (
-                "Only speak if the agent has clearly finished. Respond as the patient for "
-                "the current call turn. Keep it short, answer only what was asked, and wait "
-                "for the agent after speaking."
-            ),
+            "instructions": instructions,
         },
     }
 
 
-def build_pre_goal_response() -> dict[str, Any]:
+def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = "") -> dict[str, Any]:
+    exact_answer = build_exact_fact_answer(scenario, transcript) if scenario is not None else ""
+    if exact_answer:
+        instructions = f"Say only this exact patient answer: {exact_answer}"
+    else:
+        instructions = (
+            "Only speak if the agent has clearly finished. "
+            "Answer the agent's intake or profile setup question directly as the patient. "
+            "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
+            "facts exactly, and keep it brief."
+        )
+
     return {
         "type": "response.create",
         "response": {
-            "instructions": (
-                "Only speak if the agent has clearly finished. "
-                "Answer the agent's intake or profile setup question directly as the patient. "
-                "Do not ask to schedule yet, do not repeat the opening line, and keep it brief."
-            ),
+            "instructions": instructions,
         },
     }
+
+
+def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
+    if scenario is None:
+        return ""
+
+    normalized = transcript.casefold()
+    name = scenario.facts.get("name", "").strip()
+    name_parts = name.split()
+    first_name = name_parts[0] if name_parts else ""
+    last_name = name_parts[-1] if len(name_parts) > 1 else ""
+
+    if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
+        dob = scenario.facts.get("date_of_birth", "").strip()
+        return f"My date of birth is {dob}." if dob else ""
+    if "first name" in normalized and first_name:
+        return first_name
+    if "last name" in normalized and last_name:
+        return last_name
+    if "your name" in normalized and name:
+        return name
+    if "phone" in normalized:
+        phone = scenario.facts.get("phone", "").strip()
+        return phone
+    return ""
 
 
 def build_input_audio_append(payload: str) -> dict[str, str]:
@@ -199,12 +245,28 @@ def transcript_is_ignorable_before_opening(transcript: str) -> bool:
     return any(phrase in normalized for phrase in NON_CONVERSATIONAL_PHRASES)
 
 
+def transcript_needs_more_agent_context(transcript: str) -> bool:
+    normalized = transcript.casefold().strip()
+    if not normalized:
+        return True
+    if transcript_is_service_opening(normalized) or transcript_is_intake_before_goal(normalized):
+        return False
+    if "?" in normalized:
+        return False
+    if any(phrase in normalized for phrase in WAIT_FOR_AGENT_TO_CONTINUE_PHRASES):
+        return True
+    if normalized.endswith((" or", " and", " to", " with")):
+        return True
+    return len(normalized.split()) <= 3
+
+
 class RealtimeBridge:
     def __init__(self, settings: Settings, state: BridgeState):
         self.settings = settings
         self.state = state
         self._openai_ws: Any | None = None
         self._openai_to_twilio_task: asyncio.Task[None] | None = None
+        self._pending_response_task: asyncio.Task[None] | None = None
         self._goal_introduced = False
         self._bot_audio_in_progress = False
 
@@ -239,6 +301,10 @@ class RealtimeBridge:
             self._openai_to_twilio_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await self._openai_to_twilio_task
+        if self._pending_response_task is not None:
+            self._pending_response_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._pending_response_task
         if self._openai_ws is not None:
             await self._openai_ws.close()
             self._openai_ws = None
@@ -270,7 +336,7 @@ class RealtimeBridge:
                 )
 
             if event_type == "conversation.item.input_audio_transcription.completed":
-                await self._maybe_create_patient_response(event)
+                self._schedule_patient_response(event)
 
             if event_type == "input_audio_buffer.speech_started":
                 await self._handle_agent_speech_started(twilio_ws)
@@ -292,7 +358,31 @@ class RealtimeBridge:
     def _log(self, payload: dict[str, Any]) -> None:
         append_jsonl(self.state.events_path, {"time": utc_now_iso(), **payload})
 
+    def _schedule_patient_response(self, event: dict[str, Any]) -> None:
+        if self._pending_response_task is not None:
+            self._pending_response_task.cancel()
+        delay = (
+            INTERRUPTION_RESPONSE_DELAY_SECONDS
+            if self.state.scenario.interruption_test
+            else DEFAULT_RESPONSE_DELAY_SECONDS
+        )
+        self._pending_response_task = asyncio.create_task(
+            self._delayed_patient_response(dict(event), delay)
+        )
+
+    async def _delayed_patient_response(self, event: dict[str, Any], delay: float) -> None:
+        try:
+            await asyncio.sleep(delay)
+            await self._maybe_create_patient_response(event)
+        except asyncio.CancelledError:
+            self._log({"event": "patient_response.cancelled", "reason": "agent_continued"})
+            raise
+
     async def _handle_agent_speech_started(self, twilio_ws: WebSocket) -> None:
+        if self._pending_response_task is not None:
+            self._pending_response_task.cancel()
+            self._pending_response_task = None
+
         if not self._bot_audio_in_progress:
             return
 
@@ -324,12 +414,16 @@ class RealtimeBridge:
 
             if transcript_is_intake_before_goal(transcript):
                 self._log({"event": "patient_response.pre_goal", "trigger": transcript})
-                await self._send_openai(build_pre_goal_response())
+                await self._send_openai(build_pre_goal_response(self.state.scenario, transcript))
                 return
 
             self._log({"event": "patient_response.pre_goal", "trigger": transcript})
-            await self._send_openai(build_pre_goal_response())
+            await self._send_openai(build_pre_goal_response(self.state.scenario, transcript))
+            return
+
+        if transcript_needs_more_agent_context(transcript):
+            self._log({"event": "patient_response.skipped", "reason": "partial_agent_turn"})
             return
 
         self._log({"event": "patient_response.turn", "trigger": transcript})
-        await self._send_openai(build_turn_response())
+        await self._send_openai(build_turn_response(self.state.scenario, transcript))
