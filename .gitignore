@@ -218,10 +218,5 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Challenge artifacts
-artifacts/calls/
-artifacts/*.mp3
-artifacts/*.ogg
-artifacts/*.wav
-artifacts/*.log
-artifacts/*.jsonl
+/artifacts/
 *.mp4
