@@ -38,12 +38,12 @@ The first implementation milestone should prove one coherent live call end-to-en
 - [x] Do not call the confirmation-screen number.
 - [x] Maintain observations in `docs/PRODUCT_OBSERVATIONS.md` so scenario design reflects real product behavior without treating manual notes as final bug evidence.
 
-### Phase 1: Baseline Voice Loop - In Progress
+### Phase 1: Baseline Voice Loop - Complete
 
 - [x] Set up telephony credentials, public tunnel URL, and one verified outbound caller number.
 - [x] Build the smallest Python flow that prepares one call to the allowlisted test number.
 - [x] Connect live audio between the phone call and the bot runtime.
-- [ ] Confirm the bot can greet, listen, answer, and hang up naturally. Smoke call proved conversation, but prompt and automatic stopping need polish before final calls.
+- [x] Confirm the bot can greet, listen, answer, and hang up naturally. Call-004 passed the baseline voice-loop bar with remaining refinements tracked for Phase 2.
 - [x] Save one test recording and transcript as an internal calibration artifact.
 
 Calibration review from `artifacts/calls/call-001/transcript.txt`:
@@ -65,6 +65,14 @@ Call-002 calibration notes:
 - The agent offered to transfer the caller but then ended the call.
 - Detailed notes are in `docs/CALL_002_REVIEW.md`.
 - Prompt and timing defaults now need to keep normal calls tightly responsive to the latest agent question and slower to speak.
+
+Call-004 completion notes:
+
+- The bot waited through the recording/Spanish preamble and opened after the agent's service prompt.
+- The bot provided the correct scenario date of birth and appointment type.
+- The bot challenged the agent's out-of-turn reschedule/cancel path instead of following it blindly.
+- The call lasted 157 seconds, both sides were intelligible, and artifacts were saved under `artifacts/calls/call-004/`.
+- Remaining duplicate response to a split appointment-type prompt is a Phase 2 turn-state refinement, not a Phase 1 blocker.
 
 Exit criteria:
 
