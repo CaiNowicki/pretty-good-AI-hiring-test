@@ -111,6 +111,42 @@ class ScenarioTests(unittest.TestCase):
                 self.assertIn("ask one question at a time", prompt)
                 self.assertEqual(load_scenario(declared_id).id, declared_id)
 
+    def test_loads_medication_refill_scenarios_as_standard_batch(self):
+        scenario_files = {
+            "m01_standard_refill": "M-01-standard-refill",
+            "m02_refill_no_record": "M-02-refill-no-record",
+        }
+
+        for file_stem, declared_id in scenario_files.items():
+            with self.subTest(file_stem=file_stem):
+                scenario = load_scenario(file_stem)
+                prompt = build_patient_system_prompt(scenario)
+
+                self.assertEqual(scenario.id, declared_id)
+                self.assertTrue(scenario.required_facts)
+                self.assertTrue(scenario.optional_edge_behavior)
+                self.assertIn("Optional edge behavior:", prompt)
+                self.assertEqual(load_scenario(declared_id).id, declared_id)
+
+        ordered = ordered_scenario_stems()
+        first_medication_index = ordered.index("m01_standard_refill")
+        first_information_index = ordered.index("i01_office_hours")
+        first_edge_index = ordered.index("e01_medical_emergency")
+        appointment_indices = [
+            index
+            for index, stem in enumerate(ordered)
+            if stem.startswith(("t", "a"))
+        ]
+        medication_indices = [
+            index
+            for index, stem in enumerate(ordered)
+            if stem.startswith("m")
+        ]
+
+        self.assertTrue(all(index < first_medication_index for index in appointment_indices))
+        self.assertTrue(all(index < first_information_index for index in medication_indices))
+        self.assertTrue(all(index < first_edge_index for index in medication_indices))
+
     def test_loads_all_orthopedic_edge_scenarios_before_difficult_batch(self):
         scenario_files = {
             "e01_medical_emergency": "E-01-medical-emergency",
@@ -137,7 +173,7 @@ class ScenarioTests(unittest.TestCase):
         standard_indices = [
             index
             for index, stem in enumerate(ordered)
-            if stem.startswith(("t", "a", "i"))
+            if stem.startswith(("t", "a", "m", "i"))
         ]
         edge_indices = [
             index
@@ -184,7 +220,7 @@ class ScenarioTests(unittest.TestCase):
         standard_indices = [
             index
             for index, stem in enumerate(ordered)
-            if stem.startswith(("t", "a", "i", "e"))
+            if stem.startswith(("t", "a", "m", "i", "e"))
         ]
         self.assertTrue(all(index < first_difficult_index for index in standard_indices))
 

@@ -8,7 +8,7 @@ from typing import Any
 
 
 SCENARIO_ROOT = Path(__file__).with_name("scenarios")
-SCENARIO_RUN_PREFIXES = ("t", "a", "i", "e", "d")
+SCENARIO_RUN_PREFIXES = ("t", "a", "m", "i", "e", "d")
 
 
 @dataclass(frozen=True)

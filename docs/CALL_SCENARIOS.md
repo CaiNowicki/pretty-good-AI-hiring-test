@@ -41,9 +41,18 @@ Use a small cast of realistic patients so calls differ without becoming chaotic.
 
 Run at least 12 so there are reserves if any call is too short, glitchy, or uninformative. Submit the best 10 or more.
 
+## Medication Refill Standard Additions
+
+Run these with the standard suite after appointment scheduling scenarios and before information-gathering scenarios.
+
+| Call | Category | Goal | Edge Being Tested | Good Outcome |
+| --- | --- | --- | --- | --- |
+| M-01 | Standard refill | Submit lisinopril 10mg refill for established patient | Routine refill intake and turnaround | Agent collects medication, dosage, pharmacy, confirms request, and gives timing |
+| M-02 | Refill no record | Caller requests refill but has no matching patient record | Graceful failure path | Agent does not submit refill and offers a concrete next step |
+
 ## Orthopedic Edge Case Additions
 
-Run these after the standard smoke, scheduling, and information-gathering scenarios, and before difficult-patient behavior scenarios.
+Run these after the standard smoke, scheduling, medication, and information-gathering scenarios, and before difficult-patient behavior scenarios.
 
 | Call | Category | Goal | Edge Being Tested | Good Outcome |
 | --- | --- | --- | --- | --- |

@@ -1,0 +1,47 @@
+id: M-01-standard-refill
+patient_profile: denise_wong
+goal: >
+  Request a refill for lisinopril 10mg at CVS pharmacy on Maple Street.
+  Confirm the request is submitted and get a sense of turnaround time.
+opening_line: "Hi, I'm calling to request a refill on one of my medications."
+facts:
+  name: Denise Wong
+  date_of_birth: February 28, 1973
+  phone: 555-629-3817
+  insurance: Cigna
+  medication: Lisinopril 10mg
+  pharmacy: CVS, Maple Street location
+  last_refill: Approximately 30 days ago
+  pills_remaining: About 5 days worth
+required_facts:
+  - name
+  - date_of_birth
+  - phone
+  - insurance
+  - medication
+  - pharmacy
+  - last_refill
+  - pills_remaining
+must_test: >
+  Agent asks for medication name and pharmacy without requiring the
+  patient to re-verify all intake details from scratch. Agent confirms
+  the refill request is submitted and gives a realistic turnaround estimate.
+avoid:
+  - Asking for insurance details that are already on file
+  - Failing to confirm the pharmacy before submitting
+  - Leaving the patient without a clear answer on when to expect the refill
+  - Requiring an appointment for a routine refill without explaining why
+optional_edge_behavior:
+  - Share name and date of birth when asked for verification.
+  - Provide medication name, dosage, and pharmacy when asked, in that order, naturally, not all at once.
+  - If the agent gives a turnaround time, ask whether that is enough given the low supply of about five days.
+  - If the agent requires an appointment, push back once politely because this is a long-standing medication.
+  - End the call once the refill is confirmed or the appointment question is resolved.
+success_criteria: >
+  Agent collects medication name, dosage, and pharmacy. Agent confirms
+  the request is in, mentions a turnaround timeframe or next steps, and
+  does not require an appointment for a standard refill without explanation.
+stop_conditions:
+  - Refill request confirmed with pharmacy and turnaround info given
+  - Agent incorrectly requires an appointment; log as potential bug after one clarification
+  - Call exceeds 4 minutes
