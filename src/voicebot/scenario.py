@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from voicebot.personas import PersonaNotFoundError, load_persona
+
 
 SCENARIO_ROOT = Path(__file__).with_name("scenarios")
 SCENARIO_RUN_PREFIXES = ("t", "a", "m", "i", "e", "d")
@@ -31,7 +33,7 @@ class Scenario:
     patient_profile: str
     goal: str
     opening_line: str
-    facts: dict[str, str]
+    facts: dict[str, Any]
     required_facts: list[str]
     must_test: str
     avoid: list[str]
@@ -41,6 +43,7 @@ class Scenario:
     stop_conditions: list[str]
     interruption_test: bool = False
     interruption_behavior: dict[str, str] = field(default_factory=dict)
+    name_variations: list[str] = field(default_factory=list)
 
 
 class ScenarioNotFoundError(FileNotFoundError):
@@ -149,6 +152,30 @@ def _as_string_mapping(value: Any, path: Path, field: str) -> dict[str, str]:
     return {str(key): str(item) for key, item in value.items()}
 
 
+def _as_fact_mapping(value: Any, path: Path, field: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ValueError(f"Scenario file {path} has non-mapping {field}.")
+
+    facts: dict[str, Any] = {}
+    for key, item in value.items():
+        fact_key = str(key)
+        if isinstance(item, list):
+            facts[fact_key] = [str(child) for child in item]
+        else:
+            facts[fact_key] = str(item)
+    return facts
+
+
+def _persona_facts_for_profile(patient_profile: str) -> tuple[dict[str, Any], list[str]]:
+    try:
+        persona = load_persona(patient_profile)
+    except PersonaNotFoundError:
+        return {}, []
+
+    facts = persona.to_facts()
+    return facts, persona.name_variations
+
+
 def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
     required = {
         "id",
@@ -168,9 +195,11 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
         joined = ", ".join(missing)
         raise ValueError(f"Scenario file {path} is missing required fields: {joined}")
 
-    facts = data["facts"]
-    if not isinstance(facts, dict):
-        raise ValueError(f"Scenario file {path} has non-mapping facts.")
+    scenario_facts = _as_fact_mapping(data["facts"], path, "facts")
+    persona_facts, persona_name_variations = _persona_facts_for_profile(
+        str(data["patient_profile"])
+    )
+    facts = {**persona_facts, **scenario_facts}
 
     required_facts = _as_string_list(data["required_facts"], path, "required_facts")
     missing_fact_values = sorted(set(required_facts) - set(facts.keys()))
@@ -201,7 +230,7 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
         patient_profile=str(data["patient_profile"]),
         goal=str(data["goal"]),
         opening_line=str(data["opening_line"]),
-        facts={str(key): str(value) for key, value in facts.items()},
+        facts=facts,
         required_facts=required_facts,
         must_test=str(data["must_test"]),
         avoid=_as_string_list(data["avoid"], path, "avoid"),
@@ -211,6 +240,11 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
         stop_conditions=_as_string_list(data["stop_conditions"], path, "stop_conditions"),
         interruption_test=interruption_test,
         interruption_behavior=interruption_behavior,
+        name_variations=_as_string_list(
+            data.get("name_variations", persona_name_variations),
+            path,
+            "name_variations",
+        ),
     )
 
 
@@ -259,21 +293,99 @@ def scenario_allows_meta_behavior(scenario: Scenario) -> bool:
     return any(phrase in searchable for phrase in META_BEHAVIOR_ALLOW_PHRASES)
 
 
+def _format_fact_value(value: Any) -> str:
+    if isinstance(value, list):
+        return ", ".join(str(item) for item in value)
+    return str(value)
+
+
+def _format_fact_lines(facts: dict[str, Any]) -> str:
+    lines: list[str] = []
+    for key, value in facts.items():
+        lines.append(f"- {key}: {_format_fact_value(value)}")
+    return "\n".join(lines)
+
+
+def _build_name_lookup_guidance(scenario: Scenario) -> str:
+    if not scenario.name_variations:
+        return ""
+
+    lookup_attempts = [*scenario.name_variations]
+    phone = scenario.facts.get("phone", "")
+    dob = scenario.facts.get("date_of_birth", "")
+    if phone:
+        lookup_attempts.append(f"Phone number {_format_fact_value(phone)}")
+    if dob:
+        lookup_attempts.append(f"Date of birth {_format_fact_value(dob)}")
+
+    ordered_attempts = "\n".join(
+        f"{index}. {attempt}" for index, attempt in enumerate(lookup_attempts, start=1)
+    )
+    return f"""
+Name lookup guidance:
+Offer lookup values one at a time in this exact order, moving to the next only
+after the agent confirms the current attempt did not find a match:
+{ordered_attempts}
+Do not volunteer the full lookup list at once. If a matching record is found,
+verify date of birth before accepting or confirming any appointment details.
+"""
+
+
+def _format_guidance_list(items: Any) -> str:
+    if not isinstance(items, list):
+        return ""
+    return "\n".join(f"- {item}" for item in items)
+
+
+def _build_persona_behavior_guidance(scenario: Scenario) -> str:
+    escalation_triggers = _format_guidance_list(
+        scenario.facts.get("escalation_triggers", [])
+    )
+    de_escalation_triggers = _format_guidance_list(
+        scenario.facts.get("de_escalation_triggers", [])
+    )
+    characteristic_phrases = _format_guidance_list(
+        scenario.facts.get("characteristic_phrases", [])
+    )
+    if not any((escalation_triggers, de_escalation_triggers, characteristic_phrases)):
+        return ""
+
+    sections: list[str] = ["Persona behavior guidance:"]
+    if escalation_triggers:
+        sections.append(f"Escalation triggers:\n{escalation_triggers}")
+    if de_escalation_triggers:
+        sections.append(f"De-escalation triggers:\n{de_escalation_triggers}")
+    if characteristic_phrases:
+        sections.append(
+            "Characteristic phrases you may use naturally when they fit, not as a "
+            f"scripted checklist:\n{characteristic_phrases}"
+        )
+    return "\n".join(sections) + "\n"
+
+
 def build_patient_system_prompt(scenario: Scenario) -> str:
     """Build the realtime model instructions from scenario facts."""
 
-    facts = "\n".join(f"- {key}: {value}" for key, value in scenario.facts.items())
+    facts = _format_fact_lines(scenario.facts)
     required_facts = ", ".join(scenario.required_facts)
     avoid = "\n".join(f"- {item}" for item in scenario.avoid)
     edge_behavior = "\n".join(f"- {item}" for item in scenario.optional_edge_behavior)
     stop_conditions = "\n".join(f"- {item}" for item in scenario.stop_conditions)
-    patient_name = scenario.facts.get("name", scenario.patient_profile.replace("_", " ").title())
+    patient_name = scenario.facts.get(
+        "full_name",
+        scenario.facts.get(
+            "legal_name",
+            scenario.facts.get("name", scenario.patient_profile.replace("_", " ").title()),
+        ),
+    )
     edge_section = ""
     if edge_behavior:
         edge_section = f"""
 Optional edge behavior:
 {edge_behavior}
 """
+    name_lookup_guidance = _build_name_lookup_guidance(scenario)
+    persona_behavior_guidance = _build_persona_behavior_guidance(scenario)
     strategy_section = """
 Conversation strategy:
 - Answer direct questions with the relevant scenario fact and stop there.
@@ -331,6 +443,8 @@ You are the patient, not the clinic staff or scheduling agent. Never say you are
 scheduling, booking, creating, adjusting, or rescheduling appointments yourself. Ask the
 agent to do those things for you.
 {edge_section}
+{name_lookup_guidance}
+{persona_behavior_guidance}
 What this scenario is testing:
 {scenario.must_test}
 

@@ -23,4 +23,4 @@ dev = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-voicebot = ["scenarios/*.yaml", "scenarios/*.md"]
+voicebot = ["scenarios/*.yaml", "scenarios/*.md", "personas/*.yaml"]

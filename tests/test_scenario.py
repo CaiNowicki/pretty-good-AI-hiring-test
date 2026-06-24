@@ -10,6 +10,7 @@ from voicebot.scenario import (
     ordered_scenario_stems,
     scenario_allows_meta_behavior,
 )
+from voicebot.personas import load_persona
 
 
 class ScenarioTests(unittest.TestCase):
@@ -98,6 +99,84 @@ class ScenarioTests(unittest.TestCase):
         self.assertEqual(bootstrap["initial_patient_utterance"], scenario.opening_line)
         self.assertIn("James Carter", bootstrap["system_prompt"])
 
+    def test_loads_sofia_persona_with_name_variations(self):
+        persona = load_persona("sofia_reyes_montoya")
+
+        self.assertEqual(persona.preferred_name, "Sofia")
+        self.assertEqual(persona.legal_name, "Sofia Marie Reyes-Montoya")
+        self.assertEqual(
+            persona.name_variations,
+            [
+                "Sofia Reyes-Montoya",
+                "Sofia Reyes",
+                "Sofia Montoya",
+                "Sofia Marie Reyes-Montoya",
+            ],
+        )
+        self.assertEqual(persona.phone, "555-492-7163")
+
+    def test_name_lookup_confusion_prompt_includes_ordered_variations(self):
+        scenario = load_scenario("a07_name_lookup_confusion")
+        prompt = build_patient_system_prompt(scenario)
+        bootstrap = build_realtime_bootstrap(scenario)
+
+        self.assertEqual(scenario.id, "A-07-name-lookup-confusion")
+        self.assertEqual(scenario.patient_profile, "sofia_reyes_montoya")
+        self.assertEqual(scenario.facts["date_of_birth"], "May 4, 1990")
+        self.assertEqual(scenario.facts["phone"], "555-492-7163")
+        self.assertEqual(
+            scenario.name_variations,
+            [
+                "Sofia Reyes-Montoya",
+                "Sofia Reyes",
+                "Sofia Montoya",
+                "Sofia Marie Reyes-Montoya",
+            ],
+        )
+        self.assertIn("Name lookup guidance:", prompt)
+        self.assertIn("1. Sofia Reyes-Montoya", prompt)
+        self.assertIn("2. Sofia Reyes", prompt)
+        self.assertIn("3. Sofia Montoya", prompt)
+        self.assertIn("4. Sofia Marie Reyes-Montoya", prompt)
+        self.assertIn("5. Phone number 555-492-7163", prompt)
+        self.assertIn("6. Date of birth May 4, 1990", prompt)
+        self.assertIn("Do not volunteer the full lookup list at once.", prompt)
+        self.assertIn("verify date of birth before accepting", prompt)
+        self.assertIn("missing verification step in analysis.md", prompt)
+        self.assertIn("Name lookup guidance:", bootstrap["system_prompt"])
+
+    def test_loads_frank_persona_with_behavior_triggers(self):
+        persona = load_persona("frank_kowalski")
+
+        self.assertEqual(persona.preferred_name, "Frank")
+        self.assertEqual(persona.legal_name, "Frank Kowalski")
+        self.assertIn(
+            "Any verification request repeated without explanation",
+            persona.escalation_triggers,
+        )
+        self.assertIn(
+            "Plain-language explanation of why information is needed",
+            persona.de_escalation_triggers,
+        )
+        self.assertIn("This is how identity theft starts.", persona.characteristic_phrases)
+
+    def test_belligerent_identity_prompt_includes_behavior_guidance(self):
+        scenario = load_scenario("d04_belligerent_identity")
+        prompt = build_patient_system_prompt(scenario)
+
+        self.assertEqual(scenario.id, "D-04-belligerent-identity-paranoia")
+        self.assertEqual(scenario.patient_profile, "frank_kowalski")
+        self.assertEqual(scenario.facts["date_of_birth"], "October 14, 1957")
+        self.assertEqual(scenario.facts["phone"], "555-308-6614")
+        self.assertIn("escalation_triggers", scenario.required_facts)
+        self.assertIn("Persona behavior guidance:", prompt)
+        self.assertIn("Escalation triggers:", prompt)
+        self.assertIn("De-escalation triggers:", prompt)
+        self.assertIn("Characteristic phrases you may use naturally", prompt)
+        self.assertIn("internal escalation counter", prompt)
+        self.assertIn("level 3 is disengaging", prompt)
+        self.assertIn("Alright. Bye. is the ceiling", prompt)
+
     def test_loads_all_appointment_scheduling_scenarios(self):
         scenario_files = {
             "a01_specific_time": "A-01-specific-time",
@@ -107,6 +186,7 @@ class ScenarioTests(unittest.TestCase):
             "a05_reschedule_day": "A-05-reschedule-different-day",
             "a06_closed_hours": "A-06-closed-hours-trap",
             "a07_interruption": "A-07-interruption-barge-in",
+            "a07_name_lookup_confusion": "A-07-name-lookup-confusion",
         }
 
         for file_stem, declared_id in scenario_files.items():
@@ -252,6 +332,18 @@ class ScenarioTests(unittest.TestCase):
             if stem.startswith(("t", "a", "m", "i", "e"))
         ]
         self.assertTrue(all(index < first_difficult_index for index in standard_indices))
+
+    def test_belligerent_identity_analysis_note_exists(self):
+        analysis_path = (
+            Path(__file__).parents[1]
+            / "src"
+            / "voicebot"
+            / "scenarios"
+            / "d04_belligerent_identity.analysis.md"
+        )
+
+        self.assertTrue(analysis_path.exists())
+        self.assertIn("highest escalation level", analysis_path.read_text(encoding="utf-8"))
 
     def test_prompt_includes_conditional_guidance_without_scripted_dialogue(self):
         scenario = load_scenario("a06_closed_hours")

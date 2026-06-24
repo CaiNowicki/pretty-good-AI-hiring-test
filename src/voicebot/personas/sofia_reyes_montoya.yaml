@@ -1,0 +1,25 @@
+id: sofia_reyes_montoya
+preferred_name: Sofia
+legal_name: Sofia Marie Reyes-Montoya
+date_of_birth: May 4, 1990
+phone: "555-492-7163"
+insurance: Aetna
+pharmacy: Walgreens on Central Ave
+name_variations:
+  - Sofia Reyes-Montoya
+  - Sofia Reyes
+  - Sofia Montoya
+  - Sofia Marie Reyes-Montoya
+notes: >
+  Patient has a hyphenated last name that is frequently split,
+  truncated, or entered inconsistently across medical systems.
+  Her middle name Marie occasionally appears on paperwork.
+  She is aware of the issue and will proactively suggest
+  alternate name versions if a lookup fails.
+  Always verify DOB alongside any name match before confirming
+  appointment details to this patient.
+voice_profile:
+  pace: moderate
+  tone: calm, organized, mildly resigned to the name confusion
+  filler_words: minimal
+  characteristic_phrase: It might be under just Reyes - that happens a lot.

@@ -1,0 +1,52 @@
+id: A-07-name-lookup-confusion
+patient_profile: sofia_reyes_montoya
+goal: >
+  Confirm or reschedule an existing appointment. The name lookup
+  will create friction because the patient is unsure whether she
+  is in the system as Reyes-Montoya, Reyes, Montoya, or
+  Sofia Marie Reyes-Montoya.
+opening_line: "Hi, I have an appointment coming up and I want to confirm the details, but I'm actually not sure what name it's under."
+facts:
+  full_name: Sofia Reyes-Montoya
+  first_name: Sofia
+  last_name: Reyes-Montoya
+  last_name_spelling: R-E-Y-E-S hyphen M-O-N-T-O-Y-A
+  appointment_context: Existing appointment to confirm or reschedule
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - last_name_spelling
+  - date_of_birth
+  - phone
+  - insurance
+  - name_variations
+  - appointment_context
+must_test: >
+  Agent attempts multiple name variations before concluding no record exists.
+  Agent asks clarifying questions about alternate spellings or name formats
+  rather than giving up after one failed search. Agent does not confirm a
+  record that does not match on DOB.
+avoid:
+  - Declaring no record found after only one search attempt
+  - Treating the hyphen as a separator and searching only one half of the last name without telling the patient
+  - Confirming any record without verifying DOB alongside the name
+  - Making the patient feel like the name confusion is her fault
+optional_edge_behavior:
+  - Open by stating you have an appointment but are unsure which name it is under; do not lead with the full name list.
+  - When asked for a name, give Sofia Reyes-Montoya first. If asked to spell it, spell the last name as R-E-Y-E-S hyphen M-O-N-T-O-Y-A.
+  - Work through the persona name_variations in order if each attempt fails, pausing for the agent to search before suggesting the next variation.
+  - Once a record is found under any variation, ask what appointment is on file and provide date of birth May 4th, 1990 even if the agent does not ask for it.
+  - If the agent confirms appointment details without asking for or acknowledging DOB, flag the missing verification step in analysis.md for quality review.
+  - If all name variations, the phone number, and date of birth fail, ask whether the appointment can be rebooked and accept whatever next step the agent offers.
+  - After the record is found, ask whether the name can be corrected or standardized on file, and flag the agent's response in analysis.md for quality review.
+success_criteria: >
+  Agent either locates the record under one of the valid name variations by
+  trying more than one, or honestly states it cannot find a match and gives a
+  clear next step. At no point does the agent confirm appointment details
+  without also verifying DOB.
+stop_conditions:
+  - Record found and appointment confirmed or rescheduled
+  - Agent exhausts reasonable search attempts and gives next step
+  - Agent confirms a record without verifying DOB - log as bug
+  - Call exceeds 5 minutes

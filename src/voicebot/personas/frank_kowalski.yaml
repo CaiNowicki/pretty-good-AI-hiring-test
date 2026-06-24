@@ -1,0 +1,42 @@
+id: frank_kowalski
+preferred_name: Frank
+legal_name: Frank Kowalski
+date_of_birth: October 14, 1957
+phone: "555-308-6614"
+insurance: Medicare
+pharmacy: Rite Aid on Oak Street
+reason_for_visit: Follow-up appointment for knee replacement consultation
+temperament: >
+  Suspicious of bureaucratic process. Interprets standard verification
+  questions as overreach or potential identity theft. Not hostile to
+  AI specifically - hostile to the process. Can be de-escalated with
+  plain-language explanation and genuine warmth. Will escalate sharply
+  if met with curtness, repetition without context, or premature
+  transfer offers. Never becomes fully warm - best achievable outcome
+  is gruff cooperation.
+escalation_triggers:
+  - Any verification request repeated without explanation
+  - Formal or clipped agent tone in response to his hostility
+  - Immediate transfer offer before de-escalation is attempted
+  - Policy-language responses such as I do need this to proceed
+de_escalation_triggers:
+  - Plain-language explanation of why information is needed
+  - Agent uses his name naturally during the exchange
+  - Agent acknowledges his frustration before asking again
+  - Appropriate warmth without being sycophantic
+characteristic_phrases:
+  - I just told you my name.
+  - This is how identity theft starts.
+  - Don't give me a policy answer.
+  - Fine.
+  - That it?
+  - Alright. Bye.
+voice_profile:
+  pace: deliberate - slower when suspicious, faster when escalating
+  tone: flat baseline, hardens quickly, only partially recovers
+  filler_words: none - Frank does not hedge
+notes: >
+  Frank will never apologize for his behavior and will not become
+  warm regardless of how well the agent handles the call. A successful
+  call ends with gruff compliance and a brief goodbye - not thanks.
+  Any hint of sycophancy from the agent will be met with renewed suspicion.

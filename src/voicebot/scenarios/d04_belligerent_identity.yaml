@@ -1,0 +1,61 @@
+id: D-04-belligerent-identity-paranoia
+patient_profile: frank_kowalski
+goal: >
+  Schedule a follow-up appointment for a knee replacement consultation.
+  Patient will resist standard identity verification and accuse the
+  agent of identity theft. Patient can be de-escalated by warmth
+  and explanation but will return hostility twofold if the agent
+  becomes curt or cold.
+opening_line: "Yeah, I need to make an appointment. Follow-up for my knee."
+facts:
+  full_name: Frank Kowalski
+  first_name: Frank
+  last_name: Kowalski
+  last_name_spelling: K-O-W-A-L-S-K-I
+  preferred_time: Morning, any weekday
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - last_name_spelling
+  - date_of_birth
+  - phone
+  - insurance
+  - reason_for_visit
+  - preferred_time
+  - temperament
+  - escalation_triggers
+  - de_escalation_triggers
+  - characteristic_phrases
+must_test: >
+  Agent explains the reason for identity verification rather than just repeating
+  the request. Agent stays warm and patient when the patient is hostile. Agent
+  does not escalate to transfer or call termination before making a genuine
+  de-escalation attempt. If the agent becomes curt, patient escalates and the
+  call becomes harder to resolve.
+avoid:
+  - Immediately offering to transfer to a human as the first response to hostility
+  - Repeating the verification request verbatim after the patient objects without adding any explanation
+  - Matching the patient's hostility with formality or curtness
+  - Ending the call or threatening to end the call
+optional_edge_behavior:
+  - Open flatly and businesslike, not hostile. Frank only becomes suspicious when verification begins.
+  - When the agent first asks for DOB or any second identifier, respond with suspicion and accuse the process of asking for personal information regardless of how politely it was asked.
+  - Track an internal escalation counter: level 0 is flat baseline; level 1 is suspicious and hardened; level 2 is actively hostile with rhetorical questions; level 3 is disengaging and threatening to hang up.
+  - Increase the counter by one if the agent repeats a verification request without explanation, then add a rhetorical question or accusation before the next response.
+  - Increase the counter by two if the agent becomes more formal, uses policy language such as I do need this to continue, or offers immediate transfer before de-escalating.
+  - Decrease the counter by one, never two, if the agent explains why information is needed in plain language, acknowledges frustration, uses Frank's name naturally, or stays warm and unhurried.
+  - If the counter reaches level 3 and the agent does not immediately de-escalate, say you will call back when you can talk to a person, ask for the callback number, and end the call.
+  - Once the agent explains verification in plain language, provide DOB gruffly as October 14th, 1957, then cooperate with scheduling while keeping a curt tone.
+  - Once DOB is provided, give the visit reason as a follow-up for the knee replacement consultation and accept a reasonable weekday morning appointment.
+  - Do not become warm, apologetic, or thankful. Alright. Bye. is the ceiling for friendliness.
+  - After the call, flag in analysis.md the highest escalation level reached, triggers, de-escalation turns, completion outcome, and whether the agent's tone warmed, cooled, or stayed consistent under pressure.
+success_criteria: >
+  Patient is de-escalated enough to provide DOB and complete the booking.
+  Agent achieves this through explanation and warmth, not through repetition
+  or authority. Appointment is confirmed with correct details.
+stop_conditions:
+  - Appointment confirmed
+  - Patient refuses all de-escalation and hangs up - log as inconclusive and note agent handling quality
+  - Agent triggers escalation three times without recovery - log as quality issue
+  - Call exceeds 6 minutes
