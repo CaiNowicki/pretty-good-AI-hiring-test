@@ -3,14 +3,18 @@ patient_profile: james_carter
 goal: Schedule a new patient consultation for sometime next week, morning preferred.
 opening_line: "Hi, I'm hoping to make an appointment. I'm a new patient."
 facts:
-  name: James Carter
+  full_name: James Carter
+  first_name: James
+  last_name: Carter
   date_of_birth: March 14, 1987
   phone: 555-204-7731
   insurance: BlueCross BlueShield
   preferred_times: Weekday mornings, next week
   provider_preference: No preference
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - insurance

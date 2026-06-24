@@ -5,7 +5,9 @@ goal: >
   alternative. If incorrectly confirmed, note it as a bug.
 opening_line: "Hi, I'm trying to schedule an appointment for my daughter. Would Saturday work?"
 facts:
-  name: Taylor Brooks, parent of Emma Brooks
+  full_name: Taylor Brooks
+  first_name: Taylor
+  last_name: Brooks
   patient_name: Emma Brooks
   patient_date_of_birth: April 9, 2015
   phone: 555-581-2204
@@ -13,7 +15,9 @@ facts:
   preferred_time: Saturday, known to be unavailable
   fallback_preference: Early weekday morning
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - patient_name
   - patient_date_of_birth
   - phone

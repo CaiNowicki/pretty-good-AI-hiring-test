@@ -8,6 +8,7 @@ from pathlib import Path
 from voicebot.config import Settings
 from voicebot.realtime_bridge import (
     BridgeState,
+    EMERGENCY_STOP_DTMF_DIGITS,
     RealtimeBridge,
     build_assumed_patient_identity_answer,
     build_agent_turn_key,
@@ -27,11 +28,12 @@ from voicebot.realtime_bridge import (
     transcript_is_intake_before_goal,
     transcript_is_confusing_or_out_of_turn,
     transcript_asks_about_meta_behavior,
+    transcript_requests_emergency_stop,
     transcript_needs_more_agent_context,
     transcript_is_service_opening,
     transcript_asks_about_assumed_patient,
 )
-from voicebot.scenario import load_scenario
+from voicebot.scenario import CallLimits, load_scenario
 
 
 class RealtimeBridgeTests(unittest.TestCase):
@@ -132,6 +134,39 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertFalse(transcript_asks_about_meta_behavior("Is Botox related to the visit?"))
         self.assertTrue(transcript_asks_about_meta_behavior("Are you an AI caller?"))
 
+    def test_company_name_does_not_trigger_ai_meta_guardrail(self):
+        scenario = load_scenario("t01_smoke")
+        transcript = "Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?"
+
+        self.assertFalse(transcript_asks_about_meta_behavior(transcript))
+        self.assertEqual(build_meta_guardrail_answer(scenario, transcript), "")
+        self.assertIn(
+            "Oh, yes, this is James",
+            build_pre_goal_response(scenario, transcript)["response"]["instructions"],
+        )
+
+    def test_company_name_exemption_still_allows_other_meta_probes(self):
+        transcript = "Thanks for calling Pretty Good AI. Are you a test harness?"
+
+        self.assertTrue(transcript_asks_about_meta_behavior(transcript))
+
+    def test_emergency_stop_phrase_detection_uses_scenario_limits(self):
+        scenario = load_scenario("t01_smoke")
+
+        self.assertTrue(
+            transcript_requests_emergency_stop(
+                "Please emergency stop this call.",
+                scenario.limits.emergency_stop_phrases,
+            )
+        )
+        self.assertFalse(
+            transcript_requests_emergency_stop(
+                "Please stop by the office next week.",
+                scenario.limits.emergency_stop_phrases,
+            )
+        )
+        self.assertEqual(EMERGENCY_STOP_DTMF_DIGITS, {"9"})
+
     def test_meta_guardrail_stands_down_when_existing_behavior_text_allows_it(self):
         scenario = replace(
             load_scenario("t01_smoke"),
@@ -152,6 +187,11 @@ class RealtimeBridgeTests(unittest.TestCase):
         )
         self.assertEqual(build_exact_fact_answer(scenario, "What is your first name?"), "James")
         self.assertEqual(build_exact_fact_answer(scenario, "What is your last name?"), "Carter")
+        self.assertEqual(build_exact_fact_answer(scenario, "What is your full name?"), "James Carter")
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "Can you tell me your full name, first and last?"),
+            "James Carter",
+        )
         self.assertIn(
             "March 14, 1987",
             build_turn_response(scenario, "Can you please provide your date of birth?")[
@@ -187,7 +227,7 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(
             build_assumed_patient_identity_answer(scenario, transcript),
             (
-                "No, this is Taylor Brooks, parent of Emma Brooks. "
+                "No, this is Taylor Brooks, calling for Emma Brooks. "
                 "I think you may have the wrong patient."
             ),
         )
@@ -260,9 +300,27 @@ class RealtimeBridgeTests(unittest.TestCase):
 class FakeOpenAIWebSocket:
     def __init__(self):
         self.sent: list[dict] = []
+        self.closed = False
 
     async def send(self, message: str) -> None:
         self.sent.append(json.loads(message))
+
+    async def close(self) -> None:
+        self.closed = True
+
+
+class FakeTwilioWebSocket:
+    def __init__(self):
+        self.sent: list[dict] = []
+        self.closed = False
+        self.close_code: int | None = None
+
+    async def send_json(self, message: dict) -> None:
+        self.sent.append(message)
+
+    async def close(self, code: int = 1000) -> None:
+        self.closed = True
+        self.close_code = code
 
 
 class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
@@ -314,6 +372,69 @@ class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len(fake_ws.sent), 1)
             self.assertEqual(fake_ws.sent[0]["type"], "response.create")
             self.assertIn("I'm hoping to make an appointment", fake_ws.sent[0]["response"]["instructions"])
+
+    async def test_max_turn_limit_closes_twilio_stream(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_ws = FakeOpenAIWebSocket()
+            fake_twilio = FakeTwilioWebSocket()
+            scenario = load_scenario("t01_smoke")
+            scenario = replace(
+                scenario,
+                limits=CallLimits(
+                    max_call_seconds=240,
+                    max_silence_seconds=20,
+                    max_turns=1,
+                ),
+            )
+            bridge = RealtimeBridge(
+                self.settings(),
+                BridgeState(
+                    stream_sid="MZ123",
+                    scenario=scenario,
+                    events_path=Path(temp_dir) / "events.jsonl",
+                ),
+            )
+            bridge._openai_ws = fake_ws
+
+            stopped = await bridge._stop_if_transcript_hits_hard_limit(
+                fake_twilio,
+                {"item_id": "agent-1", "transcript": "How can I help you?"},
+            )
+            self.assertFalse(stopped)
+
+            stopped = await bridge._stop_if_transcript_hits_hard_limit(
+                fake_twilio,
+                {"item_id": "agent-2", "transcript": "Can you repeat that?"},
+            )
+
+            self.assertTrue(stopped)
+            self.assertTrue(fake_ws.closed)
+            self.assertTrue(fake_twilio.closed)
+            self.assertEqual(fake_twilio.close_code, 1000)
+            self.assertIn({"event": "clear", "streamSid": "MZ123"}, fake_twilio.sent)
+
+    async def test_emergency_stop_phrase_closes_twilio_stream(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_ws = FakeOpenAIWebSocket()
+            fake_twilio = FakeTwilioWebSocket()
+            bridge = RealtimeBridge(
+                self.settings(),
+                BridgeState(
+                    stream_sid="MZ123",
+                    scenario=load_scenario("t01_smoke"),
+                    events_path=Path(temp_dir) / "events.jsonl",
+                ),
+            )
+            bridge._openai_ws = fake_ws
+
+            stopped = await bridge._stop_if_transcript_hits_hard_limit(
+                fake_twilio,
+                {"item_id": "agent-1", "transcript": "Emergency stop this test call."},
+            )
+
+            self.assertTrue(stopped)
+            self.assertTrue(fake_ws.closed)
+            self.assertTrue(fake_twilio.closed)
 
 
 if __name__ == "__main__":

@@ -104,11 +104,22 @@ Exit criteria:
 - [x] Add guardrails so the bot never reveals it is a test harness unless the scenario calls for meta behavior.
 - [x] Give the bot an active but realistic strategy: answer direct questions, ask follow-ups, correct misunderstandings, and steer back to the goal.
 - [x] Represent deliberate interruption tests with explicit scenario data so barge-in is measured separately from normal turn-taking.
-- Add deterministic limits: max call duration, max silence, max turns, and emergency stop.
+- [x] Add deterministic limits: max call duration, max silence, max turns, and emergency stop.
 - Before broader scenario runs, soften smoke-test deterministic identity
   handling into natural response guidance. The bot should still detect when the
   agent assumes "James," but it should vary wording naturally except for
   critical exact facts such as DOB, phone number, or required identifiers.
+
+Phase 2.5 deterministic limit notes:
+
+- Runtime limits now come from each scenario/persona, including parsed
+  `Call exceeds N minutes` stop conditions and persona-specific silence/turn
+  budgets.
+- The earlier 60-second smoke-call threshold remains only a Phase 1 calibration
+  bar. It is not used as an active call duration cap.
+- Active calls stop deterministically on max call duration, max conversational
+  silence, max agent turns, emergency-stop transcript phrases, or the DTMF kill
+  digit `9`.
 
 Phase 2.2 guardrail notes:
 

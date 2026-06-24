@@ -25,9 +25,11 @@ DEFAULT_SILENCE_DURATION_MS = 450
 DEFAULT_RESPONSE_DELAY_SECONDS = 0.0
 POST_VAD_SILENCE_CONFIRMATION_SECONDS = 0.05
 POST_RESPONSE_COOLDOWN_SECONDS = 0.25
+LIMIT_WATCH_INTERVAL_SECONDS = 1.0
 INTERRUPTION_PREFIX_PADDING_MS = 300
 INTERRUPTION_SILENCE_DURATION_MS = 650
 INTERRUPTION_RESPONSE_DELAY_SECONDS = 0.25
+EMERGENCY_STOP_DTMF_DIGITS = {"9"}
 AGENT_SERVICE_OPENING_PHRASES = (
     "how may i help",
     "how can i help",
@@ -93,6 +95,10 @@ META_DISCLOSURE_PHRASES = (
     "benchmark",
     "testing",
     "a test",
+)
+META_DISCLOSURE_CONTEXT_EXEMPTIONS = (
+    "pretty good ai",
+    "part of pretty good ai",
 )
 ASSUMED_PATIENT_NAME = "james"
 ASSUMED_PATIENT_IDENTITY_PHRASES = (
@@ -260,9 +266,9 @@ def build_assumed_patient_identity_answer(
     if scenario is None or not transcript_asks_about_assumed_patient(transcript):
         return ""
 
-    caller_name = scenario.facts.get("name", "").strip()
+    caller_name = _caller_full_name(scenario)
     patient_name = scenario.facts.get("patient_name", "").strip()
-    first_name = caller_name.split()[0] if caller_name.split() else caller_name
+    first_name = _caller_first_name(scenario)
     if _scenario_identity_matches_assumed_patient(scenario):
         if _scenario_is_new_patient(scenario):
             answer = f"Oh, yes, this is {first_name}. I'm surprised you had that already."
@@ -298,10 +304,9 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
 
     normalized = transcript.casefold()
     goal = scenario.goal.casefold()
-    name = scenario.facts.get("name", "").strip()
-    name_parts = name.split()
-    first_name = name_parts[0] if name_parts else ""
-    last_name = name_parts[-1] if len(name_parts) > 1 else ""
+    full_name = _caller_full_name(scenario)
+    first_name = _caller_first_name(scenario)
+    last_name = _caller_last_name(scenario)
 
     assumed_identity_answer = build_assumed_patient_identity_answer(scenario, transcript)
     if assumed_identity_answer:
@@ -309,12 +314,14 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
         dob = scenario.facts.get("date_of_birth", "").strip()
         return f"My date of birth is {dob}." if dob else ""
+    if _asks_about_full_name(normalized) and full_name:
+        return full_name
     if "first name" in normalized and first_name:
         return first_name
     if "last name" in normalized and last_name:
         return last_name
-    if "your name" in normalized and name:
-        return name
+    if "your name" in normalized and full_name:
+        return full_name
     if "phone" in normalized:
         phone = scenario.facts.get("phone", "").strip()
         return phone
@@ -328,6 +335,34 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
         if "cancel" in goal:
             return "I'm calling to cancel an appointment."
     return ""
+
+
+def _caller_full_name(scenario: Scenario) -> str:
+    return scenario.facts.get("full_name", scenario.facts.get("name", "")).strip()
+
+
+def _caller_first_name(scenario: Scenario) -> str:
+    first_name = scenario.facts.get("first_name", "").strip()
+    if first_name:
+        return first_name
+    name_parts = _caller_full_name(scenario).split()
+    return name_parts[0] if name_parts else ""
+
+
+def _caller_last_name(scenario: Scenario) -> str:
+    last_name = scenario.facts.get("last_name", "").strip()
+    if last_name:
+        return last_name
+    name_parts = _caller_full_name(scenario).split()
+    return name_parts[-1] if len(name_parts) > 1 else ""
+
+
+def _asks_about_full_name(normalized_transcript: str) -> bool:
+    return (
+        "full name" in normalized_transcript
+        or "first and last" in normalized_transcript
+        or "first name and last name" in normalized_transcript
+    )
 
 
 def build_confusion_reply(scenario: Scenario, transcript: str) -> str:
@@ -406,7 +441,18 @@ def transcript_asks_about_assumed_patient(transcript: str) -> bool:
 
 def transcript_asks_about_meta_behavior(transcript: str) -> bool:
     normalized = transcript.casefold()
+    if _contains_meta_context_exemption(normalized):
+        return any(
+            _contains_meta_disclosure_phrase(normalized, phrase)
+            for phrase in META_DISCLOSURE_PHRASES
+            if phrase not in {"ai"}
+        )
     return any(_contains_meta_disclosure_phrase(normalized, phrase) for phrase in META_DISCLOSURE_PHRASES)
+
+
+def transcript_requests_emergency_stop(transcript: str, phrases: list[str]) -> bool:
+    normalized = transcript.casefold()
+    return any(phrase.casefold() in normalized for phrase in phrases)
 
 
 def _contains_meta_disclosure_phrase(normalized_transcript: str, phrase: str) -> bool:
@@ -415,9 +461,14 @@ def _contains_meta_disclosure_phrase(normalized_transcript: str, phrase: str) ->
     return phrase in normalized_transcript
 
 
+def _contains_meta_context_exemption(normalized_transcript: str) -> bool:
+    return any(exemption in normalized_transcript for exemption in META_DISCLOSURE_CONTEXT_EXEMPTIONS)
+
+
 def _scenario_identity_matches_assumed_patient(scenario: Scenario) -> bool:
     identity_values = [
-        scenario.facts.get("name", ""),
+        _caller_full_name(scenario),
+        _caller_first_name(scenario),
         scenario.facts.get("patient_name", ""),
     ]
     for value in identity_values:
@@ -510,13 +561,19 @@ class RealtimeBridge:
         self._openai_ws: Any | None = None
         self._openai_to_twilio_task: asyncio.Task[None] | None = None
         self._pending_response_task: asyncio.Task[None] | None = None
+        self._limit_watch_task: asyncio.Task[None] | None = None
         self._pending_transcript_event: dict[str, Any] | None = None
         self._agent_speech_in_progress = False
         self._last_agent_speech_stopped_at = 0.0
+        self._call_started_at = 0.0
+        self._last_conversation_activity_at = 0.0
         self._goal_introduced = False
         self._bot_audio_in_progress = False
         self._patient_response_in_progress = False
         self._cooldown_until = 0.0
+        self._stop_requested = False
+        self._agent_turn_count = 0
+        self._counted_agent_turns: set[str] = set()
         self._responded_agent_turns: set[str] = set()
 
     async def start(self, twilio_ws: WebSocket) -> None:
@@ -531,21 +588,36 @@ class RealtimeBridge:
             },
         )
         await self._send_openai(build_session_update(self.settings, self.state.scenario))
+        loop_time = asyncio.get_running_loop().time()
+        self._call_started_at = loop_time
+        self._last_conversation_activity_at = loop_time
         self._openai_to_twilio_task = asyncio.create_task(self._pipe_openai_to_twilio(twilio_ws))
+        self._limit_watch_task = asyncio.create_task(self._watch_deterministic_limits(twilio_ws))
         self._log(
             {
                 "event": "realtime.started",
                 "scenario_id": self.state.scenario.id,
                 "stream_sid": self.state.stream_sid,
+                "limits": self.state.scenario.limits.to_dict(),
             }
         )
 
     async def forward_twilio_media(self, payload: str) -> None:
-        if self._openai_ws is None or not payload:
+        if self._stop_requested or self._openai_ws is None or not payload:
             return
         await self._send_openai(build_input_audio_append(payload))
 
+    async def request_emergency_stop(self, twilio_ws: WebSocket, reason: str) -> None:
+        await self._terminate_call(twilio_ws, "emergency_stop", {"reason": reason})
+
     async def close(self) -> None:
+        if self._limit_watch_task is not None:
+            task = self._limit_watch_task
+            self._limit_watch_task = None
+            if task is not asyncio.current_task():
+                task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await task
         if self._openai_to_twilio_task is not None:
             self._openai_to_twilio_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
@@ -567,10 +639,13 @@ class RealtimeBridge:
     async def _pipe_openai_to_twilio(self, twilio_ws: WebSocket) -> None:
         assert self._openai_ws is not None
         async for raw_message in self._openai_ws:
+            if self._stop_requested:
+                break
             event = json.loads(raw_message)
             event_type = event.get("type", "unknown")
 
             if event_type == "response.output_audio.delta":
+                self._mark_conversation_activity()
                 self._bot_audio_in_progress = True
                 await twilio_ws.send_json(build_twilio_media(self.state.stream_sid, event["delta"]))
                 continue
@@ -589,9 +664,12 @@ class RealtimeBridge:
                 self._finish_patient_response_cooldown()
 
             if event_type == "conversation.item.input_audio_transcription.completed":
+                if await self._stop_if_transcript_hits_hard_limit(twilio_ws, event):
+                    break
                 self._schedule_patient_response(event)
 
             if event_type == "input_audio_buffer.speech_started":
+                self._mark_conversation_activity()
                 await self._handle_agent_speech_started(twilio_ws)
 
             if event_type == "input_audio_buffer.speech_stopped":
@@ -614,7 +692,116 @@ class RealtimeBridge:
     def _log(self, payload: dict[str, Any]) -> None:
         append_jsonl(self.state.events_path, {"time": utc_now_iso(), **payload})
 
+    def _mark_conversation_activity(self) -> None:
+        self._last_conversation_activity_at = asyncio.get_running_loop().time()
+
+    async def _watch_deterministic_limits(self, twilio_ws: WebSocket) -> None:
+        while not self._stop_requested:
+            await asyncio.sleep(LIMIT_WATCH_INTERVAL_SECONDS)
+            if self._call_started_at <= 0.0 or self._last_conversation_activity_at <= 0.0:
+                continue
+
+            now = asyncio.get_running_loop().time()
+            limits = self.state.scenario.limits
+            elapsed = now - self._call_started_at
+            silence = now - self._last_conversation_activity_at
+            if elapsed >= limits.max_call_seconds:
+                await self._terminate_call(
+                    twilio_ws,
+                    "max_call_duration",
+                    {
+                        "elapsed_seconds": round(elapsed, 3),
+                        "max_call_seconds": limits.max_call_seconds,
+                    },
+                )
+                return
+            if silence >= limits.max_silence_seconds:
+                await self._terminate_call(
+                    twilio_ws,
+                    "max_silence",
+                    {
+                        "silence_seconds": round(silence, 3),
+                        "max_silence_seconds": limits.max_silence_seconds,
+                    },
+                )
+                return
+
+    async def _stop_if_transcript_hits_hard_limit(
+        self,
+        twilio_ws: WebSocket,
+        event: dict[str, Any],
+    ) -> bool:
+        self._mark_conversation_activity()
+        transcript = str(event.get("transcript", "")).strip()
+        if transcript_requests_emergency_stop(
+            transcript,
+            self.state.scenario.limits.emergency_stop_phrases,
+        ):
+            await self._terminate_call(
+                twilio_ws,
+                "emergency_stop_phrase",
+                {"trigger": transcript},
+            )
+            return True
+
+        turn_key = build_agent_turn_key(event)
+        if turn_key in self._counted_agent_turns:
+            return False
+        self._counted_agent_turns.add(turn_key)
+        self._agent_turn_count += 1
+        if self._agent_turn_count <= self.state.scenario.limits.max_turns:
+            return False
+
+        await self._terminate_call(
+            twilio_ws,
+            "max_turns",
+            {
+                "turn_count": self._agent_turn_count,
+                "max_turns": self.state.scenario.limits.max_turns,
+            },
+        )
+        return True
+
+    async def _terminate_call(
+        self,
+        twilio_ws: WebSocket | None,
+        reason: str,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        if self._stop_requested:
+            return
+        self._stop_requested = True
+        self._log(
+            {
+                "event": "call.stop_requested",
+                "reason": reason,
+                "details": details or {},
+                "limits": self.state.scenario.limits.to_dict(),
+            }
+        )
+        if self._pending_response_task is not None:
+            self._pending_response_task.cancel()
+            self._pending_response_task = None
+        self._pending_transcript_event = None
+        self._patient_response_in_progress = False
+        self._bot_audio_in_progress = False
+
+        if self._openai_ws is not None:
+            with contextlib.suppress(Exception):
+                await self._send_openai(build_response_cancel())
+            with contextlib.suppress(Exception):
+                await self._openai_ws.close()
+            self._openai_ws = None
+
+        if twilio_ws is not None:
+            with contextlib.suppress(Exception):
+                await twilio_ws.send_json(build_twilio_clear(self.state.stream_sid))
+            with contextlib.suppress(Exception):
+                await twilio_ws.close(code=1000)
+
     def _schedule_patient_response(self, event: dict[str, Any]) -> None:
+        if self._stop_requested:
+            return
         self._pending_transcript_event = dict(event)
         if self._agent_speech_in_progress and not self.state.scenario.interruption_test:
             self._log(
@@ -628,6 +815,8 @@ class RealtimeBridge:
         self._schedule_pending_patient_response()
 
     def _schedule_pending_patient_response(self) -> None:
+        if self._stop_requested:
+            return
         if self._pending_transcript_event is None:
             return
 
@@ -659,12 +848,16 @@ class RealtimeBridge:
     async def _delayed_patient_response(self, event: dict[str, Any], delay: float) -> None:
         try:
             await asyncio.sleep(delay)
+            if self._stop_requested:
+                return
             await self._maybe_create_patient_response(event)
         except asyncio.CancelledError:
             self._log({"event": "patient_response.cancelled", "reason": "agent_continued"})
             raise
 
     async def _handle_agent_speech_started(self, twilio_ws: WebSocket) -> None:
+        if self._stop_requested:
+            return
         self._agent_speech_in_progress = True
         self._pending_transcript_event = None
         if self._pending_response_task is not None:
@@ -685,11 +878,15 @@ class RealtimeBridge:
         await twilio_ws.send_json(build_twilio_clear(self.state.stream_sid))
 
     def _handle_agent_speech_stopped(self) -> None:
+        if self._stop_requested:
+            return
         self._agent_speech_in_progress = False
         self._last_agent_speech_stopped_at = asyncio.get_running_loop().time()
         self._schedule_pending_patient_response()
 
     async def _maybe_create_patient_response(self, event: dict[str, Any]) -> None:
+        if self._stop_requested:
+            return
         transcript = str(event.get("transcript", "")).strip()
         if not transcript:
             self._log({"event": "patient_response.skipped", "reason": "empty_transcript"})
@@ -760,6 +957,8 @@ class RealtimeBridge:
         response: dict[str, Any],
         log_payload: dict[str, Any],
     ) -> None:
+        if self._stop_requested:
+            return
         turn_key = build_agent_turn_key(event)
         if turn_key in self._responded_agent_turns:
             self._log({"event": "patient_response.skipped", "reason": "turn_already_answered"})

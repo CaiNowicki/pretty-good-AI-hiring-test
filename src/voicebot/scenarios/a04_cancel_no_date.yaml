@@ -3,13 +3,17 @@ patient_profile: robert_hayes
 goal: Cancel an upcoming appointment without knowing the date.
 opening_line: "Hi, I need to cancel an appointment. I just don't remember exactly when it was."
 facts:
-  name: Robert Hayes
+  full_name: Robert Hayes
+  first_name: Robert
+  last_name: Hayes
   date_of_birth: November 3, 1951
   phone: 555-447-9023
   insurance: Medicare
   appointment_date: Unknown to patient; agent must look it up
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - insurance

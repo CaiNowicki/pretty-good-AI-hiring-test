@@ -6,7 +6,9 @@ goal: >
   want to schedule a visit; she needs records only.
 opening_line: "Hi, I don't need an appointment. I actually need to get some of my records sent over to another doctor."
 facts:
-  name: Denise Wong
+  full_name: Denise Wong
+  first_name: Denise
+  last_name: Wong
   date_of_birth: February 28, 1973
   phone: 555-629-3817
   record_needed: MRI from approximately six months ago
@@ -15,7 +17,9 @@ facts:
   timeline: Appointment with specialist is next week
   authorization: Caller is aware she may need to sign something
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - date_of_birth
   - phone
   - record_needed

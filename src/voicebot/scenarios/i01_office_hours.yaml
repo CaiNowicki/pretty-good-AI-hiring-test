@@ -5,12 +5,16 @@ goal: >
   weekend and evening availability before deciding whether to schedule.
 opening_line: "Hi, I just had a quick question about your office hours."
 facts:
-  name: Taylor Brooks
+  full_name: Taylor Brooks
+  first_name: Taylor
+  last_name: Brooks
   context: Calling to plan ahead before scheduling, not yet booking
   family_context: Parent with a busy schedule
   main_question: Office hours, including evenings and weekends
 required_facts:
-  - name
+  - full_name
+  - first_name
+  - last_name
   - context
   - family_context
   - main_question

@@ -70,13 +70,19 @@ Each scenario definition should include:
 - `patient_profile`: selected persona.
 - `goal`: what the patient wants.
 - `opening_line`: natural first utterance.
-- `facts`: date of birth, phone number, pharmacy, insurance, preferred times, symptoms if needed.
+- `facts`: date of birth, phone number, pharmacy, insurance, preferred times,
+  symptoms if needed. Named caller personas should use `full_name`,
+  `first_name`, and `last_name`; do not use the older `name` key.
 - `required_facts`: fact keys that must be preserved exactly when the agent asks.
 - `must_test`: behavior we are probing.
 - `avoid`: things the bot should not say.
 - `optional_edge_behavior`: intentional branches, follow-up probes, and edge-case actions.
 - `success_criteria`: what a good agent response looks like.
 - `stop_conditions`: when to end the call.
+- `limits`: optional machine-enforced overrides for `max_call_seconds`,
+  `max_silence_seconds`, `max_turns`, and `emergency_stop_phrases`. If omitted,
+  the runner derives duration from `stop_conditions` and uses persona/scenario
+  defaults for silence and turns.
 - `interruption_test`: optional boolean. Defaults to `false`; set to `true` only for scenarios that intentionally test barge-in handling.
 
 ## Voice Behavior
