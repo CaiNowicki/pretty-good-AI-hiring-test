@@ -46,6 +46,11 @@ optional_edge_behavior:
   - After the recital aside, return to the agent and ask for Thursday instead of Wednesday because Emma has something on Wednesday.
   - Before ending, confirm the appointment is for Emma Brooks rather than Taylor Brooks.
   - End with a natural apology for the chaos before hanging up.
+scheduling_rules:
+  - Begin with a broad weekday morning preference and do not mention Wednesday as a preference.
+  - Treat Wednesday as unavailable only after the background recital aside occurs.
+  - After the aside, ask for Thursday using weekday language rather than a calendar date.
+  - Repeat exact date and time details only after the agent offers them, and confirm the appointment is for Emma.
 success_criteria: >
   Appointment is booked correctly for Emma Brooks at a valid weekday morning
   slot. Agent demonstrates patience during background pauses. No background

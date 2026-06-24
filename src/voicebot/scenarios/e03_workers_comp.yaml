@@ -42,6 +42,10 @@ optional_edge_behavior:
   - If the office does not handle workers' comp, ask where you should go instead.
   - If the agent treats workers' comp like standard insurance, ask whether it works the same or whether you could be billed personally.
   - Flag any failure to distinguish workers' comp from standard insurance for post-call analysis.
+scheduling_rules:
+  - First resolve whether workers' comp visits are handled and what documentation is needed.
+  - If booking is possible, express urgency broadly as as soon as possible.
+  - Do not name exact calendar dates yourself; accept or clarify specific slots only after the agent offers them.
 success_criteria: >
   Agent confirms whether workers' comp cases are accepted. If yes, agent
   explains what documentation is needed and books the appointment or gives

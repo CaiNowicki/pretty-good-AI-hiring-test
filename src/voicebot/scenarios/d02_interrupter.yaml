@@ -51,6 +51,11 @@ optional_edge_behavior:
   - If the agent offers an appointment slot with extra context, cut in and accept the date and time before the full explanation is finished.
   - Use clipped acknowledgments like "yeah," "fine," "okay," and "got it" instead of full confirmations where possible.
   - If the agent confirms the appointment, ask once what date Thursday is before asking what to bring.
+scheduling_rules:
+  - Express urgency broadly as whatever is fastest or the soonest available appointment.
+  - Do not name a weekday or calendar date before the agent offers one.
+  - Because the caller is impatient, accept the first clearly offered near-term slot using the agent's date/time details.
+  - If the agent says Thursday without a calendar date, ask what date Thursday is after confirmation.
 success_criteria: >
   Appointment is booked correctly despite the interruption pattern. Agent
   demonstrates recovery without restart. Complaint about the system is handled

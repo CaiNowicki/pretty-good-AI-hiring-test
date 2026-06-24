@@ -35,6 +35,11 @@ optional_edge_behavior:
   - If the agent offers an afternoon or late-day slot, politely decline and say you do better in the morning.
   - If the agent offers a morning slot, ask what time in the morning.
   - After a specific morning time is offered, accept it and confirm that it is next week in the morning.
+scheduling_rules:
+  - Start vague with sometime next week and avoid volunteering a preferred weekday.
+  - If asked to choose, stay broad and say any day next week could work.
+  - Narrow to mornings only after the agent offers or asks about a specific slot.
+  - Do not introduce exact calendar dates; mirror exact date/time details only after the agent states them.
 success_criteria: >
   Agent asks a natural follow-up when the patient gives no time preference.
   After the rejection, agent offers a different slot that better fits the

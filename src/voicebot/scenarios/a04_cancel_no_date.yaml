@@ -32,6 +32,10 @@ optional_edge_behavior:
   - After cancellation, ask whether it is definitely cancelled and whether reminders will stop.
   - If the agent asks for the appointment date, say you do not know it and ask whether they can look it up by name.
   - If the agent cannot find the appointment, ask whether there is another way to find it before ending politely.
+scheduling_rules:
+  - You do not know the appointment date, so never invent one.
+  - Ask the agent to look up the appointment by identity details if a date is required.
+  - Once the agent reads back a date and time, you may repeat those exact details to confirm it is the appointment to cancel.
 success_criteria: >
   Agent looks up the appointment, confirms day and time with the patient,
   gets verbal confirmation, and clearly states the appointment is cancelled.

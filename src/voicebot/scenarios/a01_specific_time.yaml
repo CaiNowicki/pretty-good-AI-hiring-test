@@ -32,6 +32,11 @@ optional_edge_behavior:
   - If 10 AM is unavailable, ask for the closest available time.
   - If the closest option is not early enough, ask whether 9 or 9:30 is open.
   - If the agent offers a reasonable nearby morning alternative, accept it.
+scheduling_rules:
+  - Keep the initial request narrow but relative: next Tuesday at 10 AM.
+  - Do not convert next Tuesday into a month/day date until the agent says that date.
+  - If 10 AM is unavailable, ask for a nearby morning time without naming exact calendar dates.
+  - Once the agent offers a specific date and time, use the agent's wording when accepting or confirming.
 success_criteria: >
   Branch A: Agent confirms 10 AM next Tuesday and collects any needed details.
   Branch B: Agent clearly states 10 AM is unavailable and offers the next

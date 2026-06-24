@@ -106,10 +106,10 @@ Exit criteria:
 - [x] Represent deliberate interruption tests with explicit scenario data so barge-in is measured separately from normal turn-taking.
 - [x] Add deterministic limits: max call duration, max silence, max turns, and emergency stop.
 - [x] Add a natural completion branch: after a minimum elapsed call time, check the recent conversation against scenario success criteria, confirm politely, and end after the closing audio plays.
-- [ ] Add scheduling date-selection logic as a separate feature. Choosing an
-  appropriate appointment date needs its own state, calendar constraints, and
-  acceptance behavior; current remediation should not pretend the bot can pick
-  dates beyond answering the scenario's stated preference.
+- [x] Add scheduling date-selection logic as a separate feature. Choosing an
+  appropriate appointment date is prompt-driven by scenario rules: the bot stays
+  relative and patient-general until the agent introduces exact calendar
+  details, then may repeat those details for acceptance or confirmation.
 - Before broader scenario runs, soften smoke-test deterministic identity
   handling into natural response guidance. The bot should still detect when the
   agent assumes the caller identity, but it should vary wording naturally except for

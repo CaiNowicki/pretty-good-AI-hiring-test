@@ -63,6 +63,7 @@ class Scenario:
     branch_conditions: list[str]
     success_criteria: str
     stop_conditions: list[str]
+    scheduling_rules: list[str] = field(default_factory=list)
     interruption_test: bool = False
     interruption_behavior: dict[str, str] = field(default_factory=dict)
     name_variations: list[str] = field(default_factory=list)
@@ -429,6 +430,9 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
         branch_conditions=optional_edge_behavior,
         success_criteria=str(data["success_criteria"]),
         stop_conditions=stop_conditions,
+        scheduling_rules=_as_string_list(
+            data.get("scheduling_rules", []), path, "scheduling_rules"
+        ),
         interruption_test=interruption_test,
         interruption_behavior=interruption_behavior,
         name_variations=_as_string_list(
@@ -555,6 +559,72 @@ def _build_persona_behavior_guidance(scenario: Scenario) -> str:
     return "\n".join(sections) + "\n"
 
 
+def _scenario_has_scheduling_goal(scenario: Scenario) -> bool:
+    searchable_parts = [
+        scenario.goal,
+        scenario.must_test,
+        scenario.success_criteria,
+        *scenario.optional_edge_behavior,
+        *scenario.stop_conditions,
+    ]
+    searchable = " ".join(searchable_parts).casefold()
+    return any(
+        phrase in searchable
+        for phrase in (
+            "appointment",
+            "availability",
+            "book",
+            "booking",
+            "cancel",
+            "reschedule",
+            "schedule",
+            "slot",
+        )
+    )
+
+
+def _build_scheduling_guidance(scenario: Scenario) -> str:
+    if not scenario.scheduling_rules and not _scenario_has_scheduling_goal(scenario):
+        return ""
+
+    scenario_rules = ""
+    if scenario.scheduling_rules:
+        rules = "\n".join(f"- {rule}" for rule in scenario.scheduling_rules)
+        scenario_rules = f"""
+Scenario date-selection rules:
+{rules}
+"""
+
+    return f"""
+Scheduling date-selection guidance:
+- Stay at the scenario's intended level of date specificity until the agent
+  gives a more specific appointment option.
+- Before the agent says an exact calendar date, do not invent or say exact
+  calendar dates such as "Tuesday June 3rd." Use patient-side relative or broad
+  wording instead, such as "this Tuesday," "tomorrow," "sometime early next
+  week," "Thursday or Friday morning," or "the earliest weekday morning."
+- Once the agent introduces a specific date or time, you may repeat those exact
+  details to accept, decline, correct, or confirm them.
+- Let the scenario rules decide whether you are broad, narrow, urgent,
+  flexible, confused, or changing your mind. Vary the phrasing naturally rather
+  than following a fixed wording pattern.
+- This guidance is only about appointment dates and times. Provide exact
+  identity facts, such as date of birth, when the agent asks.
+{scenario_rules}"""
+
+
+def build_scheduling_turn_guidance(scenario: Scenario | None) -> str:
+    if scenario is None:
+        return ""
+    if not scenario.scheduling_rules and not _scenario_has_scheduling_goal(scenario):
+        return ""
+    return (
+        "Scheduling date wording: follow the scenario date-selection rules, stay "
+        "general until the agent gives exact calendar details, do not invent exact "
+        "month/day dates, and vary natural relative wording."
+    )
+
+
 def build_patient_system_prompt(scenario: Scenario) -> str:
     """Build the realtime model instructions from scenario facts."""
 
@@ -578,6 +648,7 @@ Optional edge behavior:
 """
     name_lookup_guidance = _build_name_lookup_guidance(scenario)
     persona_behavior_guidance = _build_persona_behavior_guidance(scenario)
+    scheduling_guidance = _build_scheduling_guidance(scenario)
     strategy_section = """
 Conversation strategy:
 - Answer direct questions with the relevant scenario fact and stop there.
@@ -645,6 +716,7 @@ Wait for the agent to finish speaking before responding.
 Stay polite and conversational, like a real patient on a phone call.
 {strategy_section}
 {role_boundary_section}
+{scheduling_guidance}
 {interruption_guidance}
 {meta_guidance}
 Say the opening line once only. If you already introduced yourself, do not repeat the

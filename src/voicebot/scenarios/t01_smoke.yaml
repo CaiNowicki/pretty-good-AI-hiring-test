@@ -28,6 +28,11 @@ avoid:
 optional_edge_behavior:
   - If the agent offers a valid weekday morning next week, accept it.
   - If the agent offers only afternoon times, ask once whether a morning is available.
+scheduling_rules:
+  - Start broad with relative wording like sometime next week or a weekday morning next week.
+  - Do not name a specific weekday unless the agent asks you to narrow the search or offers one.
+  - If asked to narrow it yourself, prefer early next week in the morning, but keep the wording relative.
+  - Accept the first valid weekday morning the agent offers and repeat the agent's exact date only after the agent says it.
 success_criteria: >
   Agent collects basic intake info, offers a slot that falls on a weekday
   during normal business hours, and gives a clear confirmation before ending.

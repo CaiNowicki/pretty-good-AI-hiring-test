@@ -38,6 +38,10 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("last_name_spelling", scenario.required_facts)
         self.assertIn("date_of_birth", scenario.required_facts)
         self.assertTrue(scenario.optional_edge_behavior)
+        self.assertIn(
+            "Start broad with relative wording",
+            scenario.scheduling_rules[0],
+        )
         self.assertEqual(scenario.limits.max_call_seconds, 240)
         self.assertNotEqual(scenario.limits.max_call_seconds, 60)
         self.assertEqual(scenario.limits.max_silence_seconds, 20)
@@ -113,6 +117,27 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn('"I can schedule', prompt)
         self.assertIn('"Could you check that for me?"', prompt)
         self.assertIn('"That works for me if you can book it"', prompt)
+        self.assertIn("Scheduling date-selection guidance:", prompt)
+        self.assertIn("do not invent or say exact", prompt)
+        self.assertIn('"Tuesday June 3rd."', prompt)
+        self.assertIn('"sometime early next', prompt)
+        self.assertIn("Scenario date-selection rules:", prompt)
+        self.assertIn("Start broad with relative wording", prompt)
+        self.assertIn("identity facts, such as date of birth", prompt)
+
+    def test_scheduling_rules_are_scenario_specific_and_prompt_driven(self):
+        specific_time = load_scenario("a01_specific_time")
+        cancel_unknown = load_scenario("a04_cancel_no_date")
+        emergency = load_scenario("e01_medical_emergency")
+
+        self.assertIn("next Tuesday at 10 AM", specific_time.scheduling_rules[0])
+        self.assertIn("never invent one", cancel_unknown.scheduling_rules[0])
+        self.assertIn("Do not choose an appointment date", emergency.scheduling_rules[0])
+
+        prompt = build_patient_system_prompt(specific_time)
+        self.assertIn("Keep the initial request narrow but relative", prompt)
+        self.assertIn("Do not convert next Tuesday into a month/day date", prompt)
+        self.assertIn("Vary the phrasing naturally", prompt)
 
     def test_prompt_blocks_meta_disclosure_by_default_without_patient_data_flag(self):
         scenario = load_scenario("t01_smoke")
@@ -262,6 +287,7 @@ class ScenarioTests(unittest.TestCase):
                 self.assertEqual(scenario.id, declared_id)
                 self.assertTrue(scenario.branch_conditions)
                 self.assertTrue(scenario.optional_edge_behavior)
+                self.assertTrue(scenario.scheduling_rules)
                 self.assertEqual(load_scenario(declared_id).id, declared_id)
 
     def test_loads_all_information_gathering_scenarios(self):

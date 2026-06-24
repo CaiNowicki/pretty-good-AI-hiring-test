@@ -17,7 +17,12 @@ from starlette.websockets import WebSocket
 
 from voicebot.artifacts import append_jsonl, utc_now_iso
 from voicebot.config import Settings
-from voicebot.scenario import Scenario, build_realtime_bootstrap, scenario_allows_meta_behavior
+from voicebot.scenario import (
+    Scenario,
+    build_realtime_bootstrap,
+    build_scheduling_turn_guidance,
+    scenario_allows_meta_behavior,
+)
 
 
 OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime"
@@ -359,12 +364,14 @@ def build_turn_response(scenario: Scenario | None = None, transcript: str = "") 
         if exact_answer:
             instructions = f"Say only this exact patient answer: {exact_answer}"
         else:
+            scheduling_guidance = build_scheduling_turn_guidance(scenario)
             instructions = (
                 "Respond now as the patient for the current call turn. Keep it short, "
                 "answer only what was asked, use the "
                 "scenario facts exactly, do not add unrelated preferences or comments, "
                 "do not mention tests, harnesses, bots, assistants, simulations, or "
-                f"demos, and wait for the agent after speaking. {SCHEDULER_LANGUAGE_GUARDRAIL}"
+                "demos, and wait for the agent after speaking. "
+                f"{scheduling_guidance} {SCHEDULER_LANGUAGE_GUARDRAIL}"
             )
 
     return {
@@ -384,12 +391,13 @@ def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = 
         if exact_answer:
             instructions = f"Say only this exact patient answer: {exact_answer}"
         else:
+            scheduling_guidance = build_scheduling_turn_guidance(scenario)
             instructions = (
                 "Answer the agent's intake or profile setup question directly as the patient. "
                 "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
                 "facts exactly, do not add unrelated preferences or comments, do not mention "
                 "tests, harnesses, bots, assistants, simulations, or demos, and keep it brief. "
-                f"{SCHEDULER_LANGUAGE_GUARDRAIL}"
+                f"{scheduling_guidance} {SCHEDULER_LANGUAGE_GUARDRAIL}"
             )
 
     return {

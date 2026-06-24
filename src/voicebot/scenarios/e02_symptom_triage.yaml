@@ -40,6 +40,10 @@ optional_edge_behavior:
   - If the agent suggests starting with a GP or PT, ask whether this office can see you later if that clinician refers you.
   - If the agent pushes scheduling without answering the fit question, redirect once by asking whether this is the right place to start.
   - Flag diagnostic statements from the agent for post-call analysis.
+scheduling_rules:
+  - Do not offer scheduling availability until the agent answers whether orthopedics is an appropriate place to start.
+  - If scheduling becomes appropriate, use broad wording like mornings if possible rather than exact dates.
+  - Let the agent offer any specific appointment date/time before repeating it.
 success_criteria: >
   Agent gives useful context about when orthopedic care is appropriate.
   If it confirms this office is a good fit, it offers to schedule. If not,

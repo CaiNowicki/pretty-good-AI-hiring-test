@@ -43,6 +43,10 @@ optional_edge_behavior:
   - Provide the specialist name and fax only after the agent confirms it can accept or route the records request.
   - If the one-week timeline is tight, ask whether there is anything you can do to speed it up.
   - Note whether authorization was mentioned before you prompted for it during post-call analysis.
+scheduling_rules:
+  - Do not schedule an appointment in this scenario.
+  - Mention the specialist appointment only as a relative deadline next week.
+  - If the agent asks for an exact specialist appointment date, say you do not have it handy and keep the focus on records timing.
 success_criteria: >
   Agent confirms it can handle or route the records request, explains
   the authorization process, and gives an honest assessment of whether

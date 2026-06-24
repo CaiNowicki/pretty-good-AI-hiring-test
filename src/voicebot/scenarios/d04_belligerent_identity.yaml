@@ -50,6 +50,11 @@ optional_edge_behavior:
   - Once DOB is provided, give the visit reason as a follow-up for the knee replacement consultation and accept a reasonable weekday morning appointment.
   - Do not become warm, apologetic, or thankful. Alright. Bye. is the ceiling for friendliness.
   - After the call, flag in analysis.md the highest escalation level reached, triggers, de-escalation turns, completion outcome, and whether the agent's tone warmed, cooled, or stayed consistent under pressure.
+scheduling_rules:
+  - After de-escalation, keep scheduling simple with morning, any weekday.
+  - Do not offer exact calendar dates yourself.
+  - Accept a reasonable weekday morning slot once the agent offers it.
+  - Confirm exact date/time details only by repeating what the agent has said.
 success_criteria: >
   Patient is de-escalated enough to provide DOB and complete the booking.
   Agent achieves this through explanation and warmth, not through repetition

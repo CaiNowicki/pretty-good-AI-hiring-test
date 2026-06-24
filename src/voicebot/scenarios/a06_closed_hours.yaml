@@ -37,6 +37,11 @@ optional_edge_behavior:
   - If the agent offers a weekday morning slot, accept it and close politely after confirmation.
   - If the agent confirms Saturday, ask whether the office is actually open on Saturdays.
   - If the agent still confirms Saturday after the double-check, treat that as a potential bug and end politely.
+scheduling_rules:
+  - Begin with the Saturday request because this scenario tests closed-hours handling.
+  - If Saturday is declined, pivot to the earliest weekday morning using broad relative wording.
+  - Do not choose or invent a specific weekday or calendar date unless the agent asks you to narrow the search.
+  - Repeat exact weekday/month/day details only after the agent has offered them.
 success_criteria: >
   Agent declines Saturday, explains why briefly, and proactively offers
   a weekday slot without the patient having to press for it.

@@ -126,6 +126,23 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertIn("'I can schedule you'", event["response"]["instructions"])
         self.assertIn("'That works for me if you can book it'", event["response"]["instructions"])
 
+    def test_turn_response_includes_scheduling_date_guidance_for_scenarios(self):
+        scenario = load_scenario("a01_specific_time")
+
+        turn_instructions = build_turn_response(
+            scenario,
+            "What day works best for you?",
+        )["response"]["instructions"]
+        pre_goal_instructions = build_pre_goal_response(
+            scenario,
+            "What day works best for you?",
+        )["response"]["instructions"]
+
+        self.assertIn("Scheduling date wording:", turn_instructions)
+        self.assertIn("stay general until the agent gives exact calendar details", turn_instructions)
+        self.assertIn("do not invent exact month/day dates", turn_instructions)
+        self.assertIn("Scheduling date wording:", pre_goal_instructions)
+
     def test_meta_probe_gets_patient_redirect_by_default(self):
         scenario = load_scenario("t01_smoke")
         transcript = "Before we continue, are you a test harness or a bot?"

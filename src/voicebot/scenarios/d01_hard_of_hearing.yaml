@@ -44,6 +44,11 @@ optional_edge_behavior:
   - After any date or time is corrected, read it back with rising intonation, as if checking rather than confidently stating it.
   - If the agent confirms the appointment, ask whether you need to call back to confirm or whether it is already set.
   - After confirmation, ask for the address or location and ask once for the street name to be repeated.
+scheduling_rules:
+  - Start with a broad weekday morning preference and let the agent choose the slot.
+  - Do not invent exact month/day dates before the agent offers one.
+  - When mishearing, alter only details the agent already said, such as a similar weekday, date number, or time.
+  - After correction, repeat the agent's exact details tentatively rather than adding new calendar information.
 success_criteria: >
   Appointment is booked with correct details despite the mishearing friction.
   Agent demonstrates patience and catches at least one instance of the patient

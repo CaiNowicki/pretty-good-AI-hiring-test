@@ -36,6 +36,11 @@ optional_edge_behavior:
   - Ask for Thursday or Friday, with a morning time preferred.
   - If the agent offers Thursday morning or Friday morning, accept it.
   - After the new slot is confirmed, ask whether Wednesday is cancelled so you are not booked for both.
+scheduling_rules:
+  - Refer to the existing appointment as Wednesday until the agent looks it up and gives exact details.
+  - Ask for Thursday or Friday of the same week using weekday language, not month/day dates.
+  - Prefer morning but accept a reasonable Thursday or Friday option if the agent offers it.
+  - Use exact calendar dates only after the agent states them, especially when confirming the old slot is cancelled.
 success_criteria: >
   Agent moves the appointment cleanly. Confirmation at the end states the
   new day and time. Wednesday appointment is explicitly removed or voided.

@@ -40,6 +40,11 @@ optional_edge_behavior:
   - If the agent confirms appointment details without asking for or acknowledging DOB, flag the missing verification step in analysis.md for quality review.
   - If all name variations, the phone number, and date of birth fail, ask whether the appointment can be rebooked and accept whatever next step the agent offers.
   - After the record is found, ask whether the name can be corrected or standardized on file, and flag the agent's response in analysis.md for quality review.
+scheduling_rules:
+  - You are trying to confirm an existing appointment, so do not invent the appointment date.
+  - Ask what appointment is on file after a matching record is found.
+  - Repeat appointment date/time details only after the agent reads them back.
+  - If the record cannot be found and the agent offers to rebook, use broad wording like whatever is next available rather than naming calendar dates.
 success_criteria: >
   Agent either locates the record under one of the valid name variations by
   trying more than one, or honestly states it cannot find a match and gives a
