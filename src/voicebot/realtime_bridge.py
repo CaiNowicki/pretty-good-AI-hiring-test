@@ -6,6 +6,7 @@ import asyncio
 import contextlib
 import hashlib
 import json
+import random
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -122,6 +123,27 @@ NEW_PATIENT_CONSULTATION_ANSWERS = (
     "I'm trying to set up a new patient consultation.",
     "It should be a new patient consultation, not a follow-up.",
     "I'm a new patient, so I need a consultation appointment.",
+)
+REPEATED_INFO_THRESHOLDS = (
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    0.9,
+)
+REPEATED_INFO_LABELS = {
+    "appointment_type": "the appointment type",
+    "date_of_birth": "my date of birth",
+    "first_name": "my first name",
+    "full_name": "my name",
+    "last_name": "my last name",
+    "phone": "my phone number",
+}
+REPEATED_INFO_TEMPLATES = (
+    "I already gave you {label}, but {answer}",
+    "I mentioned {label} earlier, but {answer}",
+    "I did give you {label} already. {answer}",
+    "I've already shared {label}; {answer}",
 )
 
 
@@ -354,6 +376,51 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
         if "cancel" in goal:
             return "I'm calling to cancel an appointment."
     return ""
+
+
+def requested_info_key(scenario: Scenario | None, transcript: str) -> str:
+    if scenario is None:
+        return ""
+
+    normalized = transcript.casefold()
+    if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
+        return "date_of_birth"
+    if _asks_to_confirm_known_date_of_birth(scenario, transcript, normalized):
+        return "date_of_birth"
+    if _asks_about_full_name(normalized) or "your name" in normalized:
+        return "full_name"
+    if "first name" in normalized:
+        return "first_name"
+    if "last name" in normalized:
+        return "last_name"
+    if "phone" in normalized:
+        return "phone"
+    if _asks_about_appointment_type(normalized):
+        return "appointment_type"
+    return ""
+
+
+def repeated_info_probability(repeat_count: int) -> float:
+    if repeat_count < 0:
+        return 0.0
+    if repeat_count < len(REPEATED_INFO_THRESHOLDS):
+        return REPEATED_INFO_THRESHOLDS[repeat_count]
+    return REPEATED_INFO_THRESHOLDS[-1]
+
+
+def should_point_out_repeated_info(repeat_count: int, random_value: float) -> bool:
+    probability = repeated_info_probability(repeat_count)
+    return random_value < probability
+
+
+def build_repeated_info_answer(
+    info_key: str,
+    exact_answer: str,
+    template_index: int,
+) -> str:
+    label = REPEATED_INFO_LABELS.get(info_key, "that information")
+    template = REPEATED_INFO_TEMPLATES[template_index % len(REPEATED_INFO_TEMPLATES)]
+    return template.format(label=label, answer=exact_answer)
 
 
 def _caller_full_name(scenario: Scenario) -> str:
@@ -618,6 +685,9 @@ class RealtimeBridge:
         self._agent_turn_count = 0
         self._counted_agent_turns: set[str] = set()
         self._responded_agent_turns: set[str] = set()
+        self._provided_info_counts: dict[str, int] = {}
+        self._last_repeated_info_template_index: dict[str, int] = {}
+        self._random = random.Random()
 
     async def start(self, twilio_ws: WebSocket) -> None:
         if not self.settings.openai_api_key:
@@ -966,14 +1036,14 @@ class RealtimeBridge:
             if transcript_is_intake_before_goal(transcript):
                 await self._create_patient_response(
                     event,
-                    build_pre_goal_response(self.state.scenario, transcript),
+                    self._build_stateful_patient_response(event, pre_goal=True),
                     {"event": "patient_response.pre_goal", "trigger": transcript},
                 )
                 return
 
             await self._create_patient_response(
                 event,
-                build_pre_goal_response(self.state.scenario, transcript),
+                self._build_stateful_patient_response(event, pre_goal=True),
                 {"event": "patient_response.pre_goal", "trigger": transcript},
             )
             return
@@ -992,9 +1062,49 @@ class RealtimeBridge:
 
         await self._create_patient_response(
             event,
-            build_turn_response(self.state.scenario, transcript),
+            self._build_stateful_patient_response(event, pre_goal=False),
             {"event": "patient_response.turn", "trigger": transcript},
         )
+
+    def _build_stateful_patient_response(
+        self,
+        event: dict[str, Any],
+        *,
+        pre_goal: bool,
+    ) -> dict[str, Any]:
+        transcript = str(event.get("transcript", "")).strip()
+        meta_answer = build_meta_guardrail_answer(self.state.scenario, transcript)
+        if meta_answer:
+            if pre_goal:
+                return build_pre_goal_response(self.state.scenario, transcript)
+            return build_turn_response(self.state.scenario, transcript)
+
+        info_key = requested_info_key(self.state.scenario, transcript)
+        exact_answer = build_exact_fact_answer(self.state.scenario, transcript)
+        if info_key and exact_answer:
+            repeat_count = self._provided_info_counts.get(info_key, 0)
+            answer = exact_answer
+            if should_point_out_repeated_info(repeat_count, self._random.random()):
+                answer = self._build_repeated_info_answer(info_key, exact_answer)
+            self._provided_info_counts[info_key] = repeat_count + 1
+            return {
+                "type": "response.create",
+                "response": {"instructions": f"Say only this exact patient answer: {answer}"},
+            }
+
+        if pre_goal:
+            return build_pre_goal_response(self.state.scenario, transcript)
+        return build_turn_response(self.state.scenario, transcript)
+
+    def _build_repeated_info_answer(self, info_key: str, exact_answer: str) -> str:
+        previous_index = self._last_repeated_info_template_index.get(info_key)
+        template_count = len(REPEATED_INFO_TEMPLATES)
+        template_index = self._random.randrange(template_count)
+        if previous_index is not None and template_count > 1:
+            offset = self._random.randrange(template_count - 1)
+            template_index = (previous_index + 1 + offset) % template_count
+        self._last_repeated_info_template_index[info_key] = template_index
+        return build_repeated_info_answer(info_key, exact_answer, template_index)
 
     def _already_responded_or_busy(self, event: dict[str, Any]) -> bool:
         turn_key = build_agent_turn_key(event)
