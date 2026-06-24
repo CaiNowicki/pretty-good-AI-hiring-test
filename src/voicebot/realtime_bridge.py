@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hashlib
 import json
 import re
 from dataclasses import dataclass
@@ -63,6 +64,7 @@ NON_CONVERSATIONAL_PHRASES = (
     "this call may be recorded",
     "thank you for calling",
     "thanks for calling",
+    "part of pretty good ai",
     "para espanol",
     "para espa",
     "press",
@@ -72,6 +74,8 @@ WAIT_FOR_AGENT_TO_CONTINUE_PHRASES = (
     "thanks for confirming",
     "specific provider you'd like to see or",
     "it looks",
+    "for this demo",
+    "for demo purposes",
     "for you",
 )
 CONFUSING_AGENT_PHRASES = (
@@ -88,6 +92,7 @@ META_DISCLOSURE_PHRASES = (
     "ai",
     "artificial intelligence",
     "assistant",
+    "demo",
     "simulation",
     "simulated",
     "scenario",
@@ -110,6 +115,13 @@ ASSUMED_PATIENT_IDENTITY_PHRASES = (
     "speaking to",
     "calling for",
     "looking for",
+)
+NEW_PATIENT_CONSULTATION_ANSWERS = (
+    "It's for a new patient consultation.",
+    "This would be a new patient consultation.",
+    "I'm trying to set up a new patient consultation.",
+    "It should be a new patient consultation, not a follow-up.",
+    "I'm a new patient, so I need a consultation appointment.",
 )
 
 
@@ -210,7 +222,7 @@ def build_turn_response(scenario: Scenario | None = None, transcript: str = "") 
                 "answer only what was asked, use the "
                 "scenario facts exactly, do not add unrelated preferences or comments, "
                 "do not mention tests, harnesses, bots, assistants, simulations, or "
-                "automation, and wait for the agent after speaking."
+                "demos, and wait for the agent after speaking."
             )
 
     return {
@@ -234,7 +246,7 @@ def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = 
                 "Answer the agent's intake or profile setup question directly as the patient. "
                 "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
                 "facts exactly, do not add unrelated preferences or comments, do not mention "
-                "tests, harnesses, bots, assistants, simulations, or automation, and keep it brief."
+                "tests, harnesses, bots, assistants, simulations, or demos, and keep it brief."
             )
 
     return {
@@ -314,6 +326,9 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
         dob = scenario.facts.get("date_of_birth", "").strip()
         return f"My date of birth is {dob}." if dob else ""
+    if _asks_to_confirm_known_date_of_birth(scenario, transcript, normalized):
+        dob = scenario.facts.get("date_of_birth", "").strip()
+        return f"Yes, my date of birth is {dob}." if dob else ""
     if _asks_about_full_name(normalized) and full_name:
         return full_name
     if "first name" in normalized and first_name:
@@ -327,7 +342,11 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
         return phone
     if _asks_about_appointment_type(normalized):
         if "new patient consultation" in goal:
-            return "It's a new patient consultation, not a follow-up."
+            return _select_stable_variant(
+                NEW_PATIENT_CONSULTATION_ANSWERS,
+                scenario.id,
+                transcript,
+            )
         if "routine visit" in goal:
             return "It's a routine visit."
         if "reschedule" in goal or "move an existing appointment" in goal:
@@ -339,6 +358,13 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
 
 def _caller_full_name(scenario: Scenario) -> str:
     return scenario.facts.get("full_name", scenario.facts.get("name", "")).strip()
+
+
+def _select_stable_variant(options: tuple[str, ...], *keys: str) -> str:
+    if not options:
+        return ""
+    digest = hashlib.sha256("|".join(keys).encode("utf-8")).digest()
+    return options[int.from_bytes(digest[:2], "big") % len(options)]
 
 
 def _caller_first_name(scenario: Scenario) -> str:
@@ -363,6 +389,23 @@ def _asks_about_full_name(normalized_transcript: str) -> bool:
         or "first and last" in normalized_transcript
         or "first name and last name" in normalized_transcript
     )
+
+
+def _asks_to_confirm_known_date_of_birth(
+    scenario: Scenario,
+    transcript: str,
+    normalized_transcript: str,
+) -> bool:
+    if "?" not in transcript:
+        return False
+
+    dob = scenario.facts.get("date_of_birth", "").strip()
+    if not dob:
+        return False
+
+    dob_tokens = re.findall(r"[a-z]+|\d+", dob.casefold())
+    transcript_tokens = set(re.findall(r"[a-z]+|\d+", normalized_transcript))
+    return any(token in transcript_tokens for token in dob_tokens)
 
 
 def build_confusion_reply(scenario: Scenario, transcript: str) -> str:
@@ -906,6 +949,18 @@ class RealtimeBridge:
 
             if transcript_is_ignorable_before_opening(transcript):
                 self._log({"event": "patient_response.skipped", "reason": "pre_opening_ivr"})
+                return
+
+            if transcript_needs_more_agent_context(transcript):
+                self._log({"event": "patient_response.skipped", "reason": "partial_agent_turn"})
+                return
+
+            if transcript_is_confusing_or_out_of_turn(self.state.scenario, transcript):
+                await self._create_patient_response(
+                    event,
+                    build_confusion_response(self.state.scenario, transcript),
+                    {"event": "patient_response.confusion", "trigger": transcript},
+                )
                 return
 
             if transcript_is_intake_before_goal(transcript):

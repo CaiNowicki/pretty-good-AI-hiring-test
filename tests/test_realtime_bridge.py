@@ -104,12 +104,14 @@ class RealtimeBridgeTests(unittest.TestCase):
 
         self.assertEqual(event["type"], "response.create")
         self.assertIn("Keep it short", event["response"]["instructions"])
+        self.assertIn("demos", event["response"]["instructions"])
 
     def test_pre_goal_response_answers_intake_without_scheduling(self):
         event = build_pre_goal_response()
 
         self.assertEqual(event["type"], "response.create")
         self.assertIn("Do not ask to schedule yet", event["response"]["instructions"])
+        self.assertIn("demos", event["response"]["instructions"])
 
     def test_meta_probe_gets_patient_redirect_by_default(self):
         scenario = load_scenario("t01_smoke")
@@ -185,6 +187,11 @@ class RealtimeBridgeTests(unittest.TestCase):
             build_exact_fact_answer(scenario, "Can you please provide your date of birth?"),
             "My date of birth is March 14, 1987.",
         )
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "1987?"),
+            "Yes, my date of birth is March 14, 1987.",
+        )
+        self.assertEqual(build_exact_fact_answer(scenario, "1987."), "")
         self.assertEqual(build_exact_fact_answer(scenario, "What is your first name?"), "James")
         self.assertEqual(build_exact_fact_answer(scenario, "What is your last name?"), "Carter")
         self.assertEqual(build_exact_fact_answer(scenario, "What is your full name?"), "James Carter")
@@ -204,6 +211,19 @@ class RealtimeBridgeTests(unittest.TestCase):
                 "response"
             ]["instructions"],
         )
+        appointment_type_answers = {
+            build_exact_fact_answer(scenario, prompt)
+            for prompt in (
+                "Is this a follow-up or routine visit?",
+                "What type of appointment are you looking for?",
+                "Is this for a new patient consultation?",
+                "Can you tell me the reason for visit?",
+            )
+        }
+        self.assertGreater(len(appointment_type_answers), 1)
+        for answer in appointment_type_answers:
+            self.assertIn("new patient", answer.casefold())
+            self.assertIn("consultation", answer.casefold())
 
     def test_assumed_james_identity_gets_corrected_for_other_patients(self):
         scenario = load_scenario("a01_specific_time")
@@ -280,6 +300,9 @@ class RealtimeBridgeTests(unittest.TestCase):
     def test_partial_agent_turns_wait_for_more_context(self):
         self.assertTrue(transcript_needs_more_agent_context("It looks"))
         self.assertTrue(transcript_needs_more_agent_context("specific provider you'd like to see or"))
+        self.assertTrue(transcript_needs_more_agent_context("for this demo"))
+        self.assertTrue(transcript_needs_more_agent_context("1987."))
+        self.assertFalse(transcript_needs_more_agent_context("1987?"))
         self.assertFalse(transcript_needs_more_agent_context("What would you like to do?"))
 
     def test_audio_payload_mapping(self):
@@ -372,6 +395,48 @@ class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len(fake_ws.sent), 1)
             self.assertEqual(fake_ws.sent[0]["type"], "response.create")
             self.assertIn("I'm hoping to make an appointment", fake_ws.sent[0]["response"]["instructions"])
+
+    async def test_pre_goal_partial_agent_turn_is_skipped(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-1", "transcript": "for this demo"}
+            )
+
+            self.assertEqual(fake_ws.sent, [])
+            events = (Path(temp_dir) / "events.jsonl").read_text(encoding="utf-8")
+            self.assertIn('"reason": "partial_agent_turn"', events)
+
+    async def test_pre_goal_dob_confirmation_is_not_treated_as_fragment(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-1", "transcript": "1987?"}
+            )
+
+            self.assertEqual(len(fake_ws.sent), 1)
+            self.assertIn(
+                "Yes, my date of birth is March 14, 1987.",
+                fake_ws.sent[0]["response"]["instructions"],
+            )
+
+    async def test_pre_goal_service_opening_after_demo_fragment_uses_patient_goal(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-1", "transcript": "for this demo"}
+            )
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-2", "transcript": "What can I help you with today?"}
+            )
+
+            self.assertEqual(len(fake_ws.sent), 1)
+            instructions = fake_ws.sent[0]["response"]["instructions"]
+            self.assertIn("I'm hoping to make an appointment", instructions)
+            self.assertNotIn("demo", instructions.casefold())
 
     async def test_max_turn_limit_closes_twilio_stream(self):
         with tempfile.TemporaryDirectory() as temp_dir:

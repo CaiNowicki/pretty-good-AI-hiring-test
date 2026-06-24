@@ -139,6 +139,8 @@ Exit criteria:
 
 - For each call, create a unique call directory.
 - Store metadata, raw event log, recording, transcript, bot scenario, and post-call analysis.
+- For every non-zero-length call, preserve both `recording.mp3` or `recording.ogg` and `transcript.txt` in that call directory before marking the call reviewable.
+- Add explicit call-boundary markers to the OpenAI event log, or equivalent per-call flags, so transcript generation can find each call's start and end without inferring boundaries from global event timing.
 - Normalize transcripts into speaker-labeled text: `Patient Bot` and `PGAI Agent`.
 - Keep enough timestamps to cite exact bug locations.
 - Convert/download recordings to `mp3` or `ogg`.

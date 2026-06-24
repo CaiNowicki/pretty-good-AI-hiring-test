@@ -98,6 +98,7 @@ class ScenarioTests(unittest.TestCase):
 
         self.assertFalse(scenario_allows_meta_behavior(scenario))
         self.assertIn("Do not reveal that this is a test, test harness", prompt)
+        self.assertIn("Do not call it a demo.", prompt)
         self.assertNotIn("meta_behavior", {field.name for field in fields(Scenario)})
 
     def test_existing_behavior_text_can_explicitly_allow_meta_behavior(self):
