@@ -105,6 +105,7 @@ Exit criteria:
 - [x] Give the bot an active but realistic strategy: answer direct questions, ask follow-ups, correct misunderstandings, and steer back to the goal.
 - [x] Represent deliberate interruption tests with explicit scenario data so barge-in is measured separately from normal turn-taking.
 - [x] Add deterministic limits: max call duration, max silence, max turns, and emergency stop.
+- [x] Add a natural completion branch: after a minimum elapsed call time, check the recent conversation against scenario success criteria, confirm politely, and end after the closing audio plays.
 - [ ] Add scheduling date-selection logic as a separate feature. Choosing an
   appropriate appointment date needs its own state, calendar constraints, and
   acceptance behavior; current remediation should not pretend the bot can pick
@@ -124,6 +125,13 @@ Phase 2.5 deterministic limit notes:
 - Active calls stop deterministically on max call duration, max conversational
   silence, max agent turns, emergency-stop transcript phrases, or the DTMF kill
   digit `9`.
+- Natural completion is separate from hard stops: the bridge keeps a rolling
+  conversation transcript, starts completion checks only after 45 seconds, and
+  closes the Twilio stream only after the polite closing response has been
+  acknowledged as played. If the playback acknowledgement does not arrive, a
+  short post-goodbye silence watchdog closes the stream without clearing audio.
+  Agent speech after the final close is treated as a close signal, not as a new
+  prompt for the bot to answer.
 
 Phase 2.2 guardrail notes:
 

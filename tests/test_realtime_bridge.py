@@ -14,6 +14,8 @@ from voicebot.realtime_bridge import (
     build_agent_turn_key,
     build_confusion_reply,
     build_confusion_response,
+    build_completion_closing_response,
+    completion_closing_options,
     build_exact_fact_answer,
     build_input_audio_append,
     build_meta_guardrail_answer,
@@ -36,6 +38,7 @@ from voicebot.realtime_bridge import (
     transcript_needs_more_agent_context,
     transcript_is_service_opening,
     transcript_asks_about_assumed_patient,
+    evaluate_scenario_completion,
 )
 from voicebot.scenario import CallLimits, load_scenario
 
@@ -458,6 +461,50 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(build_twilio_clear("MZ123"), {"event": "clear", "streamSid": "MZ123"})
         self.assertEqual(build_response_cancel(), {"type": "response.cancel"})
 
+    def test_completion_detection_recognizes_confirmed_appointment(self):
+        scenario = load_scenario("t01_smoke")
+        transcript = (
+            "You're all set. I have you scheduled for Tuesday at 10 AM. "
+            "Is there anything else I can help you with?"
+        )
+
+        verdict = evaluate_scenario_completion(
+            scenario,
+            [{"speaker": "agent", "text": transcript}],
+            transcript,
+        )
+
+        self.assertIsNotNone(verdict)
+        self.assertEqual(verdict["reason"], "appointment_confirmed")
+        response = build_completion_closing_response(
+            scenario,
+            transcript,
+            verdict["reason"],
+        )
+        self.assertIn("thank you for confirming", response["response"]["instructions"])
+        self.assertEqual(response["response"]["metadata"]["call_end"], "scenario_goal_met")
+
+    def test_completion_closing_has_multiple_variants(self):
+        scenario = load_scenario("t01_smoke")
+        transcript = (
+            "You're all set. I have you scheduled for Tuesday at 10 AM. "
+            "Is there anything else I can help you with?"
+        )
+
+        options = completion_closing_options(scenario, transcript)
+        instructions = {
+            build_completion_closing_response(
+                scenario,
+                transcript,
+                "appointment_confirmed",
+                index,
+            )["response"]["instructions"]
+            for index in range(len(options))
+        }
+
+        self.assertGreater(len(options), 1)
+        self.assertEqual(len(instructions), len(options))
+
 
 class FakeOpenAIWebSocket:
     def __init__(self):
@@ -684,6 +731,136 @@ class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(stopped)
             self.assertTrue(fake_ws.closed)
             self.assertTrue(fake_twilio.closed)
+
+    async def test_completion_check_waits_until_minimum_elapsed_time(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+            bridge._goal_introduced = True
+            bridge._call_started_at = asyncio.get_running_loop().time() - 44.0
+
+            await bridge._maybe_create_patient_response(
+                {
+                    "item_id": "agent-1",
+                    "transcript": (
+                        "You're all set. I have you scheduled for Tuesday at 10 AM. "
+                        "Is there anything else I can help you with?"
+                    ),
+                }
+            )
+
+            self.assertEqual(len(fake_ws.sent), 1)
+            self.assertNotEqual(
+                fake_ws.sent[0]["response"].get("metadata", {}).get("call_end"),
+                "scenario_goal_met",
+            )
+
+    async def test_completion_branch_sends_polite_closing_after_minimum_elapsed_time(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+            bridge._goal_introduced = True
+            bridge._call_started_at = asyncio.get_running_loop().time() - 46.0
+
+            await bridge._maybe_create_patient_response(
+                {
+                    "item_id": "agent-1",
+                    "transcript": (
+                        "You're all set. I have you scheduled for Tuesday at 10 AM. "
+                        "Is there anything else I can help you with?"
+                    ),
+                }
+            )
+
+            self.assertEqual(len(fake_ws.sent), 1)
+            self.assertEqual(
+                fake_ws.sent[0]["response"]["metadata"]["call_end"],
+                "scenario_goal_met",
+            )
+            self.assertTrue(bridge._completion_closing_requested)
+
+    async def test_completion_mark_closes_without_clearing_final_audio(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_ws = FakeOpenAIWebSocket()
+            fake_twilio = FakeTwilioWebSocket()
+            bridge = RealtimeBridge(
+                self.settings(),
+                BridgeState(
+                    stream_sid="MZ123",
+                    scenario=load_scenario("t01_smoke"),
+                    events_path=Path(temp_dir) / "events.jsonl",
+                ),
+            )
+            bridge._openai_ws = fake_ws
+            bridge._pending_polite_end_mark_name = "audio-r1"
+            bridge._pending_polite_end_details = {"reason": "appointment_confirmed"}
+
+            ended = await bridge.handle_twilio_mark(fake_twilio, "audio-r1")
+
+            self.assertTrue(ended)
+            self.assertTrue(fake_ws.closed)
+            self.assertTrue(fake_twilio.closed)
+            self.assertNotIn({"event": "clear", "streamSid": "MZ123"}, fake_twilio.sent)
+
+    async def test_final_goodbye_silence_watchdog_closes_without_clearing_audio(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_ws = FakeOpenAIWebSocket()
+            fake_twilio = FakeTwilioWebSocket()
+            bridge = RealtimeBridge(
+                self.settings(),
+                BridgeState(
+                    stream_sid="MZ123",
+                    scenario=load_scenario("t01_smoke"),
+                    events_path=Path(temp_dir) / "events.jsonl",
+                ),
+            )
+            bridge._openai_ws = fake_ws
+            bridge._pending_polite_end_details = {"reason": "appointment_confirmed"}
+
+            await bridge._watch_final_goodbye_silence(fake_twilio, "audio-r1", 0.0)
+
+            self.assertTrue(fake_ws.closed)
+            self.assertTrue(fake_twilio.closed)
+            self.assertNotIn({"event": "clear", "streamSid": "MZ123"}, fake_twilio.sent)
+
+    async def test_agent_speech_during_final_goodbye_does_not_interrupt_audio(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+            fake_twilio = FakeTwilioWebSocket()
+            bridge._completion_closing_requested = True
+            bridge._bot_audio_in_progress = True
+
+            await bridge._handle_agent_speech_started(fake_twilio)
+
+            self.assertTrue(bridge._agent_spoke_after_final_close)
+            self.assertFalse(fake_ws.sent)
+            self.assertFalse(fake_twilio.closed)
+            self.assertNotIn({"event": "clear", "streamSid": "MZ123"}, fake_twilio.sent)
+
+    async def test_agent_speech_after_final_goodbye_closes_without_response(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+            fake_twilio = FakeTwilioWebSocket()
+            bridge._completion_closing_requested = True
+            bridge._pending_polite_end_details = {"reason": "appointment_confirmed"}
+            bridge._bot_audio_in_progress = False
+
+            await bridge._handle_agent_speech_started(fake_twilio)
+
+            self.assertTrue(bridge._agent_spoke_after_final_close)
+            self.assertTrue(fake_ws.closed)
+            self.assertTrue(fake_twilio.closed)
+            self.assertNotIn({"event": "clear", "streamSid": "MZ123"}, fake_twilio.sent)
+
+    async def test_agent_transcript_after_final_close_does_not_create_response(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+            bridge._completion_closing_requested = True
+
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-1", "transcript": "Are you still there?"}
+            )
+
+            self.assertEqual(fake_ws.sent, [])
+            self.assertTrue(bridge._agent_spoke_after_final_close)
 
 
 if __name__ == "__main__":

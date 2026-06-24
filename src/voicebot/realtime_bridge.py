@@ -28,6 +28,8 @@ DEFAULT_RESPONSE_DELAY_SECONDS = 0.0
 POST_VAD_SILENCE_CONFIRMATION_SECONDS = 0.05
 POST_RESPONSE_COOLDOWN_SECONDS = 0.25
 LIMIT_WATCH_INTERVAL_SECONDS = 1.0
+MIN_COMPLETION_CHECK_SECONDS = 45.0
+POST_FINAL_GOODBYE_SILENCE_SECONDS = 5.0
 INTERRUPTION_PREFIX_PADDING_MS = 300
 INTERRUPTION_SILENCE_DURATION_MS = 650
 INTERRUPTION_RESPONSE_DELAY_SECONDS = 0.25
@@ -209,6 +211,60 @@ SCHEDULER_LANGUAGE_GUARDRAIL = (
     "you check that for me?', 'That works for me if you can book it', 'Can you "
     "move it to that time?', or 'Can you confirm the details?'"
 )
+MAX_STORED_CONVERSATION_TURNS = 24
+COMPLETION_CONFIRMATION_PHRASES = (
+    "all set",
+    "appointment is confirmed",
+    "appointment has been confirmed",
+    "appointment is scheduled",
+    "appointment has been scheduled",
+    "appointment is booked",
+    "appointment has been booked",
+    "booked you",
+    "scheduled you",
+    "confirmed you",
+    "have you down",
+    "got you down",
+    "put you down",
+    "you're scheduled",
+    "you are scheduled",
+    "you're booked",
+    "you are booked",
+    "you're confirmed",
+    "you are confirmed",
+)
+COMPLETION_CLOSURE_PROMPTS = (
+    "anything else",
+    "any thing else",
+    "anything more",
+    "any other questions",
+    "can i help you with anything else",
+    "is there anything else",
+    "will that be all",
+    "does that work",
+)
+COMPLETION_INFORMATION_PHRASES = (
+    "we are open",
+    "we're open",
+    "office hours",
+    "hours are",
+    "providers are",
+    "doctor",
+    "physician",
+    "surgeon",
+    "insurance",
+    "accept",
+    "cost",
+    "copay",
+    "wait time",
+    "records",
+    "medical records",
+    "portal",
+    "call 911",
+    "emergency room",
+    "er",
+    "urgent care",
+)
 
 
 @dataclass
@@ -342,6 +398,58 @@ def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = 
             "instructions": instructions,
         },
     }
+
+
+def build_completion_closing_response(
+    scenario: Scenario,
+    transcript: str,
+    reason: str,
+    variant_index: int = 0,
+) -> dict[str, Any]:
+    closing_options = completion_closing_options(scenario, transcript)
+    closing_line = closing_options[variant_index % len(closing_options)]
+
+    return {
+        "type": "response.create",
+        "response": {
+            "instructions": (
+                "Say only this exact polite closing as the patient, then stop speaking: "
+                f"{closing_line}"
+            ),
+            "metadata": {
+                "call_end": "scenario_goal_met",
+                "completion_reason": reason,
+            },
+        },
+    }
+
+
+def completion_closing_options(scenario: Scenario, transcript: str) -> tuple[str, ...]:
+    if _scenario_is_scheduling_like(scenario):
+        return (
+            "Great, thank you for confirming. I don't need anything else. Have a good day.",
+            "Perfect, thanks for getting that set up. That's all I needed. Goodbye.",
+            "Thank you, that works for me. I don't have anything else. Have a good day.",
+            "Okay, great. Thanks for your help confirming that. Goodbye.",
+        )
+    if "emergency" in scenario.id.casefold() or "call 911" in transcript.casefold():
+        return (
+            "Okay, I'll do that now. Thank you. Goodbye.",
+            "All right, I'll take care of that right away. Thank you. Goodbye.",
+            "Okay, thank you for telling me. I'll do that now. Goodbye.",
+        )
+    if "record" in scenario.goal.casefold():
+        return (
+            "Okay, thank you for explaining that. I don't need anything else. Goodbye.",
+            "Thanks, that answers my question. That's all I needed. Goodbye.",
+            "All right, thank you. I don't have anything else. Goodbye.",
+        )
+    return (
+        "Thanks, that helps. I don't need anything else. Have a good day.",
+        "Thank you, that answers my question. That's all I needed. Goodbye.",
+        "Okay, thanks for your help. I don't have anything else. Have a good day.",
+        "Great, thank you. That's all I needed. Goodbye.",
+    )
 
 
 def build_confusion_response(scenario: Scenario, transcript: str) -> dict[str, Any]:
@@ -735,6 +843,142 @@ def transcript_requests_emergency_stop(transcript: str, phrases: list[str]) -> b
     return any(phrase.casefold() in normalized for phrase in phrases)
 
 
+def evaluate_scenario_completion(
+    scenario: Scenario,
+    conversation_turns: list[dict[str, str]],
+    latest_agent_transcript: str,
+) -> dict[str, Any] | None:
+    latest = latest_agent_transcript.casefold()
+    if not latest:
+        return None
+
+    agent_text = " ".join(
+        turn["text"].casefold()
+        for turn in conversation_turns
+        if turn.get("speaker") == "agent"
+    )
+    if not agent_text:
+        agent_text = latest
+
+    if _scenario_is_scheduling_like(scenario):
+        if _agent_confirmed_appointment(agent_text, latest):
+            return {
+                "reason": "appointment_confirmed",
+                "matched_text": latest_agent_transcript,
+            }
+        return None
+
+    if _scenario_is_information_like(scenario):
+        if _agent_provided_information(agent_text) and _agent_offered_closure(latest):
+            return {
+                "reason": "information_goal_answered",
+                "matched_text": latest_agent_transcript,
+            }
+        return None
+
+    if _agent_offered_closure(latest) and _agent_confirmed_goal_resolution(agent_text, latest):
+        return {
+            "reason": "scenario_goal_resolved",
+            "matched_text": latest_agent_transcript,
+        }
+    return None
+
+
+def _scenario_is_scheduling_like(scenario: Scenario) -> bool:
+    text = f"{scenario.goal} {scenario.success_criteria} {scenario.must_test}".casefold()
+    return any(
+        keyword in text
+        for keyword in (
+            "appointment",
+            "schedule",
+            "scheduled",
+            "scheduling",
+            "book",
+            "reschedule",
+            "cancel",
+            "move an existing",
+        )
+    )
+
+
+def _scenario_is_information_like(scenario: Scenario) -> bool:
+    normalized_id = scenario.id.casefold()
+    text = f"{scenario.goal} {scenario.success_criteria} {scenario.must_test}".casefold()
+    return normalized_id.startswith("i-") or any(
+        keyword in text
+        for keyword in (
+            "office hours",
+            "who practices",
+            "wait time",
+            "insurance",
+            "cost",
+            "records",
+            "information",
+        )
+    )
+
+
+def _agent_confirmed_appointment(agent_text: str, latest: str) -> bool:
+    has_confirmation = (
+        any(phrase in agent_text for phrase in COMPLETION_CONFIRMATION_PHRASES)
+        or any(
+            phrase in agent_text or phrase in latest
+            for phrase in (
+                "appointment confirmed",
+                "appointment cancelled",
+                "appointment canceled",
+                "appointment rescheduled",
+                "cancelled your appointment",
+                "canceled your appointment",
+                "rescheduled your appointment",
+            )
+        )
+    )
+    if not has_confirmation:
+        return False
+    if _agent_offered_closure(latest):
+        return True
+    return _has_appointment_detail(latest) or _has_appointment_detail(agent_text)
+
+
+def _agent_confirmed_goal_resolution(agent_text: str, latest: str) -> bool:
+    return any(
+        phrase in agent_text or phrase in latest
+        for phrase in (
+            "confirmed",
+            "confirmation",
+            "completed",
+            "cancelled",
+            "canceled",
+            "rescheduled",
+            "updated",
+            "submitted",
+            "sent",
+        )
+    )
+
+
+def _agent_provided_information(agent_text: str) -> bool:
+    return any(phrase in agent_text for phrase in COMPLETION_INFORMATION_PHRASES)
+
+
+def _agent_offered_closure(latest: str) -> bool:
+    return any(phrase in latest for phrase in COMPLETION_CLOSURE_PROMPTS)
+
+
+def _has_appointment_detail(text: str) -> bool:
+    return bool(
+        re.search(
+            r"\b("
+            r"monday|tuesday|wednesday|thursday|friday|saturday|sunday|"
+            r"today|tomorrow|morning|afternoon|evening|"
+            r"\d{1,2}(:\d{2})?\s?(am|pm)"
+            r")\b",
+            text,
+        )
+    )
+
+
 def _contains_meta_disclosure_phrase(normalized_transcript: str, phrase: str) -> bool:
     if phrase in {"ai", "bot", "assistant"}:
         return re.search(rf"\b{re.escape(phrase)}\b", normalized_transcript) is not None
@@ -856,6 +1100,7 @@ class RealtimeBridge:
         self._openai_to_twilio_task: asyncio.Task[None] | None = None
         self._pending_response_task: asyncio.Task[None] | None = None
         self._limit_watch_task: asyncio.Task[None] | None = None
+        self._final_goodbye_watch_task: asyncio.Task[None] | None = None
         self._pending_transcript_event: dict[str, Any] | None = None
         self._agent_speech_in_progress = False
         self._last_agent_speech_stopped_at = 0.0
@@ -871,6 +1116,11 @@ class RealtimeBridge:
         self._responded_agent_turns: set[str] = set()
         self._provided_info_counts: dict[str, int] = {}
         self._last_repeated_info_template_index: dict[str, int] = {}
+        self._conversation_turns: list[dict[str, str]] = []
+        self._completion_closing_requested = False
+        self._pending_polite_end_mark_name = ""
+        self._pending_polite_end_details: dict[str, Any] = {}
+        self._agent_spoke_after_final_close = False
         self._random = random.Random()
 
     async def start(self, twilio_ws: WebSocket) -> None:
@@ -907,10 +1157,31 @@ class RealtimeBridge:
     async def request_emergency_stop(self, twilio_ws: WebSocket, reason: str) -> None:
         await self._terminate_call(twilio_ws, "emergency_stop", {"reason": reason})
 
+    async def handle_twilio_mark(self, twilio_ws: WebSocket, mark_name: str) -> bool:
+        if not self._pending_polite_end_mark_name:
+            return False
+        if mark_name != self._pending_polite_end_mark_name:
+            return False
+
+        await self._terminate_call(
+            twilio_ws,
+            "scenario_goal_met",
+            self._pending_polite_end_details,
+            clear_twilio=False,
+        )
+        return True
+
     async def close(self) -> None:
         if self._limit_watch_task is not None:
             task = self._limit_watch_task
             self._limit_watch_task = None
+            if task is not asyncio.current_task():
+                task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await task
+        if self._final_goodbye_watch_task is not None:
+            task = self._final_goodbye_watch_task
+            self._final_goodbye_watch_task = None
             if task is not asyncio.current_task():
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
@@ -950,15 +1221,31 @@ class RealtimeBridge:
             if event_type == "response.output_audio.done":
                 self._bot_audio_in_progress = False
                 self._finish_patient_response_cooldown()
+                mark_name = f"audio-{event.get('response_id', 'done')}"
                 await twilio_ws.send_json(
                     build_twilio_mark(
                         self.state.stream_sid,
-                        f"audio-{event.get('response_id', 'done')}",
+                        mark_name,
                     )
                 )
+                if self._completion_closing_requested and not self._pending_polite_end_mark_name:
+                    self._pending_polite_end_mark_name = mark_name
+                    self._log(
+                        {
+                            "event": "call.polite_end_waiting_for_mark",
+                            "mark": mark_name,
+                            "details": self._pending_polite_end_details,
+                        }
+                    )
+                    self._start_final_goodbye_watchdog(twilio_ws, mark_name)
 
             if event_type == "response.done" and self._patient_response_in_progress:
                 self._finish_patient_response_cooldown()
+
+            if event_type == "response.output_audio_transcript.done":
+                transcript = str(event.get("transcript", "")).strip()
+                if transcript:
+                    self._record_conversation_turn("patient", transcript)
 
             if event_type == "conversation.item.input_audio_transcription.completed":
                 if await self._stop_if_transcript_hits_hard_limit(twilio_ws, event):
@@ -1023,6 +1310,41 @@ class RealtimeBridge:
                 )
                 return
 
+    def _start_final_goodbye_watchdog(self, twilio_ws: WebSocket, mark_name: str) -> None:
+        if self._final_goodbye_watch_task is not None:
+            self._final_goodbye_watch_task.cancel()
+        self._final_goodbye_watch_task = asyncio.create_task(
+            self._watch_final_goodbye_silence(
+                twilio_ws,
+                mark_name,
+                POST_FINAL_GOODBYE_SILENCE_SECONDS,
+            )
+        )
+
+    async def _watch_final_goodbye_silence(
+        self,
+        twilio_ws: WebSocket,
+        mark_name: str,
+        delay_seconds: float,
+    ) -> None:
+        try:
+            await asyncio.sleep(delay_seconds)
+            if self._stop_requested:
+                return
+            await self._terminate_call(
+                twilio_ws,
+                "post_final_goodbye_silence",
+                {
+                    **self._pending_polite_end_details,
+                    "mark": mark_name,
+                    "silence_seconds": delay_seconds,
+                    "agent_spoke_after_final_close": self._agent_spoke_after_final_close,
+                },
+                clear_twilio=False,
+            )
+        except asyncio.CancelledError:
+            raise
+
     async def _stop_if_transcript_hits_hard_limit(
         self,
         twilio_ws: WebSocket,
@@ -1030,6 +1352,24 @@ class RealtimeBridge:
     ) -> bool:
         self._mark_conversation_activity()
         transcript = str(event.get("transcript", "")).strip()
+        if self._completion_closing_requested:
+            self._agent_spoke_after_final_close = True
+            if self._bot_audio_in_progress:
+                self._log(
+                    {
+                        "event": "call.agent_spoke_after_final_close",
+                        "action": "preserve_final_audio",
+                        "trigger": transcript,
+                    }
+                )
+                return False
+            await self._terminate_call(
+                twilio_ws,
+                "agent_spoke_after_final_close",
+                {"trigger": transcript, **self._pending_polite_end_details},
+                clear_twilio=False,
+            )
+            return True
         if transcript_requests_emergency_stop(
             transcript,
             self.state.scenario.limits.emergency_stop_phrases,
@@ -1064,6 +1404,8 @@ class RealtimeBridge:
         twilio_ws: WebSocket | None,
         reason: str,
         details: dict[str, Any] | None = None,
+        *,
+        clear_twilio: bool = True,
     ) -> None:
         if self._stop_requested:
             return
@@ -1079,6 +1421,11 @@ class RealtimeBridge:
         if self._pending_response_task is not None:
             self._pending_response_task.cancel()
             self._pending_response_task = None
+        if self._final_goodbye_watch_task is not None:
+            task = self._final_goodbye_watch_task
+            self._final_goodbye_watch_task = None
+            if task is not asyncio.current_task():
+                task.cancel()
         self._pending_transcript_event = None
         self._patient_response_in_progress = False
         self._bot_audio_in_progress = False
@@ -1091,8 +1438,9 @@ class RealtimeBridge:
             self._openai_ws = None
 
         if twilio_ws is not None:
-            with contextlib.suppress(Exception):
-                await twilio_ws.send_json(build_twilio_clear(self.state.stream_sid))
+            if clear_twilio:
+                with contextlib.suppress(Exception):
+                    await twilio_ws.send_json(build_twilio_clear(self.state.stream_sid))
             with contextlib.suppress(Exception):
                 await twilio_ws.close(code=1000)
 
@@ -1161,6 +1509,24 @@ class RealtimeBridge:
             self._pending_response_task.cancel()
             self._pending_response_task = None
 
+        if self._completion_closing_requested:
+            self._agent_spoke_after_final_close = True
+            if self._bot_audio_in_progress:
+                self._log(
+                    {
+                        "event": "agent_speech_after_final_close",
+                        "action": "preserve_final_audio",
+                    }
+                )
+                return
+            await self._terminate_call(
+                twilio_ws,
+                "agent_spoke_after_final_close",
+                self._pending_polite_end_details,
+                clear_twilio=False,
+            )
+            return
+
         if not self._bot_audio_in_progress:
             return
 
@@ -1189,6 +1555,19 @@ class RealtimeBridge:
             self._log({"event": "patient_response.skipped", "reason": "empty_transcript"})
             return
         if self._already_responded_or_busy(event):
+            return
+
+        self._record_conversation_turn("agent", transcript)
+
+        if self._completion_closing_requested:
+            self._agent_spoke_after_final_close = True
+            self._log(
+                {
+                    "event": "patient_response.skipped",
+                    "reason": "final_close_already_requested",
+                    "trigger": transcript,
+                }
+            )
             return
 
         if not self._goal_introduced:
@@ -1244,11 +1623,63 @@ class RealtimeBridge:
             )
             return
 
+        completion = self._completion_verdict_if_ready(transcript)
+        if completion is not None:
+            closing_options = completion_closing_options(self.state.scenario, transcript)
+            closing_variant_index = self._random.randrange(len(closing_options))
+            self._completion_closing_requested = True
+            self._pending_polite_end_details = {
+                **completion,
+                "closing_variant_index": closing_variant_index,
+            }
+            await self._create_patient_response(
+                event,
+                build_completion_closing_response(
+                    self.state.scenario,
+                    transcript,
+                    str(completion["reason"]),
+                    closing_variant_index,
+                ),
+                {
+                    "event": "patient_response.completion_closing",
+                    "trigger": transcript,
+                    "completion": self._pending_polite_end_details,
+                },
+            )
+            return
+
         await self._create_patient_response(
             event,
             self._build_stateful_patient_response(event, pre_goal=False),
             {"event": "patient_response.turn", "trigger": transcript},
         )
+
+    def _completion_verdict_if_ready(self, latest_agent_transcript: str) -> dict[str, Any] | None:
+        if self._completion_closing_requested:
+            return None
+        if not self._goal_introduced:
+            return None
+        if self._call_started_at <= 0.0:
+            return None
+
+        elapsed = asyncio.get_running_loop().time() - self._call_started_at
+        if elapsed < MIN_COMPLETION_CHECK_SECONDS:
+            return None
+
+        verdict = evaluate_scenario_completion(
+            self.state.scenario,
+            self._conversation_turns,
+            latest_agent_transcript,
+        )
+        if verdict is None:
+            return None
+
+        return {
+            **verdict,
+            "elapsed_seconds": round(elapsed, 3),
+            "min_completion_check_seconds": MIN_COMPLETION_CHECK_SECONDS,
+            "success_criteria": self.state.scenario.success_criteria,
+        }
 
     def _build_stateful_patient_response(
         self,
@@ -1289,6 +1720,19 @@ class RealtimeBridge:
             template_index = (previous_index + 1 + offset) % template_count
         self._last_repeated_info_template_index[info_key] = template_index
         return build_repeated_info_answer(info_key, exact_answer, template_index)
+
+    def _record_conversation_turn(self, speaker: str, text: str) -> None:
+        cleaned = " ".join(text.split())
+        if not cleaned:
+            return
+        if self._conversation_turns and self._conversation_turns[-1] == {
+            "speaker": speaker,
+            "text": cleaned,
+        }:
+            return
+        self._conversation_turns.append({"speaker": speaker, "text": cleaned})
+        if len(self._conversation_turns) > MAX_STORED_CONVERSATION_TURNS:
+            self._conversation_turns = self._conversation_turns[-MAX_STORED_CONVERSATION_TURNS:]
 
     def _already_responded_or_busy(self, event: dict[str, Any]) -> bool:
         turn_key = build_agent_turn_key(event)

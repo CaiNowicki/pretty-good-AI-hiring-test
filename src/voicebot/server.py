@@ -136,7 +136,15 @@ async def twilio_media(websocket: WebSocket) -> None:
                     break
                 continue
 
-            if event_type in {"connected", "mark"}:
+            if event_type == "mark":
+                append_jsonl(events_path, {"time": utc_now_iso(), "twilio": message})
+                mark_name = str(message.get("mark", {}).get("name", ""))
+                if bridge is not None and await bridge.handle_twilio_mark(websocket, mark_name):
+                    bridge = None
+                    break
+                continue
+
+            if event_type == "connected":
                 append_jsonl(events_path, {"time": utc_now_iso(), "twilio": message})
     except WebSocketDisconnect:
         append_jsonl(events_path, {"time": utc_now_iso(), "event": "websocket.disconnected"})
