@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -20,8 +21,9 @@ from voicebot.scenario import Scenario, build_realtime_bootstrap
 OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime"
 PCMU_FORMAT = {"type": "audio/pcmu"}
 DEFAULT_PREFIX_PADDING_MS = 500
-DEFAULT_SILENCE_DURATION_MS = 1200
-DEFAULT_RESPONSE_DELAY_SECONDS = 1.75
+DEFAULT_SILENCE_DURATION_MS = 1500
+DEFAULT_RESPONSE_DELAY_SECONDS = 2.25
+POST_RESPONSE_COOLDOWN_SECONDS = 1.5
 INTERRUPTION_PREFIX_PADDING_MS = 300
 INTERRUPTION_SILENCE_DURATION_MS = 650
 INTERRUPTION_RESPONSE_DELAY_SECONDS = 0.25
@@ -68,6 +70,11 @@ WAIT_FOR_AGENT_TO_CONTINUE_PHRASES = (
     "specific provider you'd like to see or",
     "it looks",
     "for you",
+)
+CONFUSING_AGENT_PHRASES = (
+    "dental purposes",
+    "birthdate doesn't match",
+    "date of birth doesn't match",
 )
 
 
@@ -143,7 +150,8 @@ def build_turn_response(scenario: Scenario | None = None, transcript: str = "") 
         instructions = (
             "Only speak if the agent has clearly finished. Respond as the patient for "
             "the current call turn. Keep it short, answer only what was asked, use the "
-            "scenario facts exactly, and wait for the agent after speaking."
+            "scenario facts exactly, do not add unrelated preferences or comments, and "
+            "wait for the agent after speaking."
         )
 
     return {
@@ -163,7 +171,7 @@ def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = 
             "Only speak if the agent has clearly finished. "
             "Answer the agent's intake or profile setup question directly as the patient. "
             "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
-            "facts exactly, and keep it brief."
+            "facts exactly, do not add unrelated preferences or comments, and keep it brief."
         )
 
     return {
@@ -174,11 +182,24 @@ def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = 
     }
 
 
+def build_confusion_response(scenario: Scenario, transcript: str) -> dict[str, Any]:
+    return {
+        "type": "response.create",
+        "response": {
+            "instructions": (
+                "Say only this one short clarification sentence, then wait: "
+                f"{build_confusion_reply(scenario, transcript)}"
+            ),
+        },
+    }
+
+
 def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     if scenario is None:
         return ""
 
     normalized = transcript.casefold()
+    goal = scenario.goal.casefold()
     name = scenario.facts.get("name", "").strip()
     name_parts = name.split()
     first_name = name_parts[0] if name_parts else ""
@@ -196,7 +217,52 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     if "phone" in normalized:
         phone = scenario.facts.get("phone", "").strip()
         return phone
+    if _asks_about_appointment_type(normalized):
+        if "new patient consultation" in goal:
+            return "It's a new patient consultation, not a follow-up."
+        if "routine visit" in goal:
+            return "It's a routine visit."
+        if "reschedule" in goal or "move an existing appointment" in goal:
+            return "I'm calling to reschedule an existing appointment."
+        if "cancel" in goal:
+            return "I'm calling to cancel an appointment."
     return ""
+
+
+def build_confusion_reply(scenario: Scenario, transcript: str) -> str:
+    normalized = transcript.casefold()
+    goal = scenario.goal.casefold()
+
+    if "birthdate doesn't match" in normalized or "date of birth doesn't match" in normalized:
+        dob = scenario.facts.get("date_of_birth", "").strip()
+        return f"I don't understand. My date of birth is {dob}." if dob else "I don't understand."
+
+    if "dental" in normalized:
+        return "I don't understand; I thought I called orthopedics."
+
+    if "new patient" in goal and (
+        "already have" in normalized
+        or "reschedule or cancel" in normalized
+        or "reschedule your appointment" in normalized
+    ):
+        return "I don't understand; I'm trying to schedule a new patient consultation."
+
+    return "I don't understand what you mean."
+
+
+def _asks_about_appointment_type(normalized_transcript: str) -> bool:
+    return any(
+        phrase in normalized_transcript
+        for phrase in (
+            "appointment type",
+            "type of appointment",
+            "reason for visit",
+            "new patient consultation",
+            "follow-up",
+            "followup",
+            "routine visit",
+        )
+    )
 
 
 def build_input_audio_append(payload: str) -> dict[str, str]:
@@ -260,6 +326,39 @@ def transcript_needs_more_agent_context(transcript: str) -> bool:
     return len(normalized.split()) <= 3
 
 
+def transcript_is_confusing_or_out_of_turn(scenario: Scenario, transcript: str) -> bool:
+    normalized = transcript.casefold().strip()
+    if any(phrase in normalized for phrase in CONFUSING_AGENT_PHRASES):
+        return True
+    if "new patient" in scenario.goal.casefold() and (
+        "already have" in normalized
+        or "reschedule or cancel" in normalized
+        or "reschedule your appointment" in normalized
+    ):
+        return True
+    return _looks_like_garbled_transcript(transcript)
+
+
+def build_agent_turn_key(event: dict[str, Any]) -> str:
+    item_id = event.get("item_id")
+    if not item_id and isinstance(event.get("item"), dict):
+        item_id = event["item"].get("id")
+    if item_id:
+        return f"item:{item_id}"
+
+    transcript = str(event.get("transcript", ""))
+    normalized = re.sub(r"\s+", " ", transcript.casefold()).strip()
+    return f"text:{normalized[:160]}"
+
+
+def _looks_like_garbled_transcript(transcript: str) -> bool:
+    text = transcript.strip()
+    if not text:
+        return False
+    non_ascii = sum(1 for char in text if ord(char) > 127)
+    return non_ascii >= 3 and non_ascii / max(len(text), 1) > 0.35
+
+
 class RealtimeBridge:
     def __init__(self, settings: Settings, state: BridgeState):
         self.settings = settings
@@ -269,6 +368,9 @@ class RealtimeBridge:
         self._pending_response_task: asyncio.Task[None] | None = None
         self._goal_introduced = False
         self._bot_audio_in_progress = False
+        self._patient_response_in_progress = False
+        self._cooldown_until = 0.0
+        self._responded_agent_turns: set[str] = set()
 
     async def start(self, twilio_ws: WebSocket) -> None:
         if not self.settings.openai_api_key:
@@ -328,12 +430,16 @@ class RealtimeBridge:
 
             if event_type == "response.output_audio.done":
                 self._bot_audio_in_progress = False
+                self._finish_patient_response_cooldown()
                 await twilio_ws.send_json(
                     build_twilio_mark(
                         self.state.stream_sid,
                         f"audio-{event.get('response_id', 'done')}",
                     )
                 )
+
+            if event_type == "response.done" and self._patient_response_in_progress:
+                self._finish_patient_response_cooldown()
 
             if event_type == "conversation.item.input_audio_transcription.completed":
                 self._schedule_patient_response(event)
@@ -361,13 +467,15 @@ class RealtimeBridge:
     def _schedule_patient_response(self, event: dict[str, Any]) -> None:
         if self._pending_response_task is not None:
             self._pending_response_task.cancel()
+        loop_time = asyncio.get_running_loop().time()
+        cooldown_delay = max(0.0, self._cooldown_until - loop_time)
         delay = (
             INTERRUPTION_RESPONSE_DELAY_SECONDS
             if self.state.scenario.interruption_test
             else DEFAULT_RESPONSE_DELAY_SECONDS
         )
         self._pending_response_task = asyncio.create_task(
-            self._delayed_patient_response(dict(event), delay)
+            self._delayed_patient_response(dict(event), max(delay, cooldown_delay))
         )
 
     async def _delayed_patient_response(self, event: dict[str, Any], delay: float) -> None:
@@ -391,6 +499,7 @@ class RealtimeBridge:
             return
 
         self._bot_audio_in_progress = False
+        self._patient_response_in_progress = False
         self._log({"event": "agent_speech_during_bot_audio", "action": "yielded"})
         await self._send_openai(build_response_cancel())
         await twilio_ws.send_json(build_twilio_clear(self.state.stream_sid))
@@ -400,12 +509,17 @@ class RealtimeBridge:
         if not transcript:
             self._log({"event": "patient_response.skipped", "reason": "empty_transcript"})
             return
+        if self._already_responded_or_busy(event):
+            return
 
         if not self._goal_introduced:
             if transcript_is_service_opening(transcript):
                 self._goal_introduced = True
-                self._log({"event": "patient_response.goal_opening", "trigger": transcript})
-                await self._send_openai(build_opening_response(self.state.scenario))
+                await self._create_patient_response(
+                    event,
+                    build_opening_response(self.state.scenario),
+                    {"event": "patient_response.goal_opening", "trigger": transcript},
+                )
                 return
 
             if transcript_is_ignorable_before_opening(transcript):
@@ -413,17 +527,69 @@ class RealtimeBridge:
                 return
 
             if transcript_is_intake_before_goal(transcript):
-                self._log({"event": "patient_response.pre_goal", "trigger": transcript})
-                await self._send_openai(build_pre_goal_response(self.state.scenario, transcript))
+                await self._create_patient_response(
+                    event,
+                    build_pre_goal_response(self.state.scenario, transcript),
+                    {"event": "patient_response.pre_goal", "trigger": transcript},
+                )
                 return
 
-            self._log({"event": "patient_response.pre_goal", "trigger": transcript})
-            await self._send_openai(build_pre_goal_response(self.state.scenario, transcript))
+            await self._create_patient_response(
+                event,
+                build_pre_goal_response(self.state.scenario, transcript),
+                {"event": "patient_response.pre_goal", "trigger": transcript},
+            )
             return
 
         if transcript_needs_more_agent_context(transcript):
             self._log({"event": "patient_response.skipped", "reason": "partial_agent_turn"})
             return
 
-        self._log({"event": "patient_response.turn", "trigger": transcript})
-        await self._send_openai(build_turn_response(self.state.scenario, transcript))
+        if transcript_is_confusing_or_out_of_turn(self.state.scenario, transcript):
+            await self._create_patient_response(
+                event,
+                build_confusion_response(self.state.scenario, transcript),
+                {"event": "patient_response.confusion", "trigger": transcript},
+            )
+            return
+
+        await self._create_patient_response(
+            event,
+            build_turn_response(self.state.scenario, transcript),
+            {"event": "patient_response.turn", "trigger": transcript},
+        )
+
+    def _already_responded_or_busy(self, event: dict[str, Any]) -> bool:
+        turn_key = build_agent_turn_key(event)
+        if turn_key in self._responded_agent_turns:
+            self._log({"event": "patient_response.skipped", "reason": "turn_already_answered"})
+            return True
+        if self._patient_response_in_progress:
+            self._log({"event": "patient_response.skipped", "reason": "response_in_progress"})
+            return True
+        return False
+
+    async def _create_patient_response(
+        self,
+        event: dict[str, Any],
+        response: dict[str, Any],
+        log_payload: dict[str, Any],
+    ) -> None:
+        turn_key = build_agent_turn_key(event)
+        if turn_key in self._responded_agent_turns:
+            self._log({"event": "patient_response.skipped", "reason": "turn_already_answered"})
+            return
+        if self._patient_response_in_progress:
+            self._log({"event": "patient_response.skipped", "reason": "response_in_progress"})
+            return
+
+        self._responded_agent_turns.add(turn_key)
+        self._patient_response_in_progress = True
+        self._log(log_payload)
+        await self._send_openai(response)
+
+    def _finish_patient_response_cooldown(self) -> None:
+        self._patient_response_in_progress = False
+        self._cooldown_until = (
+            asyncio.get_running_loop().time() + POST_RESPONSE_COOLDOWN_SECONDS
+        )

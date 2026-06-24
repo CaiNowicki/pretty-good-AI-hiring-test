@@ -3,6 +3,9 @@ from dataclasses import replace
 
 from voicebot.config import Settings
 from voicebot.realtime_bridge import (
+    build_agent_turn_key,
+    build_confusion_reply,
+    build_confusion_response,
     build_exact_fact_answer,
     build_input_audio_append,
     build_opening_response,
@@ -14,6 +17,7 @@ from voicebot.realtime_bridge import (
     build_turn_response,
     transcript_is_ignorable_before_opening,
     transcript_is_intake_before_goal,
+    transcript_is_confusing_or_out_of_turn,
     transcript_needs_more_agent_context,
     transcript_is_service_opening,
 )
@@ -46,7 +50,7 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(event["session"]["audio"]["input"]["turn_detection"]["prefix_padding_ms"], 500)
         self.assertEqual(
             event["session"]["audio"]["input"]["turn_detection"]["silence_duration_ms"],
-            1200,
+            1500,
         )
         self.assertIn("James Carter", event["session"]["instructions"])
 
@@ -94,6 +98,44 @@ class RealtimeBridgeTests(unittest.TestCase):
             build_turn_response(scenario, "Can you please provide your date of birth?")[
                 "response"
             ]["instructions"],
+        )
+        self.assertIn(
+            "new patient consultation",
+            build_turn_response(scenario, "Is this a follow-up or routine visit?")[
+                "response"
+            ]["instructions"],
+        )
+
+    def test_confusing_agent_turns_get_clarification_replies(self):
+        scenario = load_scenario("t01_smoke")
+
+        self.assertTrue(
+            transcript_is_confusing_or_out_of_turn(
+                scenario,
+                "The birthdate doesn't match our records, but for dental purposes I'll accept it.",
+            )
+        )
+        self.assertIn(
+            "March 14, 1987",
+            build_confusion_reply(scenario, "The birthdate doesn't match our records."),
+        )
+        self.assertIn(
+            "orthopedics",
+            build_confusion_reply(scenario, "For dental purposes I'll accept it."),
+        )
+        self.assertIn(
+            "new patient consultation",
+            build_confusion_response(
+                scenario,
+                "Would you like to reschedule or cancel that appointment?",
+            )["response"]["instructions"],
+        )
+
+    def test_agent_turn_key_prefers_realtime_item_id(self):
+        self.assertEqual(build_agent_turn_key({"item_id": "abc", "transcript": "hello"}), "item:abc")
+        self.assertEqual(
+            build_agent_turn_key({"transcript": "Hello   AGAIN"}),
+            "text:hello again",
         )
 
     def test_opening_gate_skips_ivr_and_waits_for_service_prompt(self):
