@@ -27,6 +27,16 @@ src/
 tests/
 artifacts/
   calls/
+    appointment_scheduling/
+      call-001/
+    medication_refill/
+      call-001/
+    information_gathering/
+      call-001/
+    orthopedic_edge_cases/
+      call-001/
+    difficult_call_handling/
+      call-001/
   bug-report.md
 ```
 

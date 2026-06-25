@@ -447,15 +447,22 @@ def _scenario_from_mapping(data: dict[str, Any], path: Path) -> Scenario:
 def load_scenario(scenario_id: str, root: Path = SCENARIO_ROOT) -> Scenario:
     """Load a scenario by file stem or by the scenario's declared id."""
 
+    path = scenario_path_for_id(scenario_id, root)
+    return _scenario_from_mapping(_load_yaml(path), path)
+
+
+def scenario_path_for_id(scenario_id: str, root: Path = SCENARIO_ROOT) -> Path:
+    """Return the YAML path for a scenario file stem or declared scenario id."""
+
     direct_path = root / f"{scenario_id}.yaml"
     if direct_path.exists():
-        return _scenario_from_mapping(_load_yaml(direct_path), direct_path)
+        return direct_path
 
     if root.exists():
         for path in sorted(root.glob("*.yaml")):
             scenario = _scenario_from_mapping(_load_yaml(path), path)
             if scenario.id == scenario_id:
-                return scenario
+                return path
 
     raise ScenarioNotFoundError(f"No scenario found for id '{scenario_id}' in {root}.")
 

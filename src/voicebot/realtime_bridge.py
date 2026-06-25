@@ -15,7 +15,7 @@ from typing import Any
 import websockets
 from starlette.websockets import WebSocket
 
-from voicebot.artifacts import append_jsonl, utc_now_iso
+from voicebot.artifacts import append_jsonl, scenario_type_for_id, utc_now_iso
 from voicebot.config import Settings
 from voicebot.scenario import (
     Scenario,
@@ -277,6 +277,8 @@ class BridgeState:
     stream_sid: str
     scenario: Scenario
     events_path: Path
+    call_id: str = ""
+    call_type: str = ""
 
 
 def build_openai_realtime_url(settings: Settings) -> str:
@@ -1273,6 +1275,7 @@ class RealtimeBridge:
         self._pending_polite_end_mark_name = ""
         self._pending_polite_end_details: dict[str, Any] = {}
         self._agent_spoke_after_final_close = False
+        self._call_boundary_end_logged = False
         self._random = random.Random()
 
     async def start(self, twilio_ws: WebSocket) -> None:
@@ -1292,6 +1295,7 @@ class RealtimeBridge:
         self._last_conversation_activity_at = loop_time
         self._openai_to_twilio_task = asyncio.create_task(self._pipe_openai_to_twilio(twilio_ws))
         self._limit_watch_task = asyncio.create_task(self._watch_deterministic_limits(twilio_ws))
+        self._log_call_boundary("start", {"stream_sid": self.state.stream_sid})
         self._log(
             {
                 "event": "realtime.started",
@@ -1349,6 +1353,7 @@ class RealtimeBridge:
         if self._openai_ws is not None:
             await self._openai_ws.close()
             self._openai_ws = None
+        self._log_call_boundary_end("websocket_closed", {"stream_sid": self.state.stream_sid})
         self._log({"event": "realtime.closed", "stream_sid": self.state.stream_sid})
 
     async def _send_openai(self, event: dict[str, Any]) -> None:
@@ -1427,6 +1432,50 @@ class RealtimeBridge:
 
     def _log(self, payload: dict[str, Any]) -> None:
         append_jsonl(self.state.events_path, {"time": utc_now_iso(), **payload})
+
+    def _call_type(self) -> str:
+        return self.state.call_type or scenario_type_for_id(self.state.scenario.id)
+
+    def _call_id(self) -> str:
+        if self.state.call_id:
+            return self.state.call_id
+        call_type = self._call_type()
+        call_dir_name = self.state.events_path.parent.name
+        if call_dir_name.startswith("call-"):
+            return f"{call_type}-{call_dir_name}"
+        return "unassigned"
+
+    def _log_call_boundary(
+        self,
+        boundary: str,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        self._log(
+            {
+                "event": "call.boundary",
+                "boundary": boundary,
+                "call_id": self._call_id(),
+                "scenario_id": self.state.scenario.id,
+                "call_type": self._call_type(),
+                "details": details or {},
+            }
+        )
+
+    def _log_call_boundary_end(
+        self,
+        reason: str,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        if self._call_boundary_end_logged:
+            return
+        self._call_boundary_end_logged = True
+        self._log_call_boundary(
+            "end",
+            {
+                "reason": reason,
+                **(details or {}),
+            },
+        )
 
     def _mark_conversation_activity(self) -> None:
         self._last_conversation_activity_at = asyncio.get_running_loop().time()
@@ -1570,6 +1619,7 @@ class RealtimeBridge:
                 "limits": self.state.scenario.limits.to_dict(),
             }
         )
+        self._log_call_boundary_end(reason, details or {})
         if self._pending_response_task is not None:
             self._pending_response_task.cancel()
             self._pending_response_task = None

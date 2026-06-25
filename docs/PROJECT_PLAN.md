@@ -163,15 +163,32 @@ Suggested layout:
 ```text
 artifacts/
   calls/
-    call-001/
-      metadata.json
-      scenario.yaml
-      transcript.txt
-      analysis.md
-      recording.mp3
-      events.jsonl
+    appointment_scheduling/
+      call-001/
+        metadata.json
+        scenario.yaml
+        transcript.txt
+        analysis.md
+        recording.mp3
+        events.jsonl
+    medication_refill/
+      call-001/
+        ...
+    information_gathering/
+      call-001/
+        ...
+    orthopedic_edge_cases/
+      call-001/
+        ...
+    difficult_call_handling/
+      call-001/
+        ...
   bug-report.md
 ```
+
+New Phase 3 call artifacts are grouped by scenario type before the individual
+call directory. Existing flat `artifacts/calls/call-###/` calibration folders
+remain historical evidence and do not need to be moved.
 
 ### Phase 4: Bug Analysis
 

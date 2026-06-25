@@ -36,6 +36,16 @@ Dry-run mode prints the call plan without placing a call:
 python -m voicebot.cli dry-run
 ```
 
+## Prepare Scenario Call Pipeline
+
+Prepare grouped call artifact directories and call plans without placing calls:
+
+```powershell
+python -m voicebot.cli scenario-call-pipeline --all-scenarios
+```
+
+New call artifacts are grouped under `artifacts/calls/<scenario_type>/call-###/`.
+
 ## Webhook Server
 
 Run the local Twilio webhook server:
