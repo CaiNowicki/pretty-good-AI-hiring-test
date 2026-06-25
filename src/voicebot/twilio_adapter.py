@@ -2,6 +2,7 @@
 
 from voicebot.twilio_builders import (  # noqa: F401
     build_voice_webhook_url,
+    build_recording_status_callback_url,
     build_call_plan,
     build_twilio_media,
     build_twilio_mark,

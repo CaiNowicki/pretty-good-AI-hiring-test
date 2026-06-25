@@ -248,73 +248,79 @@ class RealtimeBridge:
         await self._openai_ws.send(json.dumps(event))
 
     async def _pipe_openai_to_twilio(self, twilio_ws: WebSocket) -> None:
+        from fastapi import WebSocketDisconnect
+
         assert self._openai_ws is not None
         async for raw_message in self._openai_ws:
             if self._stop_requested:
                 break
-            event = json.loads(raw_message)
-            event_type = event.get("type", "unknown")
+            try:
+                event = json.loads(raw_message)
+                event_type = event.get("type", "unknown")
 
-            if event_type == "response.output_audio.delta":
-                self._mark_conversation_activity()
-                self._bot_audio_in_progress = True
-                await twilio_ws.send_json(build_twilio_media(self.state.stream_sid, event["delta"]))
-                continue
+                if event_type == "response.output_audio.delta":
+                    self._mark_conversation_activity()
+                    self._bot_audio_in_progress = True
+                    await twilio_ws.send_json(build_twilio_media(self.state.stream_sid, event["delta"]))
+                    continue
 
-            if event_type == "response.output_audio.done":
-                self._bot_audio_in_progress = False
-                self._finish_patient_response_cooldown()
-                mark_name = f"audio-{event.get('response_id', 'done')}"
-                await twilio_ws.send_json(
-                    build_twilio_mark(
-                        self.state.stream_sid,
-                        mark_name,
+                if event_type == "response.output_audio.done":
+                    self._bot_audio_in_progress = False
+                    self._finish_patient_response_cooldown()
+                    mark_name = f"audio-{event.get('response_id', 'done')}"
+                    await twilio_ws.send_json(
+                        build_twilio_mark(
+                            self.state.stream_sid,
+                            mark_name,
+                        )
                     )
-                )
-                if self._completion_closing_requested and not self._pending_polite_end_mark_name:
-                    self._pending_polite_end_mark_name = mark_name
-                    self._log(
-                        {
-                            "event": "call.polite_end_waiting_for_mark",
-                            "mark": mark_name,
-                            "details": self._pending_polite_end_details,
-                        }
-                    )
-                    self._start_final_goodbye_watchdog(twilio_ws, mark_name)
+                    if self._completion_closing_requested and not self._pending_polite_end_mark_name:
+                        self._pending_polite_end_mark_name = mark_name
+                        self._log(
+                            {
+                                "event": "call.polite_end_waiting_for_mark",
+                                "mark": mark_name,
+                                "details": self._pending_polite_end_details,
+                            }
+                        )
+                        self._start_final_goodbye_watchdog(twilio_ws, mark_name)
 
-            if event_type == "response.done" and self._patient_response_in_progress:
-                self._finish_patient_response_cooldown()
+                if event_type == "response.done" and self._patient_response_in_progress:
+                    self._finish_patient_response_cooldown()
 
-            if event_type == "response.output_audio_transcript.done":
-                transcript = str(event.get("transcript", "")).strip()
-                if transcript:
-                    self._record_conversation_turn("patient", transcript)
+                if event_type == "response.output_audio_transcript.done":
+                    transcript = str(event.get("transcript", "")).strip()
+                    if transcript:
+                        self._record_conversation_turn("patient", transcript)
 
-            if event_type == "conversation.item.input_audio_transcription.completed":
-                if await self._stop_if_transcript_hits_hard_limit(twilio_ws, event):
-                    break
-                self._schedule_patient_response(event)
+                if event_type == "conversation.item.input_audio_transcription.completed":
+                    if await self._stop_if_transcript_hits_hard_limit(twilio_ws, event):
+                        break
+                    self._schedule_patient_response(event)
 
-            if event_type == "input_audio_buffer.speech_started":
-                self._mark_conversation_activity()
-                await self._handle_agent_speech_started(twilio_ws)
+                if event_type == "input_audio_buffer.speech_started":
+                    self._mark_conversation_activity()
+                    await self._handle_agent_speech_started(twilio_ws)
 
-            if event_type == "input_audio_buffer.speech_stopped":
-                self._handle_agent_speech_stopped()
+                if event_type == "input_audio_buffer.speech_stopped":
+                    self._handle_agent_speech_stopped()
 
-            if event_type in {
-                "error",
-                "session.created",
-                "session.updated",
-                "response.done",
-                "response.output_audio_transcript.done",
-                "response.output_audio_transcript.delta",
-                "conversation.item.input_audio_transcription.completed",
-                "input_audio_buffer.speech_started",
-                "input_audio_buffer.speech_stopped",
-                "input_audio_buffer.timeout_triggered",
-            }:
-                self._log({"event": "openai", "payload": event})
+                if event_type in {
+                    "error",
+                    "session.created",
+                    "session.updated",
+                    "response.done",
+                    "response.output_audio_transcript.done",
+                    "response.output_audio_transcript.delta",
+                    "conversation.item.input_audio_transcription.completed",
+                    "input_audio_buffer.speech_started",
+                    "input_audio_buffer.speech_stopped",
+                    "input_audio_buffer.timeout_triggered",
+                }:
+                    self._log({"event": "openai", "payload": event})
+            except (WebSocketDisconnect, RuntimeError):
+                self._stop_requested = True
+                break
 
     def _log(self, payload: dict[str, Any]) -> None:
         append_jsonl(self.state.events_path, {"time": utc_now_iso(), **payload})
