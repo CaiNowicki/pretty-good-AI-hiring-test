@@ -219,7 +219,37 @@ class RealtimeBridgeTests(unittest.TestCase):
         )
         self.assertEqual(
             build_exact_fact_answer(scenario, "1987?"),
-            "Yes, my date of birth is March 14, 1987.",
+            "Yes, that's correct.",
+        )
+        self.assertEqual(
+            build_exact_fact_answer(
+                scenario,
+                "I have your date of birth as March 14, 1987. Is that correct?",
+            ),
+            "Yes, that's correct.",
+        )
+        self.assertEqual(
+            build_exact_fact_answer(
+                scenario,
+                (
+                    "Just to confirm, I have your name as Maya Patel and your date of "
+                    "birth as March 14, 1987. Is that correct?"
+                ),
+            ),
+            "Yes, that's correct.",
+        )
+        self.assertEqual(
+            build_exact_fact_answer(
+                scenario,
+                (
+                    "I have your name as Maya Patel, your date of birth as March 14, "
+                    "1987, and your phone number as 941-842-0514. Is all of that correct?"
+                ),
+            ),
+            (
+                "My name and date of birth are correct, but that phone number is not mine. "
+                "My phone number is 555-204-7731."
+            ),
         )
         self.assertEqual(build_exact_fact_answer(scenario, "1987."), "")
         self.assertEqual(build_exact_fact_answer(scenario, "What is your first name?"), "Maya")
@@ -295,6 +325,13 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertEqual(
             requested_info_key(scenario, "Can you provide your date of birth again?"),
             "date_of_birth",
+        )
+        self.assertEqual(
+            requested_info_key(
+                scenario,
+                "I have your date of birth as March 14, 1987. Is that correct?",
+            ),
+            "",
         )
         self.assertEqual(
             requested_info_key(scenario, "Can you spell your last name again?"),
@@ -637,9 +674,33 @@ class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual(len(fake_ws.sent), 1)
             self.assertIn(
-                "Yes, my date of birth is March 14, 1987.",
+                "Yes, that's correct.",
                 fake_ws.sent[0]["response"]["instructions"],
             )
+
+    async def test_dob_confirmation_does_not_increment_repeated_info_counter(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+            bridge._random = FakeRandom(
+                random_values=[0.0],
+                randrange_values=[0],
+            )
+
+            await bridge._maybe_create_patient_response(
+                {
+                    "item_id": "agent-1",
+                    "transcript": "I have your date of birth as March 14, 1987. Is that correct?",
+                }
+            )
+            bridge._patient_response_in_progress = False
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-2", "transcript": "Can you provide your date of birth?"}
+            )
+
+            self.assertEqual(len(fake_ws.sent), 2)
+            self.assertIn("Yes, that's correct.", fake_ws.sent[0]["response"]["instructions"])
+            self.assertIn("My date of birth is March 14, 1987.", fake_ws.sent[1]["response"]["instructions"])
+            self.assertNotIn("already", fake_ws.sent[1]["response"]["instructions"].casefold())
 
     async def test_repeated_info_callout_probability_and_wording_vary(self):
         with tempfile.TemporaryDirectory() as temp_dir:

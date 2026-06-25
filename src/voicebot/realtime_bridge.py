@@ -563,12 +563,12 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     name_spelling_answer = _name_spelling_answer(scenario, normalized)
     if name_spelling_answer:
         return name_spelling_answer
+    confirmation_answer = build_fact_confirmation_answer(scenario, transcript, normalized)
+    if confirmation_answer:
+        return confirmation_answer
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
         dob = scenario.facts.get("date_of_birth", "").strip()
         return f"My date of birth is {dob}." if dob else ""
-    if _asks_to_confirm_known_date_of_birth(scenario, transcript, normalized):
-        dob = scenario.facts.get("date_of_birth", "").strip()
-        return f"Yes, my date of birth is {dob}." if dob else ""
     if _asks_about_full_name(normalized) and full_name:
         return full_name
     if "first name" in normalized and first_name:
@@ -610,9 +610,9 @@ def requested_info_key(scenario: Scenario | None, transcript: str) -> str:
     spelling_key = _requested_name_spelling_key(scenario, normalized)
     if spelling_key:
         return spelling_key
+    if build_fact_confirmation_answer(scenario, transcript, normalized):
+        return ""
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
-        return "date_of_birth"
-    if _asks_to_confirm_known_date_of_birth(scenario, transcript, normalized):
         return "date_of_birth"
     if _asks_about_full_name(normalized) or "your name" in normalized:
         return "full_name"
@@ -753,6 +753,116 @@ def _asks_to_confirm_known_date_of_birth(
     dob_tokens = re.findall(r"[a-z]+|\d+", dob.casefold())
     transcript_tokens = set(re.findall(r"[a-z]+|\d+", normalized_transcript))
     return any(token in transcript_tokens for token in dob_tokens)
+
+
+def build_fact_confirmation_answer(
+    scenario: Scenario,
+    transcript: str,
+    normalized_transcript: str,
+) -> str:
+    if not _asks_to_confirm_known_facts(scenario, transcript, normalized_transcript):
+        return ""
+
+    phone = scenario.facts.get("phone", "").strip()
+    phone_digits = _digits_only(phone)
+    transcript_phone_digits = _phone_like_digit_groups(transcript)
+    wrong_phone_digits = [
+        digits
+        for digits in transcript_phone_digits
+        if phone_digits and _phone_digits_mismatch(phone_digits, digits)
+    ]
+    if wrong_phone_digits:
+        if _mentions_confirmed_name(scenario, normalized_transcript) or _asks_to_confirm_known_date_of_birth(
+            scenario,
+            transcript,
+            normalized_transcript,
+        ):
+            return (
+                "My name and date of birth are correct, but that phone number is not mine. "
+                f"My phone number is {phone}."
+            )
+        return f"That phone number is not mine. My phone number is {phone}."
+
+    if _mentions_wrong_name_for_confirmation(scenario, normalized_transcript):
+        return f"No, my name is {_caller_full_name(scenario)}."
+
+    return "Yes, that's correct."
+
+
+def _asks_to_confirm_known_facts(
+    scenario: Scenario,
+    transcript: str,
+    normalized_transcript: str,
+) -> bool:
+    if "?" not in transcript:
+        return False
+    if _asks_to_confirm_known_date_of_birth(scenario, transcript, normalized_transcript):
+        return True
+    if not _looks_like_fact_confirmation(normalized_transcript):
+        return False
+    if _mentions_confirmed_name(scenario, normalized_transcript):
+        return True
+    if _phone_like_digit_groups(transcript):
+        return True
+    return False
+
+
+def _looks_like_fact_confirmation(normalized_transcript: str) -> bool:
+    return any(
+        phrase in normalized_transcript
+        for phrase in (
+            "to confirm",
+            "confirming",
+            "i have",
+            "is that correct",
+            "is all of that correct",
+            "is this correct",
+            "is that right",
+            "is this right",
+            "correct?",
+            "right?",
+        )
+    )
+
+
+def _mentions_confirmed_name(scenario: Scenario, normalized_transcript: str) -> bool:
+    full_name = _caller_full_name(scenario).casefold()
+    first_name = _caller_first_name(scenario).casefold()
+    last_name = _caller_last_name(scenario).casefold()
+    return bool(
+        full_name and full_name in normalized_transcript
+        or (first_name and last_name and first_name in normalized_transcript and last_name in normalized_transcript)
+    )
+
+
+def _mentions_wrong_name_for_confirmation(
+    scenario: Scenario,
+    normalized_transcript: str,
+) -> bool:
+    if "name" not in normalized_transcript:
+        return False
+    if _mentions_confirmed_name(scenario, normalized_transcript):
+        return False
+    return _looks_like_fact_confirmation(normalized_transcript)
+
+
+def _digits_only(text: str) -> str:
+    return re.sub(r"\D+", "", text)
+
+
+def _phone_like_digit_groups(text: str) -> list[str]:
+    phone_groups: list[str] = []
+    for match in re.finditer(r"(?:\+?\d[\d\s().-]{6,}\d)", text):
+        digits = _digits_only(match.group(0))
+        if len(digits) >= 7:
+            phone_groups.append(digits)
+    return phone_groups
+
+
+def _phone_digits_mismatch(expected_digits: str, actual_digits: str) -> bool:
+    expected = expected_digits[-10:] if len(expected_digits) >= 10 else expected_digits
+    actual = actual_digits[-10:] if len(actual_digits) >= 10 else actual_digits
+    return expected != actual
 
 
 def build_confusion_reply(scenario: Scenario, transcript: str) -> str:
