@@ -156,6 +156,7 @@ Exit criteria:
 - Normalize transcripts into speaker-labeled text: `Patient Bot` and `PGAI Agent`.
 - Keep enough timestamps to cite exact bug locations.
 - Convert/download recordings to `mp3` or `ogg`.
+- After each call completes, clean up stale top-level run logs in `artifacts/`; keep `server-8000.*.log` files while port 8000 is serving the current running call, then remove them once that call finishes.
 
 Suggested layout:
 
