@@ -333,6 +333,28 @@ class RealtimeBridgeTests(unittest.TestCase):
             self.assertIn("new patient", answer.casefold())
             self.assertIn("consultation", answer.casefold())
 
+    def test_patient_subject_dob_uses_patient_date_of_birth(self):
+        scenario = load_scenario("d03_background_interruptions")
+
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "Please provide Emma's full date of birth."),
+            "Emma's date of birth is April 9, 2015.",
+        )
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "Can you please provide your date of birth?"),
+            "",
+        )
+        self.assertEqual(
+            requested_info_key(scenario, "Please provide the patient's date of birth."),
+            "patient_date_of_birth",
+        )
+        self.assertIn(
+            "Emma's date of birth is April 9, 2015.",
+            build_turn_response(scenario, "Please provide Emma's full date of birth.")[
+                "response"
+            ]["instructions"],
+        )
+
     def test_repeated_info_probability_increases_with_repeat_count(self):
         probabilities = [repeated_info_probability(count) for count in range(5)]
 
@@ -858,6 +880,64 @@ class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(fake_twilio.closed)
             self.assertEqual(fake_twilio.close_code, 1000)
             self.assertIn({"event": "clear", "streamSid": "MZ123"}, fake_twilio.sent)
+
+    async def test_repeated_spelling_loop_soft_closes_before_hard_max_turn_cutoff(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_ws = FakeOpenAIWebSocket()
+            fake_twilio = FakeTwilioWebSocket()
+            scenario = replace(
+                load_scenario("t01_smoke"),
+                limits=CallLimits(
+                    max_call_seconds=240,
+                    max_silence_seconds=20,
+                    max_turns=1,
+                ),
+            )
+            bridge = RealtimeBridge(
+                self.settings(),
+                BridgeState(
+                    stream_sid="MZ123",
+                    scenario=scenario,
+                    events_path=Path(temp_dir) / "events.jsonl",
+                ),
+            )
+            bridge._openai_ws = fake_ws
+            bridge._provided_info_counts["name_spelling"] = 3
+
+            stopped = await bridge._stop_if_transcript_hits_hard_limit(
+                fake_twilio,
+                {"item_id": "agent-1", "transcript": "How can I help you?"},
+            )
+            self.assertFalse(stopped)
+
+            stopped = await bridge._stop_if_transcript_hits_hard_limit(
+                fake_twilio,
+                {"item_id": "agent-2", "transcript": "Can you spell your first name again?"},
+            )
+
+            self.assertFalse(stopped)
+            self.assertFalse(fake_twilio.closed)
+            self.assertEqual(len(fake_ws.sent), 1)
+            self.assertIn(
+                "I think we're stuck, I'll call back later. Goodbye.",
+                fake_ws.sent[0]["response"]["instructions"],
+            )
+            self.assertEqual(fake_ws.sent[0]["response"]["metadata"]["call_end"], "no_progress")
+
+            await bridge._handle_patient_audio_done(fake_twilio, "soft-close")
+            self.assertEqual(
+                fake_twilio.sent[-1],
+                {"event": "mark", "streamSid": "MZ123", "mark": {"name": "audio-soft-close"}},
+            )
+
+            ended = await bridge.handle_twilio_mark(fake_twilio, "audio-soft-close")
+
+            self.assertTrue(ended)
+            self.assertTrue(fake_ws.closed)
+            self.assertTrue(fake_twilio.closed)
+            self.assertNotIn({"event": "clear", "streamSid": "MZ123"}, fake_twilio.sent)
+            events = (Path(temp_dir) / "events.jsonl").read_text(encoding="utf-8")
+            self.assertIn('"reason": "no_progress"', events)
 
     async def test_fact_readback_fragments_do_not_burn_turn_limit(self):
         with tempfile.TemporaryDirectory() as temp_dir:

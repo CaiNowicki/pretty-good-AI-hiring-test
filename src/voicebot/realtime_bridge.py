@@ -121,6 +121,8 @@ POST_FINAL_GOODBYE_SILENCE_SECONDS = 5.0
 INTERRUPTION_RESPONSE_DELAY_SECONDS = 0.25
 EMERGENCY_STOP_DTMF_DIGITS = {"9"}
 MAX_STORED_CONVERSATION_TURNS = 24
+NO_PROGRESS_REPEAT_THRESHOLD = 3
+NO_PROGRESS_CLOSING_LINE = "I think we're stuck, I'll call back later. Goodbye."
 
 
 def build_session_update(settings: Settings, scenario: Scenario) -> dict[str, Any]:
@@ -214,7 +216,12 @@ class RealtimeBridge:
 
         await self._terminate_call(
             twilio_ws,
-            "scenario_goal_met",
+            str(
+                self._pending_polite_end_details.get(
+                    "termination_reason",
+                    "scenario_goal_met",
+                )
+            ),
             self._pending_polite_end_details,
             clear_twilio=False,
         )
@@ -272,25 +279,10 @@ class RealtimeBridge:
                     continue
 
                 if event_type == "response.output_audio.done":
-                    self._bot_audio_in_progress = False
-                    self._finish_patient_response_cooldown()
-                    mark_name = f"audio-{event.get('response_id', 'done')}"
-                    await twilio_ws.send_json(
-                        build_twilio_mark(
-                            self.state.stream_sid,
-                            mark_name,
-                        )
+                    await self._handle_patient_audio_done(
+                        twilio_ws,
+                        str(event.get("response_id", "done")),
                     )
-                    if self._completion_closing_requested and not self._pending_polite_end_mark_name:
-                        self._pending_polite_end_mark_name = mark_name
-                        self._log(
-                            {
-                                "event": "call.polite_end_waiting_for_mark",
-                                "mark": mark_name,
-                                "details": self._pending_polite_end_details,
-                            }
-                        )
-                        self._start_final_goodbye_watchdog(twilio_ws, mark_name)
 
                 if event_type == "response.done" and self._patient_response_in_progress:
                     self._finish_patient_response_cooldown()
@@ -445,6 +437,31 @@ class RealtimeBridge:
         except asyncio.CancelledError:
             raise
 
+    async def _handle_patient_audio_done(
+        self,
+        twilio_ws: WebSocket,
+        response_id: str,
+    ) -> None:
+        self._bot_audio_in_progress = False
+        self._finish_patient_response_cooldown()
+        mark_name = f"audio-{response_id}"
+        await twilio_ws.send_json(
+            build_twilio_mark(
+                self.state.stream_sid,
+                mark_name,
+            )
+        )
+        if self._completion_closing_requested and not self._pending_polite_end_mark_name:
+            self._pending_polite_end_mark_name = mark_name
+            self._log(
+                {
+                    "event": "call.polite_end_waiting_for_mark",
+                    "mark": mark_name,
+                    "details": self._pending_polite_end_details,
+                }
+            )
+            self._start_final_goodbye_watchdog(twilio_ws, mark_name)
+
     async def _stop_if_transcript_hits_hard_limit(
         self,
         twilio_ws: WebSocket,
@@ -499,6 +516,16 @@ class RealtimeBridge:
         if self._agent_turn_count <= self.state.scenario.limits.max_turns:
             return False
 
+        if await self._request_soft_no_progress_close_if_needed(
+            event,
+            "max_turns_approaching",
+            {
+                "turn_count": self._agent_turn_count,
+                "max_turns": self.state.scenario.limits.max_turns,
+            },
+        ):
+            return False
+
         await self._terminate_call(
             twilio_ws,
             "max_turns",
@@ -506,6 +533,57 @@ class RealtimeBridge:
                 "turn_count": self._agent_turn_count,
                 "max_turns": self.state.scenario.limits.max_turns,
             },
+        )
+        return True
+
+    async def _request_soft_no_progress_close_if_needed(
+        self,
+        event: dict[str, Any],
+        reason: str,
+        details: dict[str, Any] | None = None,
+    ) -> bool:
+        transcript = str(event.get("transcript", "")).strip()
+        info_key = self._no_progress_info_key(transcript)
+        if not info_key:
+            return False
+        repeat_count = self._provided_info_counts.get(info_key, 0)
+        if repeat_count < NO_PROGRESS_REPEAT_THRESHOLD:
+            return False
+        turn_key = build_agent_turn_key(event)
+        if turn_key in self._responded_agent_turns:
+            return False
+
+        self._responded_agent_turns.add(turn_key)
+        self._patient_response_in_progress = True
+        self._completion_closing_requested = True
+        self._pending_polite_end_details = {
+            "termination_reason": "no_progress",
+            "reason": reason,
+            "info_key": info_key,
+            "repeat_count": repeat_count,
+            **(details or {}),
+        }
+        self._log(
+            {
+                "event": "patient_response.no_progress_closing",
+                "trigger": transcript,
+                "details": self._pending_polite_end_details,
+            }
+        )
+        await self._send_openai(
+            {
+                "type": "response.create",
+                "response": {
+                    "instructions": (
+                        "Say only this exact polite closing as the patient, then stop "
+                        f"speaking: {NO_PROGRESS_CLOSING_LINE}"
+                    ),
+                    "metadata": {
+                        "call_end": "no_progress",
+                        "completion_reason": reason,
+                    },
+                },
+            }
         )
         return True
 
@@ -820,11 +898,35 @@ class RealtimeBridge:
         info_key = requested_info_key(self.state.scenario, transcript)
         exact_answer = build_exact_fact_answer(self.state.scenario, transcript)
         if info_key and exact_answer:
-            repeat_count = self._provided_info_counts.get(info_key, 0)
+            no_progress_key = self._normalize_no_progress_info_key(info_key)
+            repeat_count = self._provided_info_counts.get(no_progress_key, 0)
+            if repeat_count >= NO_PROGRESS_REPEAT_THRESHOLD:
+                self._completion_closing_requested = True
+                self._pending_polite_end_details = {
+                    "termination_reason": "no_progress",
+                    "reason": "repeated_info_loop",
+                    "info_key": no_progress_key,
+                    "repeat_count": repeat_count,
+                    "turn_count": self._agent_turn_count,
+                    "max_turns": self.state.scenario.limits.max_turns,
+                }
+                return {
+                    "type": "response.create",
+                    "response": {
+                        "instructions": (
+                            "Say only this exact polite closing as the patient, then stop "
+                            f"speaking: {NO_PROGRESS_CLOSING_LINE}"
+                        ),
+                        "metadata": {
+                            "call_end": "no_progress",
+                            "completion_reason": "repeated_info_loop",
+                        },
+                    },
+                }
             answer = exact_answer
             if should_point_out_repeated_info(repeat_count, self._random.random()):
                 answer = self._build_repeated_info_answer(info_key, exact_answer)
-            self._provided_info_counts[info_key] = repeat_count + 1
+            self._provided_info_counts[no_progress_key] = repeat_count + 1
             return {
                 "type": "response.create",
                 "response": {"instructions": f"Say only this exact patient answer: {answer}"},
@@ -843,6 +945,23 @@ class RealtimeBridge:
             template_index = (previous_index + 1 + offset) % template_count
         self._last_repeated_info_template_index[info_key] = template_index
         return build_repeated_info_answer(info_key, exact_answer, template_index)
+
+    def _no_progress_info_key(self, transcript: str) -> str:
+        info_key = requested_info_key(self.state.scenario, transcript)
+        if not info_key:
+            return ""
+        if not build_exact_fact_answer(self.state.scenario, transcript):
+            return ""
+        return self._normalize_no_progress_info_key(info_key)
+
+    def _normalize_no_progress_info_key(self, info_key: str) -> str:
+        if info_key in {
+            "first_name_spelling",
+            "last_name_spelling",
+            "name_spelling",
+        }:
+            return "name_spelling"
+        return info_key
 
     def _prepare_agent_transcript_event(self, event: dict[str, Any]) -> dict[str, Any] | None:
         transcript = str(event.get("transcript", "")).strip()

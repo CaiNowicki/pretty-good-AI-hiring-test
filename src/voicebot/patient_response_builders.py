@@ -71,6 +71,7 @@ REPEATED_INFO_LABELS = {
     "last_name": "my last name",
     "last_name_spelling": "how to spell my last name",
     "name_spelling": "how to spell my name",
+    "patient_date_of_birth": "the patient's date of birth",
     "phone": "my phone number",
     "provider_preference": "my provider preference",
 }
@@ -388,8 +389,12 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     if confirmation_answer:
         return confirmation_answer
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
-        dob = scenario.facts.get("date_of_birth", "").strip()
-        return f"My date of birth is {dob}." if dob else ""
+        dob, subject = _date_of_birth_answer_parts(scenario, normalized)
+        if not dob:
+            return ""
+        if subject:
+            return f"{subject}'s date of birth is {dob}."
+        return f"My date of birth is {dob}."
     if _asks_about_full_name(normalized) and full_name:
         return full_name
     if "first name" in normalized and first_name:
@@ -434,6 +439,8 @@ def requested_info_key(scenario: Scenario | None, transcript: str) -> str:
     if build_fact_confirmation_answer(scenario, transcript, normalized):
         return ""
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
+        if _transcript_asks_for_patient_date_of_birth(scenario, normalized):
+            return "patient_date_of_birth"
         return "date_of_birth"
     if _asks_about_full_name(normalized) or "your name" in normalized:
         return "full_name"
@@ -498,6 +505,44 @@ def _caller_last_name(scenario: Scenario) -> str:
         return last_name
     name_parts = _caller_full_name(scenario).split()
     return name_parts[-1] if len(name_parts) > 1 else ""
+
+
+def _date_of_birth_answer_parts(
+    scenario: Scenario,
+    normalized_transcript: str,
+) -> tuple[str, str]:
+    if _transcript_asks_for_patient_date_of_birth(scenario, normalized_transcript):
+        dob = scenario.facts.get("patient_date_of_birth", "").strip()
+        patient_name = scenario.facts.get("patient_name", "").strip()
+        subject = patient_name.split()[0] if patient_name else "The patient"
+        return dob, subject
+    return scenario.facts.get("date_of_birth", "").strip(), ""
+
+
+def _transcript_asks_for_patient_date_of_birth(
+    scenario: Scenario,
+    normalized_transcript: str,
+) -> bool:
+    patient_dob = scenario.facts.get("patient_date_of_birth", "").strip()
+    if not patient_dob:
+        return False
+
+    if any(
+        phrase in normalized_transcript
+        for phrase in (
+            "patient",
+            "daughter",
+            "son",
+            "child",
+        )
+    ):
+        return True
+
+    patient_name = scenario.facts.get("patient_name", "").strip().casefold()
+    for token in re.findall(r"[a-z]+", patient_name):
+        if token and token in normalized_transcript:
+            return True
+    return False
 
 
 def _scenario_identity_matches_assumed_patient(scenario: Scenario, transcript: str) -> bool:
@@ -594,13 +639,15 @@ def _asks_to_confirm_known_date_of_birth(
     if "?" not in transcript:
         return False
 
-    dob = scenario.facts.get("date_of_birth", "").strip()
-    if not dob:
-        return False
-
-    dob_tokens = re.findall(r"[a-z]+|\d+", dob.casefold())
     transcript_tokens = set(re.findall(r"[a-z]+|\d+", normalized_transcript))
-    return any(token in transcript_tokens for token in dob_tokens)
+    for key in ("date_of_birth", "patient_date_of_birth"):
+        dob = scenario.facts.get(key, "").strip()
+        if not dob:
+            continue
+        dob_tokens = re.findall(r"[a-z]+|\d+", dob.casefold())
+        if any(token in transcript_tokens for token in dob_tokens):
+            return True
+    return False
 
 
 def build_fact_confirmation_answer(
@@ -772,13 +819,15 @@ def _mentions_known_date_of_birth(
     scenario: Scenario,
     normalized_transcript: str,
 ) -> bool:
-    dob = scenario.facts.get("date_of_birth", "").strip()
-    if not dob:
-        return False
-
-    dob_tokens = re.findall(r"[a-z]+|\d+", dob.casefold())
     transcript_tokens = set(re.findall(r"[a-z]+|\d+", normalized_transcript))
-    return bool(dob_tokens) and any(token in transcript_tokens for token in dob_tokens)
+    for key in ("date_of_birth", "patient_date_of_birth"):
+        dob = scenario.facts.get(key, "").strip()
+        if not dob:
+            continue
+        dob_tokens = re.findall(r"[a-z]+|\d+", dob.casefold())
+        if dob_tokens and any(token in transcript_tokens for token in dob_tokens):
+            return True
+    return False
 
 
 def _mentions_phone_readback(
