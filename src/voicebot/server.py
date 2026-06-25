@@ -11,7 +11,7 @@ from urllib.error import URLError
 from urllib.parse import parse_qs
 from urllib.request import Request as UrlRequest, urlopen
 
-from voicebot.artifacts import append_jsonl, utc_now_iso
+from voicebot.artifacts import DEFAULT_ARTIFACTS_ROOT, DEFAULT_CALLS_ROOT, append_jsonl, utc_now_iso
 from voicebot.config import load_settings
 from voicebot.constants import DEFAULT_SCENARIO_ID
 from voicebot.realtime_bridge import EMERGENCY_STOP_DTMF_DIGITS, BridgeState, RealtimeBridge
@@ -56,7 +56,7 @@ def _call_events_path(
         return None
     if not SAFE_CALL_DIR_RE.fullmatch(call_dir_name):
         return None
-    return Path("artifacts") / "calls" / call_type / call_dir_name / "events.jsonl"
+    return DEFAULT_CALLS_ROOT / call_type / call_dir_name / "events.jsonl"
 
 
 def _call_metadata_from_start_event(message: dict) -> dict[str, str]:
@@ -162,7 +162,7 @@ async def twilio_recording(
     recording_status = form.get("RecordingStatus", "")
     events_path = _call_events_path(call_type=call_type, call_dir_name=call_dir_name)
     if events_path is None:
-        events_path = Path("artifacts") / "recording-events.jsonl"
+        events_path = DEFAULT_ARTIFACTS_ROOT / "recording-events.jsonl"
 
     append_jsonl(
         events_path,
@@ -235,7 +235,7 @@ async def twilio_media(websocket: WebSocket) -> None:
     await websocket.accept()
     events_path = websocket.app.state.__dict__.get("events_path")
     if events_path is None:
-        events_path = Path("artifacts/media-events.jsonl")
+        events_path = DEFAULT_ARTIFACTS_ROOT / "media-events.jsonl"
 
     append_jsonl(events_path, {"time": utc_now_iso(), "event": "websocket.accepted"})
     settings = load_settings()

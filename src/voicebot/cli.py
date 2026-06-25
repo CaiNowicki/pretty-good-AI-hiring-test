@@ -13,6 +13,7 @@ from pathlib import Path
 from voicebot.config import DEFAULT_ENV_FILE, load_settings
 from voicebot.config import Settings
 from voicebot.constants import ALLOWED_DESTINATION, DEFAULT_SCENARIO_ID
+from voicebot.artifacts import DEFAULT_CALLS_ROOT
 from voicebot.scenario import build_shuffled_call_set, load_scenario, ordered_scenario_stems
 from voicebot.scenario_call_pipeline import (
     DEFAULT_COMPLETION_TIMEOUT_SECONDS,
@@ -253,7 +254,7 @@ def run_one_scenario(args: argparse.Namespace) -> int:
 
 def call(args: argparse.Namespace) -> int:
     args.mode = ""
-    args.calls_root = "artifacts/calls"
+    args.calls_root = str(DEFAULT_CALLS_ROOT)
     return run_one_scenario(args)
 
 
@@ -393,7 +394,7 @@ def _add_batch_args(
     parser.add_argument("--to", default=ALLOWED_DESTINATION)
     parser.add_argument("--env-file", default=str(DEFAULT_ENV_FILE))
     parser.add_argument("--public-base-url", help="Override PUBLIC_BASE_URL for this run")
-    parser.add_argument("--calls-root", default="artifacts/calls")
+    parser.add_argument("--calls-root", default=str(DEFAULT_CALLS_ROOT))
     parser.add_argument("--yes", action="store_true", help="Skip the typed confirmation")
 
 
@@ -429,7 +430,7 @@ def main(argv: list[str] | None = None) -> int:
     run_parser.add_argument("--to", default=ALLOWED_DESTINATION)
     run_parser.add_argument("--env-file", default=str(DEFAULT_ENV_FILE))
     run_parser.add_argument("--public-base-url", help="Override PUBLIC_BASE_URL for this run")
-    run_parser.add_argument("--calls-root", default="artifacts/calls")
+    run_parser.add_argument("--calls-root", default=str(DEFAULT_CALLS_ROOT))
     run_parser.add_argument("--yes", action="store_true", help="Skip the typed confirmation")
     run_parser.set_defaults(func=run_one_scenario)
 

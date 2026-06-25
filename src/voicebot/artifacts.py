@@ -10,7 +10,8 @@ from typing import Any
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_CALLS_ROOT = PROJECT_ROOT / "artifacts" / "calls"
+DEFAULT_ARTIFACTS_ROOT = PROJECT_ROOT / "artifacts"
+DEFAULT_CALLS_ROOT = DEFAULT_ARTIFACTS_ROOT / "calls"
 SCENARIO_TYPE_BY_PREFIX = {
     "t": "smoke",
     "a": "appointment_scheduling",

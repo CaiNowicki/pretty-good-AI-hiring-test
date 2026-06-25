@@ -1,8 +1,12 @@
+import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
+from voicebot.artifacts import DEFAULT_CALLS_ROOT
 from voicebot.config import Settings
-from voicebot.server import health, twilio_voice
+from voicebot.server import _call_events_path, health, twilio_voice
 
 
 def settings(public_base_url: str) -> Settings:
@@ -60,6 +64,23 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(
             response["media_stream_url"],
             "wss://current-tunnel.example/twilio/media",
+        )
+
+    def test_call_events_path_is_not_relative_to_process_cwd(self):
+        original_cwd = Path.cwd()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            try:
+                os.chdir(temp_dir)
+                path = _call_events_path(
+                    call_type="orthopedic_edge_cases",
+                    call_dir_name="call-006",
+                )
+            finally:
+                os.chdir(original_cwd)
+
+        self.assertEqual(
+            path,
+            DEFAULT_CALLS_ROOT / "orthopedic_edge_cases" / "call-006" / "events.jsonl",
         )
 
 

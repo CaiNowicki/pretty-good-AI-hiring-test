@@ -7,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from voicebot.artifacts import DEFAULT_CALLS_ROOT
 from voicebot.cli import main
 
 
@@ -98,6 +99,21 @@ class CliTests(unittest.TestCase):
                 "https://current-tunnel.example",
             )
             run.assert_called_once()
+
+    def test_call_command_default_artifacts_root_is_project_absolute(self):
+        output = io.StringIO()
+        prepared = SimpleNamespace(
+            call_id="smoke-call-001",
+            call_dir=DEFAULT_CALLS_ROOT / "smoke" / "call-001",
+        )
+
+        with patch("voicebot.cli.run_scenario_call", return_value=prepared) as run_call:
+            with redirect_stdout(output):
+                result = main(["call", "--yes"])
+
+        self.assertEqual(result, 0)
+        self.assertEqual(run_call.call_args.kwargs["calls_root"], DEFAULT_CALLS_ROOT)
+        self.assertIn("Started live scenario call", output.getvalue())
 
     def test_pipeline_live_all_scenarios_starts_limited_twilio_series(self):
         output = io.StringIO()
