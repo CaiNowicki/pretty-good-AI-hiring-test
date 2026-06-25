@@ -155,6 +155,13 @@ To add a small buffer after each completed call before requesting the next one:
 pgai-call scenario-call-pipeline --all-scenarios --live --inter-call-delay-seconds 10
 ```
 
+If a call does not write a completion marker and you want the batch to keep
+moving after the wait timeout:
+
+```powershell
+pgai-call scenario-call-pipeline --all-scenarios --live --completion-timeout-seconds 300 --continue-on-completion-timeout
+```
+
 Use `--no-wait-for-completion` only when you intentionally want parallel live
 calls.
 
@@ -346,6 +353,9 @@ pgai-call scenario-call-pipeline --scenario a01_specific_time --scenario m01_sta
 # Run all scenarios as a live batch (requires typing LIVE ALL).
 # Each next call starts after the previous call completes.
 pgai-call scenario-call-pipeline --all-scenarios --live
+
+# Keep a live batch moving if one call does not report completion.
+pgai-call scenario-call-pipeline --all-scenarios --live --completion-timeout-seconds 300 --continue-on-completion-timeout
 
 # Run one shuffled scenario from a category as a live call (requires typing LIVE).
 pgai-call informational --live

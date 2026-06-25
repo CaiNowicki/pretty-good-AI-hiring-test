@@ -203,6 +203,109 @@ class ScenarioCallPipelineTests(unittest.TestCase):
                 timeout_seconds=900.0,
             )
 
+    def test_run_scenario_call_batch_reports_progress_for_live_calls(self):
+        progress_events = []
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch(
+                "voicebot.scenario_call_pipeline.create_outbound_call",
+                side_effect=[
+                    {"sid": "CA111", "status": "queued", "plan": {}, "settings": {}},
+                    {"sid": "CA222", "status": "queued", "plan": {}, "settings": {}},
+                ],
+            ):
+                with patch("voicebot.scenario_call_pipeline.wait_for_prepared_call_completion"):
+                    def record_progress(event, prepared, index, total):
+                        progress_events.append((event, prepared.call_id, index, total))
+
+                    run_scenario_call_batch(
+                        self.settings(),
+                        ["a01_specific_time", "m01_standard_refill"],
+                        live=True,
+                        calls_root=Path(temp_dir) / "calls",
+                        wait_for_completion=True,
+                        progress_callback=record_progress,
+                    )
+
+        self.assertEqual(
+            [event[0] for event in progress_events],
+            ["started", "waiting", "completed", "started"],
+        )
+        self.assertEqual(progress_events[0][2:], (0, 2))
+        self.assertEqual(progress_events[-1][2:], (1, 2))
+
+    def test_run_scenario_call_batch_records_completion_wait_timeout(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            calls_root = Path(temp_dir) / "calls"
+            with patch(
+                "voicebot.scenario_call_pipeline.create_outbound_call",
+                return_value={"sid": "CA111", "status": "queued", "plan": {}, "settings": {}},
+            ):
+                with patch(
+                    "voicebot.scenario_call_pipeline.wait_for_prepared_call_completion",
+                    side_effect=TimeoutError("waited too long"),
+                ):
+                    with self.assertRaises(TimeoutError):
+                        run_scenario_call_batch(
+                            self.settings(),
+                            ["a01_specific_time", "m01_standard_refill"],
+                            live=True,
+                            calls_root=calls_root,
+                            wait_for_completion=True,
+                        )
+
+            metadata_path = (
+                calls_root / "appointment_scheduling" / "call-001" / "metadata.json"
+            )
+            events_path = (
+                calls_root / "appointment_scheduling" / "call-001" / "events.jsonl"
+            )
+            metadata = json.loads(metadata_path.read_text())
+            events = events_path.read_text()
+        self.assertEqual(metadata["status"], "completion_wait_timeout")
+        self.assertIn("waited too long", metadata["completion_wait_error"])
+        self.assertIn('"boundary": "completion_wait_timeout"', events)
+        self.assertIn('"next_call_blocked": true', events)
+
+    def test_run_scenario_call_batch_can_continue_after_completion_wait_timeout(self):
+        progress_events = []
+        with tempfile.TemporaryDirectory() as temp_dir:
+            calls_root = Path(temp_dir) / "calls"
+            with patch(
+                "voicebot.scenario_call_pipeline.create_outbound_call",
+                side_effect=[
+                    {"sid": "CA111", "status": "queued", "plan": {}, "settings": {}},
+                    {"sid": "CA222", "status": "queued", "plan": {}, "settings": {}},
+                ],
+            ) as create_call:
+                with patch(
+                    "voicebot.scenario_call_pipeline.wait_for_prepared_call_completion",
+                    side_effect=TimeoutError("waited too long"),
+                ):
+                    def record_progress(event, prepared, index, total):
+                        progress_events.append((event, prepared.call_id, index, total))
+
+                    prepared = run_scenario_call_batch(
+                        self.settings(),
+                        ["a01_specific_time", "m01_standard_refill"],
+                        live=True,
+                        calls_root=calls_root,
+                        wait_for_completion=True,
+                        continue_on_completion_timeout=True,
+                        progress_callback=record_progress,
+                    )
+
+            events = (
+                calls_root / "appointment_scheduling" / "call-001" / "events.jsonl"
+            ).read_text()
+
+        self.assertEqual(create_call.call_count, 2)
+        self.assertEqual(
+            [item.runtime_scenario_id for item in prepared],
+            ["a01_specific_time", "m01_standard_refill"],
+        )
+        self.assertIn("timeout", [event[0] for event in progress_events])
+        self.assertIn('"next_call_blocked": false', events)
+
     def test_wait_for_prepared_call_completion_returns_on_boundary_end(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             prepared = prepare_scenario_call(

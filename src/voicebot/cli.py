@@ -324,16 +324,48 @@ def prepare_pipeline(args: argparse.Namespace) -> int:
         return 1
 
     if args.live:
-        prepared = run_scenario_call_batch(
-            settings,
-            scenario_ids,
-            live=True,
-            to_number=args.to,
-            calls_root=Path(args.calls_root),
-            inter_call_delay_seconds=inter_call_delay_seconds,
-            wait_for_completion=wait_for_completion,
-            completion_timeout_seconds=args.completion_timeout_seconds,
-        )
+        def print_batch_progress(event: str, prepared_call, index: int, total: int) -> None:
+            ordinal = f"{index + 1}/{total}"
+            if event == "started":
+                print(
+                    f"Started {ordinal}: {prepared_call.call_id} "
+                    f"[{prepared_call.runtime_scenario_id}]"
+                )
+                print(f"  Artifacts: {prepared_call.call_dir}")
+            elif event == "waiting":
+                print(
+                    "Waiting for completion before starting the next call: "
+                    f"{prepared_call.call_id}"
+                )
+            elif event == "completed":
+                print(f"Completion observed: {prepared_call.call_id}")
+            elif event == "timeout":
+                print(f"Completion wait timed out: {prepared_call.call_id}")
+            elif event == "delay":
+                print(f"Waiting {inter_call_delay_seconds:g} seconds before the next call.")
+
+        try:
+            prepared = run_scenario_call_batch(
+                settings,
+                scenario_ids,
+                live=True,
+                to_number=args.to,
+                calls_root=Path(args.calls_root),
+                inter_call_delay_seconds=inter_call_delay_seconds,
+                wait_for_completion=wait_for_completion,
+                completion_timeout_seconds=args.completion_timeout_seconds,
+                progress_callback=print_batch_progress,
+                continue_on_completion_timeout=args.continue_on_completion_timeout,
+            )
+        except TimeoutError as exc:
+            print("")
+            print(f"Scenario-call pipeline stopped while waiting for completion: {exc}")
+            print(
+                "Use --completion-timeout-seconds to shorten or lengthen the wait, "
+                "--continue-on-completion-timeout to keep going after a timeout, "
+                "or --no-wait-for-completion to request every call without blocking."
+            )
+            return 1
         print("Started scenario-call pipeline through Twilio:")
     else:
         prepared = prepare_scenario_call_batch(
@@ -390,6 +422,11 @@ def _add_batch_args(
         "--no-wait-for-completion",
         action="store_true",
         help="Request live batch calls without waiting for each previous call to complete",
+    )
+    parser.add_argument(
+        "--continue-on-completion-timeout",
+        action="store_true",
+        help="Continue a live batch after a call completion wait times out",
     )
     parser.add_argument("--to", default=ALLOWED_DESTINATION)
     parser.add_argument("--env-file", default=str(DEFAULT_ENV_FILE))

@@ -158,6 +158,8 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(result, 0)
         self.assertEqual(create_call.call_count, 2)
+        self.assertIn("Started 1/2:", output.getvalue())
+        self.assertIn("Started 2/2:", output.getvalue())
         self.assertIn("Started scenario-call pipeline through Twilio", output.getvalue())
 
     def test_pipeline_live_all_scenarios_defaults_to_completion_wait(self):

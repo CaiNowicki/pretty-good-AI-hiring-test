@@ -7,7 +7,7 @@ import shutil
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 from voicebot.artifacts import (
     DEFAULT_CALLS_ROOT,
@@ -30,6 +30,7 @@ from voicebot.twilio_adapter import build_call_plan, create_outbound_call
 
 DEFAULT_COMPLETION_TIMEOUT_SECONDS = 900.0
 DEFAULT_COMPLETION_POLL_SECONDS = 2.0
+BatchProgressCallback = Callable[[str, "PreparedScenarioCall", int, int], None]
 
 
 @dataclass(frozen=True)
@@ -379,6 +380,8 @@ def run_scenario_call_batch(
     completion_timeout_seconds: float = DEFAULT_COMPLETION_TIMEOUT_SECONDS,
     shuffle_fungible: bool = False,
     shuffle_seed: int | str | None = None,
+    progress_callback: BatchProgressCallback | None = None,
+    continue_on_completion_timeout: bool = False,
 ) -> list[PreparedScenarioCall]:
     """Prepare each selected scenario and optionally start Twilio calls in order."""
 
@@ -398,13 +401,46 @@ def run_scenario_call_batch(
             calls_root=calls_root,
         )
         prepared.append(prepared_call)
+        if live and progress_callback is not None:
+            progress_callback("started", prepared_call, index, len(selected))
         if live and index < len(selected) - 1:
             if wait_for_completion:
-                wait_for_prepared_call_completion(
-                    prepared_call,
-                    timeout_seconds=completion_timeout_seconds,
-                )
+                if progress_callback is not None:
+                    progress_callback("waiting", prepared_call, index, len(selected))
+                try:
+                    wait_for_prepared_call_completion(
+                        prepared_call,
+                        timeout_seconds=completion_timeout_seconds,
+                    )
+                except TimeoutError as exc:
+                    update_call_metadata(
+                        prepared_call.call_dir,
+                        {
+                            "status": "completion_wait_timeout",
+                            "completion_wait_error": str(exc),
+                        },
+                    )
+                    append_call_boundary_event(
+                        prepared_call.events_path,
+                        "completion_wait_timeout",
+                        call_id=prepared_call.call_id,
+                        scenario_id=prepared_call.scenario_id,
+                        call_type=prepared_call.call_type,
+                        details={
+                            "timeout_seconds": completion_timeout_seconds,
+                            "next_call_blocked": not continue_on_completion_timeout,
+                        },
+                    )
+                    if progress_callback is not None:
+                        progress_callback("timeout", prepared_call, index, len(selected))
+                    if not continue_on_completion_timeout:
+                        raise
+                else:
+                    if progress_callback is not None:
+                        progress_callback("completed", prepared_call, index, len(selected))
             if inter_call_delay_seconds > 0:
+                if progress_callback is not None:
+                    progress_callback("delay", prepared_call, index, len(selected))
                 time.sleep(inter_call_delay_seconds)
     return prepared
 
