@@ -120,6 +120,14 @@ def twilio_voice(
             media_type="text/plain",
             status_code=500,
         )
+    try:
+        load_scenario(scenario_id)
+    except (ScenarioNotFoundError, ValueError) as exc:
+        return Response(
+            content=str(exc),
+            media_type="text/plain",
+            status_code=404,
+        )
     stream_url = f"{settings.public_ws_base_url.rstrip('/')}/twilio/media"
     scenario = escape(scenario_id, quote=True)
     escaped_call_id = escape(call_id, quote=True)

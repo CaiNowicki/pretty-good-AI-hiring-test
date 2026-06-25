@@ -28,6 +28,23 @@ class ServerTests(unittest.TestCase):
             response.body.decode("utf-8"),
         )
 
+    def test_voice_twiml_accepts_composed_patient_scenario_id(self):
+        with patch("voicebot.server.load_settings", return_value=settings("https://current-tunnel.example")):
+            response = twilio_voice(scenario_id="m01_standard_refill__patient_carmen_reyes")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            'name="scenario_id" value="m01_standard_refill__patient_carmen_reyes"',
+            response.body.decode("utf-8"),
+        )
+
+    def test_voice_twiml_fails_clearly_for_unknown_scenario(self):
+        with patch("voicebot.server.load_settings", return_value=settings("https://current-tunnel.example")):
+            response = twilio_voice(scenario_id="missing_scenario")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("No scenario found", response.body.decode("utf-8"))
+
     def test_voice_twiml_fails_clearly_without_public_base_url(self):
         with patch("voicebot.server.load_settings", return_value=settings("")):
             response = twilio_voice(scenario_id="t01_smoke")
