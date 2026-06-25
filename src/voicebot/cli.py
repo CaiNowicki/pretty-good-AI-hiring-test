@@ -27,8 +27,41 @@ TOP_LEVEL_COMMANDS = {
     "dry-run",
     "call",
     "scenario-call-pipeline",
+    "smoke",
+    "appointment",
+    "appointments",
+    "appointment-scheduling",
+    "scheduling",
+    "medication",
+    "medication-refill",
+    "refill",
+    "informational",
+    "information-gathering",
+    "info",
+    "orthopedic",
+    "orthopedic-edge-cases",
+    "edge-cases",
+    "difficult",
+    "difficult-call-handling",
     "list-scenarios",
     "server",
+}
+
+CATEGORY_COMMANDS = {
+    "smoke": ("t", "smoke scenarios"),
+    "appointments": ("a", "appointment scheduling scenarios"),
+    "medication": ("m", "medication refill scenarios"),
+    "informational": ("i", "informational scenarios"),
+    "orthopedic": ("e", "orthopedic edge-case scenarios"),
+    "difficult": ("d", "difficult-call handling scenarios"),
+}
+
+CATEGORY_ALIASES = {
+    "appointments": ["appointment", "appointment-scheduling", "scheduling"],
+    "medication": ["medication-refill", "refill"],
+    "informational": ["information-gathering", "info"],
+    "orthopedic": ["orthopedic-edge-cases", "edge-cases"],
+    "difficult": ["difficult-call-handling"],
 }
 
 
@@ -45,6 +78,15 @@ def _load_settings(args: argparse.Namespace) -> Settings:
     if public_base_url:
         return replace(settings, public_base_url=public_base_url.strip())
     return settings
+
+
+def _scenario_stems_for_prefix(prefix: str) -> list[str]:
+    normalized = prefix.casefold()
+    return [
+        scenario_id
+        for scenario_id in ordered_scenario_stems()
+        if scenario_id[:1].casefold() == normalized
+    ]
 
 
 def dry_run(args: argparse.Namespace) -> int:
@@ -180,7 +222,10 @@ def call(args: argparse.Namespace) -> int:
 
 def prepare_pipeline(args: argparse.Namespace) -> int:
     settings = _load_settings(args)
-    if args.all_scenarios:
+    category_prefix = getattr(args, "category_prefix", None)
+    if category_prefix:
+        scenario_ids = _scenario_stems_for_prefix(category_prefix)
+    elif args.all_scenarios:
         scenario_ids = ordered_scenario_stems()
     else:
         scenario_ids = args.scenario or [DEFAULT_SCENARIO_ID]
@@ -222,6 +267,36 @@ def prepare_pipeline(args: argparse.Namespace) -> int:
     for item in prepared:
         print(f"  {item.call_id}: {item.call_dir}")
     return 0
+
+
+def _add_batch_args(parser: argparse.ArgumentParser, *, include_selection: bool) -> None:
+    if include_selection:
+        parser.add_argument("--scenario", action="append")
+        parser.add_argument("--all-scenarios", action="store_true")
+    parser.add_argument("--limit", type=int)
+    parser.add_argument("--live", action="store_true", help="Originate Twilio calls")
+    parser.add_argument(
+        "--inter-call-delay-seconds",
+        type=float,
+        default=0.0,
+        help="Extra pause after a live call completes before requesting the next call",
+    )
+    parser.add_argument(
+        "--completion-timeout-seconds",
+        type=float,
+        default=DEFAULT_COMPLETION_TIMEOUT_SECONDS,
+        help="Maximum time to wait for a live call completion event before aborting the batch",
+    )
+    parser.add_argument(
+        "--no-wait-for-completion",
+        action="store_true",
+        help="Request live batch calls without waiting for each previous call to complete",
+    )
+    parser.add_argument("--to", default=ALLOWED_DESTINATION)
+    parser.add_argument("--env-file", default=str(DEFAULT_ENV_FILE))
+    parser.add_argument("--public-base-url", help="Override PUBLIC_BASE_URL for this run")
+    parser.add_argument("--calls-root", default="artifacts/calls")
+    parser.add_argument("--yes", action="store_true", help="Skip the typed confirmation")
 
 
 def list_scenarios(args: argparse.Namespace) -> int:
@@ -273,33 +348,17 @@ def main(argv: list[str] | None = None) -> int:
         "scenario-call-pipeline",
         help="Prepare grouped call artifacts without placing calls",
     )
-    pipeline_parser.add_argument("--scenario", action="append")
-    pipeline_parser.add_argument("--all-scenarios", action="store_true")
-    pipeline_parser.add_argument("--limit", type=int)
-    pipeline_parser.add_argument("--live", action="store_true", help="Originate Twilio calls")
-    pipeline_parser.add_argument(
-        "--inter-call-delay-seconds",
-        type=float,
-        default=0.0,
-        help="Extra pause after a live call completes before requesting the next call",
-    )
-    pipeline_parser.add_argument(
-        "--completion-timeout-seconds",
-        type=float,
-        default=DEFAULT_COMPLETION_TIMEOUT_SECONDS,
-        help="Maximum time to wait for a live call completion event before aborting the batch",
-    )
-    pipeline_parser.add_argument(
-        "--no-wait-for-completion",
-        action="store_true",
-        help="Request live batch calls without waiting for each previous call to complete",
-    )
-    pipeline_parser.add_argument("--to", default=ALLOWED_DESTINATION)
-    pipeline_parser.add_argument("--env-file", default=str(DEFAULT_ENV_FILE))
-    pipeline_parser.add_argument("--public-base-url", help="Override PUBLIC_BASE_URL for this run")
-    pipeline_parser.add_argument("--calls-root", default="artifacts/calls")
-    pipeline_parser.add_argument("--yes", action="store_true", help="Skip the typed confirmation")
+    _add_batch_args(pipeline_parser, include_selection=True)
     pipeline_parser.set_defaults(func=prepare_pipeline)
+
+    for command, (prefix, description) in CATEGORY_COMMANDS.items():
+        category_parser = subparsers.add_parser(
+            command,
+            aliases=CATEGORY_ALIASES.get(command, []),
+            help=f"Batch all {description}",
+        )
+        _add_batch_args(category_parser, include_selection=False)
+        category_parser.set_defaults(func=prepare_pipeline, category_prefix=prefix)
 
     list_parser = subparsers.add_parser("list-scenarios", help="List runnable scenario codes")
     list_parser.set_defaults(func=list_scenarios)

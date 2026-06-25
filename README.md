@@ -164,6 +164,14 @@ To run a subset of scenarios as a live batch:
 pgai-call scenario-call-pipeline --scenario a01_specific_time --scenario m01_standard_refill --live
 ```
 
+Category shortcuts batch a whole scenario family without listing each scenario:
+
+```powershell
+pgai-call informational
+pgai-call appointments --live
+pgai-call medication --live --inter-call-delay-seconds 10
+```
+
 ---
 
 ## Live Call Flow
@@ -320,12 +328,23 @@ pgai-call server --port 8000
 # Prepare artifact scaffolds for all scenarios without calling
 pgai-call scenario-call-pipeline --all-scenarios
 
+# Prepare artifact scaffolds for one scenario category without calling
+pgai-call smoke
+pgai-call informational
+pgai-call appointments
+pgai-call medication
+pgai-call orthopedic
+pgai-call difficult
+
 # Prepare scaffolds for specific scenarios only
 pgai-call scenario-call-pipeline --scenario a01_specific_time --scenario m01_standard_refill
 
 # Run all scenarios as a live batch (requires typing LIVE ALL).
 # Each next call starts after the previous call completes.
 pgai-call scenario-call-pipeline --all-scenarios --live
+
+# Run one scenario category as a live batch (requires typing LIVE ALL).
+pgai-call informational --live
 
 # Optional: add a 10-second buffer after each completed call
 pgai-call scenario-call-pipeline --all-scenarios --live --inter-call-delay-seconds 10

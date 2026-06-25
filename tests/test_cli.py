@@ -186,6 +186,78 @@ class CliTests(unittest.TestCase):
             output.getvalue(),
         )
 
+    def test_informational_command_batches_information_scenarios(self):
+        output = io.StringIO()
+
+        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as env_file:
+            env_path = env_file.name
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                calls_root = Path(temp_dir) / "calls"
+                with redirect_stdout(output):
+                    result = main(
+                        [
+                            "informational",
+                            "--env-file",
+                            env_path,
+                            "--calls-root",
+                            str(calls_root),
+                        ]
+                    )
+
+                self.assertEqual(result, 0)
+                information_calls = sorted((calls_root / "information_gathering").glob("call-*"))
+                self.assertEqual(len(information_calls), 5)
+                self.assertFalse((calls_root / "appointment_scheduling").exists())
+        finally:
+            Path(env_path).unlink(missing_ok=True)
+
+        self.assertIn("Prepared scenario-call pipeline artifacts", output.getvalue())
+
+    def test_category_alias_live_batch_uses_category_scenarios(self):
+        output = io.StringIO()
+
+        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as env_file:
+            env_file.write("TWILIO_ACCOUNT_SID=ACxxx\n")
+            env_file.write("TWILIO_AUTH_TOKEN=secret\n")
+            env_file.write("TWILIO_FROM_NUMBER=+15551234567\n")
+            env_file.write("PUBLIC_BASE_URL=https://current-tunnel.example\n")
+            env_path = env_file.name
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                calls_root = Path(temp_dir) / "calls"
+                with patch(
+                    "voicebot.cli.run_scenario_call_batch",
+                    return_value=[],
+                ) as run_batch:
+                    with redirect_stdout(output):
+                        result = main(
+                            [
+                                "appointment-scheduling",
+                                "--live",
+                                "--limit",
+                                "2",
+                                "--no-wait-for-completion",
+                                "--yes",
+                                "--env-file",
+                                env_path,
+                                "--calls-root",
+                                str(calls_root),
+                            ]
+                        )
+        finally:
+            Path(env_path).unlink(missing_ok=True)
+
+        self.assertEqual(result, 0)
+        self.assertEqual(
+            run_batch.call_args.args[1],
+            ["a01_specific_time", "a02_change_of_mind"],
+        )
+        self.assertFalse(run_batch.call_args.kwargs["wait_for_completion"])
+        self.assertIn("Started scenario-call pipeline through Twilio", output.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()
