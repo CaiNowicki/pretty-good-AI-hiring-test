@@ -79,6 +79,21 @@ The agent should say the office is closed on weekends and offer valid weekday ti
 
 Do not cite manual account setup observations as final evidence. Reproduce any suspected issue in one of the submitted bot calls, then cite the transcript and recording from that call.
 
+## Bug Analysis Readiness
+
+Phase 3 is complete enough to begin bug analysis. Use
+`docs/BUG_ANALYSIS_WORKFLOW.md` as the working triage guide while the remaining
+scenario calls finish.
+
+Current snapshot, taken June 25, 2026:
+
+- 50 call folders have non-empty recording and transcript artifacts.
+- 11 call folders are retry/setup/noise candidates and should not be cited in
+  the final report unless repaired.
+- Prioritize grouped final-call folders over legacy flat calibration folders.
+- Every promoted bug needs a call path, timestamp, short transcript excerpt,
+  expected behavior, actual behavior, severity, and recording verification.
+
 ## Loom Outline
 
 Keep it under five minutes:

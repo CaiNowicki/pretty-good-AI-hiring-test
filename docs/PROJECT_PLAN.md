@@ -147,16 +147,16 @@ Exit criteria:
 - Bot responses vary naturally while preserving the scenario goal.
 - Failed or short calls are marked as retries, not submitted as final evidence.
 
-### Phase 3: Artifact Pipeline
+### Phase 3: Artifact Pipeline - Complete
 
-- For each call, create a unique call directory.
-- Store metadata, raw event log, recording, transcript, bot scenario, and post-call analysis.
-- For every non-zero-length call, preserve both `recording.mp3` or `recording.ogg` and `transcript.txt` in that call directory before marking the call reviewable.
-- Add explicit call-boundary markers to the OpenAI event log, or equivalent per-call flags, so transcript generation can find each call's start and end without inferring boundaries from global event timing.
-- Normalize transcripts into speaker-labeled text: `Patient Bot` and `PGAI Agent`.
-- Keep enough timestamps to cite exact bug locations.
-- Convert/download recordings to `mp3` or `ogg`.
-- After each call completes, clean up stale top-level run logs in `artifacts/`; keep `server-8000.*.log` files while port 8000 is serving the current running call, then remove them once that call finishes.
+- [x] For each call, create a unique call directory.
+- [x] Store metadata, raw event log, recording, transcript, bot scenario, and post-call analysis.
+- [x] For every non-zero-length call, preserve both `recording.mp3` or `recording.ogg` and `transcript.txt` in that call directory before marking the call reviewable.
+- [x] Add explicit call-boundary markers to the OpenAI event log, or equivalent per-call flags, so transcript generation can find each call's start and end without inferring boundaries from global event timing.
+- [x] Normalize transcripts into speaker-labeled text: `Patient Bot` and `PGAI Agent`.
+- [x] Keep enough timestamps to cite exact bug locations.
+- [x] Convert/download recordings to `mp3` or `ogg`.
+- [x] After each call completes, clean up stale top-level run logs in `artifacts/`; keep `server-8000.*.log` files while port 8000 is serving the current running call, then remove them once that call finishes.
 
 Suggested layout:
 
@@ -190,12 +190,35 @@ New Phase 3 call artifacts are grouped by scenario type before the individual
 call directory. Existing flat `artifacts/calls/call-###/` calibration folders
 remain historical evidence and do not need to be moved.
 
-### Phase 4: Bug Analysis
+Phase 3 completion notes, as of June 25, 2026:
 
-- Run an automated first pass that identifies policy, factual, flow, and voice-quality issues.
-- Manually review every submitted call before writing final bug reports.
-- Prefer fewer stronger bugs over many weak observations.
-- Cite each bug with call id, timestamp, transcript excerpt, expected behavior, actual behavior, and severity.
+- The artifact pipeline is producing grouped call folders with `metadata.json`,
+  `scenario.yaml`, `events.jsonl`, `recording.mp3`, and `transcript.txt`.
+- Current artifact inventory has 50 reviewable call folders and 11 retry or
+  setup folders that should not be cited unless repaired with non-empty
+  transcripts and recordings.
+- Reviewable snapshot by category: 24 appointment scheduling, 8 information
+  gathering, 2 medication refill, 1 orthopedic edge case, 2 smoke, and 13
+  historical flat calibration calls.
+- Bug analysis should use the grouped final-call artifacts first; legacy flat
+  calls remain useful for product/engineering calibration but are lower-value
+  final report evidence.
+
+### Phase 4: Bug Analysis - Ready
+
+- [ ] Run an automated first pass that identifies policy, factual, flow, and voice-quality issues.
+- [ ] Manually review every submitted call before writing final bug reports.
+- [ ] Separate reviewable final calls from failed setup/retry attempts before citing evidence.
+- [ ] Promote only recurrent or high-impact candidate bugs into `artifacts/bug-report.md`.
+- [ ] Prefer fewer stronger bugs over many weak observations.
+- [ ] Cite each bug with call id, timestamp, transcript excerpt, expected behavior, actual behavior, and severity.
+- [ ] Cross-check each promoted issue against the recording so transcript artifacts do not create false positives.
+- [ ] Preserve a short rejected-candidate list so the Loom/debugging narrative can show judgment and iteration.
+
+Bug analysis operating doc:
+
+- Use `docs/BUG_ANALYSIS_WORKFLOW.md` for the triage queue, review rubric, and
+  evidence template while scenario calls are still being run.
 
 Severity guide:
 

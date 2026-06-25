@@ -3,6 +3,23 @@
 These are working notes for recurrent scheduler-agent issues observed in smoke
 calls. Promote only cleaner, well-evidenced items into the final bug report.
 
+## Bug Analysis Queue
+
+Status: Ready for transcript and recording review as final scenario calls finish.
+
+Use `docs/BUG_ANALYSIS_WORKFLOW.md` for the review order, scoring rubric,
+first-pass tags, and promotion rules.
+
+Current intake rules:
+
+- Review grouped final-call artifacts before legacy calibration calls.
+- Do not promote calls with missing recordings, empty transcripts, or obvious
+  harness interference.
+- Promote fewer, stronger issues with timestamped evidence and recording
+  verification.
+- Keep rejected candidates in notes when they explain why an issue was not
+  strong enough for the final report.
+
 ## CB-IDENTITY-01: Agent Assumes Or Mentions Patient Name Before Collecting It
 
 Severity: Medium
