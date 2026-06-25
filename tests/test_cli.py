@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from voicebot.cli import main
@@ -216,7 +217,54 @@ class CliTests(unittest.TestCase):
         finally:
             Path(env_path).unlink(missing_ok=True)
 
-        self.assertIn("Prepared scenario-call pipeline artifacts", output.getvalue())
+        self.assertIn("Prepared scenario call artifact", output.getvalue())
+
+    def test_category_live_without_batch_runs_one_scenario_call(self):
+        output = io.StringIO()
+
+        with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as env_file:
+            env_file.write("TWILIO_ACCOUNT_SID=ACxxx\n")
+            env_file.write("TWILIO_AUTH_TOKEN=secret\n")
+            env_file.write("TWILIO_FROM_NUMBER=+15551234567\n")
+            env_file.write("PUBLIC_BASE_URL=https://current-tunnel.example\n")
+            env_path = env_file.name
+
+        prepared = SimpleNamespace(
+            call_id="information_gathering-call-001",
+            call_dir=Path("artifacts/calls/information_gathering/call-001"),
+            runtime_scenario_id="i01_office_hours__patient_maya_patel",
+        )
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                calls_root = Path(temp_dir) / "calls"
+                with patch("voicebot.cli.run_scenario_call", return_value=prepared) as run_call:
+                    with patch("builtins.input", return_value="LIVE") as input_mock:
+                        with redirect_stdout(output):
+                            result = main(
+                                [
+                                    "informational",
+                                    "--live",
+                                    "--shuffle-seed",
+                                    "unit-test",
+                                    "--env-file",
+                                    env_path,
+                                    "--calls-root",
+                                    str(calls_root),
+                                ]
+                            )
+        finally:
+            Path(env_path).unlink(missing_ok=True)
+
+        self.assertEqual(result, 0)
+        run_call.assert_called_once()
+        self.assertEqual(len(run_call.call_args.args), 2)
+        self.assertEqual(run_call.call_args.args[0].twilio_account_sid, "ACxxx")
+        self.assertTrue(run_call.call_args.args[1].startswith("i"))
+        self.assertTrue(run_call.call_args.args[1].find("__patient_") > 0)
+        self.assertTrue(run_call.call_args.kwargs["live"])
+        input_mock.assert_called_once_with("Type LIVE to continue: ")
+        self.assertIn("Started live scenario call", output.getvalue())
 
     def test_category_batch_runs_one_shuffled_call_per_scenario(self):
         output = io.StringIO()

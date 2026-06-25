@@ -164,12 +164,13 @@ To run a subset of scenarios as a live batch:
 pgai-call scenario-call-pipeline --scenario a01_specific_time --scenario m01_standard_refill --live
 ```
 
-Category shortcuts batch a whole scenario family without listing each scenario:
+Category shortcuts run one shuffled scenario from a scenario family by default.
+Add `--batch` to run every scenario in that category:
 
 ```powershell
-pgai-call informational
-pgai-call appointments --live
-pgai-call medication --live --inter-call-delay-seconds 10
+pgai-call informational --live
+pgai-call informational --live --batch
+pgai-call medication --live --batch --inter-call-delay-seconds 10
 ```
 
 ---
@@ -328,13 +329,16 @@ pgai-call server --port 8000
 # Prepare artifact scaffolds for all scenarios without calling
 pgai-call scenario-call-pipeline --all-scenarios
 
-# Prepare artifact scaffolds for one scenario category without calling
+# Prepare one shuffled artifact scaffold from a scenario category without calling
 pgai-call smoke
 pgai-call informational
 pgai-call appointments
 pgai-call medication
 pgai-call orthopedic
 pgai-call difficult
+
+# Prepare artifact scaffolds for every scenario in one category
+pgai-call informational --batch
 
 # Prepare scaffolds for specific scenarios only
 pgai-call scenario-call-pipeline --scenario a01_specific_time --scenario m01_standard_refill
@@ -343,8 +347,11 @@ pgai-call scenario-call-pipeline --scenario a01_specific_time --scenario m01_sta
 # Each next call starts after the previous call completes.
 pgai-call scenario-call-pipeline --all-scenarios --live
 
-# Run one scenario category as a live batch (requires typing LIVE ALL).
+# Run one shuffled scenario from a category as a live call (requires typing LIVE).
 pgai-call informational --live
+
+# Run every scenario in one category as a live batch (requires typing LIVE ALL).
+pgai-call informational --live --batch
 
 # Optional: add a 10-second buffer after each completed call
 pgai-call scenario-call-pipeline --all-scenarios --live --inter-call-delay-seconds 10

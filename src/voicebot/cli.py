@@ -176,6 +176,29 @@ def _confirm_pipeline_user_understands(
     return True
 
 
+def _confirm_single_live_user_understands(
+    args: argparse.Namespace,
+    scenario_id: str,
+) -> bool:
+    if args.yes:
+        return True
+
+    scenario = load_scenario(scenario_id)
+    print("")
+    print(f"Scenario: {scenario_id} ({scenario.id})")
+    print(f"Patient profile: {scenario.patient_profile}")
+    print(f"Goal: {' '.join(scenario.goal.split())}")
+    print("")
+    print(f"LIVE CALL: this will call {args.to} through Twilio.")
+    print("The local webhook server and PUBLIC_BASE_URL tunnel must already be reachable.")
+
+    answer = input("Type LIVE to continue: ").strip()
+    if answer != "LIVE":
+        print("Aborted.")
+        return False
+    return True
+
+
 def _path_is_inside(child: Path, parent: Path) -> bool:
     try:
         child.resolve().relative_to(parent.resolve())
@@ -238,11 +261,12 @@ def prepare_pipeline(args: argparse.Namespace) -> int:
     settings = _load_settings(args)
     category_prefixes = getattr(args, "category_prefixes", None)
     category_mode = category_prefixes is not None
+    single_category_call = category_mode and not args.batch
     if category_mode:
         scenario_ids = _scenario_stems_for_prefixes(category_prefixes)
         if args.limit is not None:
             scenario_ids = scenario_ids[: args.limit]
-        if not args.batch:
+        if single_category_call:
             scenario_ids = _choose_random_scenario(scenario_ids, args.shuffle_seed)
         scenario_ids = build_shuffled_call_set(scenario_ids, seed=args.shuffle_seed)
     elif args.all_scenarios:
@@ -260,6 +284,34 @@ def prepare_pipeline(args: argparse.Namespace) -> int:
 
     wait_for_completion = args.live and not args.no_wait_for_completion
     inter_call_delay_seconds = args.inter_call_delay_seconds
+
+    if single_category_call:
+        if not scenario_ids:
+            print("No scenarios matched this category.")
+            return 1
+        scenario_id = scenario_ids[0]
+        if args.live and not _confirm_single_live_user_understands(args, scenario_id):
+            return 1
+
+        prepared_call = run_scenario_call(
+            settings,
+            scenario_id,
+            live=args.live,
+            to_number=args.to,
+            calls_root=Path(args.calls_root),
+        )
+        if args.live:
+            print(f"Started live scenario call: {prepared_call.call_id}")
+            print(f"Artifacts: {prepared_call.call_dir}")
+            print(f"Runtime scenario: {prepared_call.runtime_scenario_id}")
+            print("Recording and transcript artifacts will be written by the webhook callbacks.")
+        else:
+            print("Prepared scenario call artifact without placing a live call:")
+            print(
+                f"  {prepared_call.call_id}: "
+                f"{prepared_call.call_dir} [{prepared_call.runtime_scenario_id}]"
+            )
+        return 0
 
     if not _confirm_pipeline_user_understands(
         args,
