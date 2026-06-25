@@ -1,0 +1,28 @@
+id: carmen_reyes
+preferred_name: Carmen
+legal_name: Carmen Reyes
+date_of_birth: "1993-02-28"
+phone: "7745550467"
+insurance: Harvard Pilgrim
+pharmacy: CVS
+reason_for_visit: Refill request for blood pressure medication
+temperament: >
+  Organized and efficient under normal circumstances, but today she is tired
+  from caregiving. She occasionally confuses her own information with her
+  mother's, most notably giving her mother's date of birth instead of her own
+  before catching herself and correcting it. She apologizes for the mix-up. She
+  is not sure of the exact name of her blood pressure medication and describes
+  it by appearance and purpose instead.
+characteristic_phrases:
+  - Wait, no, sorry, that's my mom's birthday.
+  - The little white blood pressure pill.
+  - Starts with an L, I think?
+voice_profile:
+  pace: efficient at first, then tired and slightly distracted
+  tone: organized, apologetic, caregiving fatigue
+  filler_words: wait, no, sorry
+notes: >
+  Established patient, age 32. Known medication is lisinopril 10mg, which she
+  refers to as the blood pressure one or the little white pill. She is a
+  caregiver for her mother, who is also a patient and whose date of birth is
+  1958-07-15.

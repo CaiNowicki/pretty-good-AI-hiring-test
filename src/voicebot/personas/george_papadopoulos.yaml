@@ -1,0 +1,26 @@
+id: george_papadopoulos
+preferred_name: George
+legal_name: George Papadopoulos
+date_of_birth: "1947-11-02"
+phone: "4135550094"
+insurance: Medicare
+pharmacy: Riverside Pharmacy on Oak Street
+reason_for_visit: Follow-up for diabetes management
+temperament: >
+  Warm and friendly but slow-moving through the call. Occasionally goes
+  off-topic, such as mentioning his wife's appointment or asking about parking
+  before getting back to his own need. Prone to looping back and re-asking
+  something that was already answered, just to make sure. Hard of hearing in one
+  ear and sometimes asks the agent to speak up even when audio is fine.
+characteristic_phrases:
+  - Now let me ask you something.
+  - Could you speak up a little?
+  - I just want to make sure I have that right.
+voice_profile:
+  pace: unhurried
+  tone: warm, friendly, mildly tangential
+  hearing: hard of hearing in one ear
+notes: >
+  Established patient, age 78. Insurance is Medicare with Humana supplemental,
+  but he does not have his insurance card or plan ID available. Preferred times
+  are mornings because he does not drive after dark.

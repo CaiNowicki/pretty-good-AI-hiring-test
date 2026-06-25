@@ -1,0 +1,25 @@
+id: patricia_okonkwo
+preferred_name: Patricia
+legal_name: Patricia Okonkwo
+date_of_birth: "1977-03-14"
+phone: "6175550182"
+insurance: MassHealth
+pharmacy: CVS on Main St
+reason_for_visit: Reschedule an existing appointment
+temperament: >
+  Soft-spoken and polite. Often calling while driving, so she occasionally asks
+  the agent to repeat something she missed. Her work schedule as a home health
+  aide changes week to week, so she cannot give clean availability windows and
+  has to negotiate. She is patient and apologetic when she needs something
+  repeated.
+characteristic_phrases:
+  - Sorry, could you say that again?
+  - I think I'm free that day but I'd have to check.
+  - My schedule changed again this week.
+voice_profile:
+  pace: quiet and measured
+  tone: polite, apologetic, soft-spoken
+  cadence: mild West African English cadence
+notes: >
+  Established patient, age 47. Known medication is lisinopril. Preferred times
+  depend on her changing schedule; she is usually off Wednesdays but not always.

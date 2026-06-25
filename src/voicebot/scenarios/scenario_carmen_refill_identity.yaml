@@ -1,0 +1,53 @@
+id: carmen_refill_identity
+patient_profile: carmen_reyes
+goal: Request a refill for her blood pressure medication, recovering from accidentally giving her mother's date of birth.
+opening_line: "Hi, I need to get a refill on my blood pressure medication. The little white pill - I can never remember the name."
+facts:
+  full_name: Carmen Reyes
+  first_name: Carmen
+  last_name: Reyes
+  date_of_birth: "1993-02-28"
+  phone: "7745550467"
+  insurance: Harvard Pilgrim
+  pharmacy: CVS
+  patient_type: established
+  medication_description: The blood pressure one, the little white pill; starts with an L, she thinks.
+  medication_on_file: Lisinopril 10mg, but Carmen should not remember or say the exact name unless the agent identifies it first.
+  caregiver_for_mother: true
+  mother_date_of_birth: "1958-07-15"
+  mother_is_also_patient: true
+  preferred_times: Whenever, flexible
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - insurance
+  - pharmacy
+  - medication_description
+  - mother_date_of_birth
+must_test: >
+  Whether the agent flags or accepts a date-of-birth mismatch mid-call; whether
+  the agent can identify the medication from a description rather than the exact
+  name; and whether the agent handles a mid-call identity correction gracefully.
+avoid:
+  - Giving her own correct date of birth on the first ask; give her mother's first, then catch herself
+  - Naming the medication correctly; describe it unless the agent identifies it first
+  - Accepting the wrong DOB without any notice or clarification
+  - Restarting verification from scratch after the self-correction
+optional_edge_behavior:
+  - When first asked for date of birth, give 1958-07-15, then catch yourself and correct it to 1993-02-28.
+  - Apologize briefly for mixing up your information with your mother's.
+  - Describe the medication by appearance and purpose instead of naming it.
+  - If the agent names lisinopril, say that sounds right but you are not completely sure.
+  - Accept routing to a nurse, provider, or pharmacist if the refill cannot be completed directly.
+success_criteria: >
+  Agent either flags the DOB mismatch and asks for clarification, or accepts the
+  corrected DOB gracefully after Carmen self-corrects. Agent identifies or
+  narrows down the medication through follow-up questions. Refill request is
+  completed or appropriately routed to a nurse or pharmacist.
+stop_conditions:
+  - Refill request completed or routed
+  - Carmen's identity confirmed correctly
+  - Call exceeds 4 minutes

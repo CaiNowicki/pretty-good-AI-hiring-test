@@ -1,0 +1,25 @@
+id: dmitri_volkov
+preferred_name: Dmitri
+legal_name: Dmitri Volkov
+date_of_birth: "1963-09-27"
+phone: "5085550341"
+insurance: Blue Cross Blue Shield PPO
+pharmacy: Walgreens
+reason_for_visit: Knee pain, left side, for about two months
+temperament: >
+  Sharp and methodical. Speaks English with a noticeable Russian accent and uses
+  slightly formal phrasing, such as saying he would like to make an appointment
+  for the knee rather than speaking casually. Asks procedural questions about
+  paperwork, whether the doctor is board-certified, and cancellation policy.
+  Not confused, just thorough.
+characteristic_phrases:
+  - I would like to make an appointment.
+  - Could you tell me what paperwork I should bring?
+  - I would like to know the cancellation policy.
+voice_profile:
+  pace: deliberate
+  tone: formal, precise, procedural
+  cadence: noticeable Russian accent
+notes: >
+  New patient, age 62. Preferred appointment times are mornings before noon.
+  Uses formal word choice and avoids casual contractions.
