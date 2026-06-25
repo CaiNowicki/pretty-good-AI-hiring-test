@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import contextlib
 import re
 from html import escape
 from pathlib import Path
@@ -92,8 +93,17 @@ def _download_recording(settings, recording_url: str, recording_path: Path) -> N
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "time": utc_now_iso()}
+def health() -> dict[str, str | bool]:
+    settings = load_settings()
+    stream_url = ""
+    if settings.public_base_url:
+        stream_url = f"{settings.public_ws_base_url.rstrip('/')}/twilio/media"
+    return {
+        "status": "ok",
+        "time": utc_now_iso(),
+        "public_base_url_configured": bool(settings.public_base_url),
+        "media_stream_url": stream_url,
+    }
 
 
 @app.api_route("/twilio/voice", methods=["GET", "POST"])
@@ -104,6 +114,12 @@ def twilio_voice(
     call_dir_name: str = "",
 ) -> Response:
     settings = load_settings()
+    if not settings.public_base_url:
+        return Response(
+            content="Missing PUBLIC_BASE_URL; cannot build Twilio Media Stream URL.",
+            media_type="text/plain",
+            status_code=500,
+        )
     stream_url = f"{settings.public_ws_base_url.rstrip('/')}/twilio/media"
     scenario = escape(scenario_id, quote=True)
     escaped_call_id = escape(call_id, quote=True)
@@ -268,7 +284,22 @@ async def twilio_media(websocket: WebSocket) -> None:
                         call_type=call_metadata["call_type"],
                     ),
                 )
-                await bridge.start(websocket)
+                try:
+                    await bridge.start(websocket)
+                except Exception as exc:
+                    append_jsonl(
+                        events_path,
+                        {
+                            "time": utc_now_iso(),
+                            "event": "realtime.start_failed",
+                            "error": str(exc),
+                        },
+                    )
+                    await bridge.close()
+                    bridge = None
+                    with contextlib.suppress(Exception):
+                        await websocket.close(code=1011)
+                    break
                 continue
 
             if event_type == "media":

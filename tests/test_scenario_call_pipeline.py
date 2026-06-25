@@ -12,6 +12,7 @@ from voicebot.scenario_call_pipeline import (
     prepare_scenario_call_batch,
     run_scenario_call_batch,
     run_scenario_call,
+    wait_for_prepared_call_completion,
     write_transcript_from_events,
 )
 
@@ -150,6 +151,53 @@ class ScenarioCallPipelineTests(unittest.TestCase):
             self.assertEqual(create_call.call_count, 2)
             self.assertEqual(create_call.call_args_list[0].args[2], "a01_specific_time")
             self.assertEqual(create_call.call_args_list[1].args[2], "m01_standard_refill")
+
+    def test_run_scenario_call_batch_can_wait_for_completion_between_live_calls(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch(
+                "voicebot.scenario_call_pipeline.create_outbound_call",
+                side_effect=[
+                    {"sid": "CA111", "status": "queued", "plan": {}, "settings": {}},
+                    {"sid": "CA222", "status": "queued", "plan": {}, "settings": {}},
+                ],
+            ):
+                with patch(
+                    "voicebot.scenario_call_pipeline.wait_for_prepared_call_completion",
+                ) as wait_for_completion:
+                    prepared = run_scenario_call_batch(
+                        self.settings(),
+                        ["a01_specific_time", "m01_standard_refill"],
+                        live=True,
+                        calls_root=Path(temp_dir) / "calls",
+                        wait_for_completion=True,
+                    )
+
+            wait_for_completion.assert_called_once_with(
+                prepared[0],
+                timeout_seconds=900.0,
+            )
+
+    def test_wait_for_prepared_call_completion_returns_on_boundary_end(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            prepared = prepare_scenario_call(
+                self.settings(),
+                "a01_specific_time",
+                calls_root=Path(temp_dir) / "calls",
+            )
+            append_jsonl(
+                prepared.events_path,
+                {
+                    "event": "call.boundary",
+                    "boundary": "end",
+                    "call_id": prepared.call_id,
+                },
+            )
+
+            wait_for_prepared_call_completion(
+                prepared,
+                timeout_seconds=0.1,
+                poll_seconds=0.01,
+            )
 
     def test_write_transcript_from_events_creates_speaker_labeled_transcript(self):
         with tempfile.TemporaryDirectory() as temp_dir:

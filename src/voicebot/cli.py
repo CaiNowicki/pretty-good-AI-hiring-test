@@ -9,11 +9,12 @@ import sys
 from dataclasses import replace
 from pathlib import Path
 
-from voicebot.config import load_settings
+from voicebot.config import DEFAULT_ENV_FILE, load_settings
 from voicebot.config import Settings
 from voicebot.constants import ALLOWED_DESTINATION, DEFAULT_SCENARIO_ID
 from voicebot.scenario import load_scenario, ordered_scenario_stems
 from voicebot.scenario_call_pipeline import (
+    DEFAULT_COMPLETION_TIMEOUT_SECONDS,
     prepare_scenario_call_batch,
     run_scenario_call_batch,
     run_scenario_call,
@@ -34,7 +35,7 @@ TOP_LEVEL_COMMANDS = {
 def _add_common_call_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--scenario", default=DEFAULT_SCENARIO_ID)
     parser.add_argument("--to", default=ALLOWED_DESTINATION)
-    parser.add_argument("--env-file", default=".env")
+    parser.add_argument("--env-file", default=str(DEFAULT_ENV_FILE))
     parser.add_argument("--public-base-url", help="Override PUBLIC_BASE_URL for this run")
 
 
@@ -92,6 +93,8 @@ def _confirm_pipeline_user_understands(
     scenario_ids: list[str],
     *,
     live: bool,
+    inter_call_delay_seconds: float = 0.0,
+    wait_for_completion: bool = True,
 ) -> bool:
     if args.yes:
         return True
@@ -101,6 +104,10 @@ def _confirm_pipeline_user_understands(
     print("")
     print(f"LIVE BATCH: this will start {len(scenario_ids)} Twilio calls to {args.to}.")
     print("The local webhook server and PUBLIC_BASE_URL tunnel must already be reachable.")
+    if wait_for_completion and len(scenario_ids) > 1:
+        print("Each next call will start after the previous call completes.")
+    if inter_call_delay_seconds > 0:
+        print(f"Calls will also wait {inter_call_delay_seconds:g} seconds after completion.")
     print("Calls are requested one scenario at a time in the order shown below:")
     for scenario_id in scenario_ids:
         scenario = load_scenario(scenario_id)
@@ -180,7 +187,16 @@ def prepare_pipeline(args: argparse.Namespace) -> int:
     if args.limit is not None:
         scenario_ids = scenario_ids[: args.limit]
 
-    if not _confirm_pipeline_user_understands(args, scenario_ids, live=args.live):
+    wait_for_completion = args.live and not args.no_wait_for_completion
+    inter_call_delay_seconds = args.inter_call_delay_seconds
+
+    if not _confirm_pipeline_user_understands(
+        args,
+        scenario_ids,
+        live=args.live,
+        inter_call_delay_seconds=inter_call_delay_seconds,
+        wait_for_completion=wait_for_completion,
+    ):
         return 1
 
     if args.live:
@@ -190,7 +206,9 @@ def prepare_pipeline(args: argparse.Namespace) -> int:
             live=True,
             to_number=args.to,
             calls_root=Path(args.calls_root),
-            inter_call_delay_seconds=args.inter_call_delay_seconds,
+            inter_call_delay_seconds=inter_call_delay_seconds,
+            wait_for_completion=wait_for_completion,
+            completion_timeout_seconds=args.completion_timeout_seconds,
         )
         print("Started scenario-call pipeline through Twilio:")
     else:
@@ -236,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Use 'dev' to avoid placing a live call",
     )
     run_parser.add_argument("--to", default=ALLOWED_DESTINATION)
-    run_parser.add_argument("--env-file", default=".env")
+    run_parser.add_argument("--env-file", default=str(DEFAULT_ENV_FILE))
     run_parser.add_argument("--public-base-url", help="Override PUBLIC_BASE_URL for this run")
     run_parser.add_argument("--calls-root", default="artifacts/calls")
     run_parser.add_argument("--yes", action="store_true", help="Skip the typed confirmation")
@@ -263,10 +281,21 @@ def main(argv: list[str] | None = None) -> int:
         "--inter-call-delay-seconds",
         type=float,
         default=0.0,
-        help="Pause between live call requests",
+        help="Extra pause after a live call completes before requesting the next call",
+    )
+    pipeline_parser.add_argument(
+        "--completion-timeout-seconds",
+        type=float,
+        default=DEFAULT_COMPLETION_TIMEOUT_SECONDS,
+        help="Maximum time to wait for a live call completion event before aborting the batch",
+    )
+    pipeline_parser.add_argument(
+        "--no-wait-for-completion",
+        action="store_true",
+        help="Request live batch calls without waiting for each previous call to complete",
     )
     pipeline_parser.add_argument("--to", default=ALLOWED_DESTINATION)
-    pipeline_parser.add_argument("--env-file", default=".env")
+    pipeline_parser.add_argument("--env-file", default=str(DEFAULT_ENV_FILE))
     pipeline_parser.add_argument("--public-base-url", help="Override PUBLIC_BASE_URL for this run")
     pipeline_parser.add_argument("--calls-root", default="artifacts/calls")
     pipeline_parser.add_argument("--yes", action="store_true", help="Skip the typed confirmation")

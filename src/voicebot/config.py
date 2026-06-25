@@ -9,6 +9,10 @@ from pathlib import Path
 from voicebot.constants import ALLOWED_DESTINATION
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_ENV_FILE = PROJECT_ROOT / ".env"
+
+
 def _read_dotenv(path: Path) -> dict[str, str]:
     if not path.exists():
         return {}
@@ -24,7 +28,10 @@ def _read_dotenv(path: Path) -> dict[str, str]:
 
 
 def _env(name: str, dotenv: dict[str, str], default: str = "") -> str:
-    return os.environ.get(name, dotenv.get(name, default)).strip()
+    value = os.environ.get(name)
+    if value is not None and value.strip():
+        return value.strip()
+    return dotenv.get(name, default).strip()
 
 
 @dataclass(frozen=True)
@@ -57,7 +64,7 @@ class Settings:
         return [name for name, value in required.items() if not value]
 
 
-def load_settings(env_file: str | Path = ".env") -> Settings:
+def load_settings(env_file: str | Path = DEFAULT_ENV_FILE) -> Settings:
     dotenv = _read_dotenv(Path(env_file))
     return Settings(
         twilio_account_sid=_env("TWILIO_ACCOUNT_SID", dotenv),
@@ -68,4 +75,3 @@ def load_settings(env_file: str | Path = ".env") -> Settings:
         realtime_model=_env("REALTIME_MODEL", dotenv, "gpt-realtime-2"),
         transcription_model=_env("TRANSCRIPTION_MODEL", dotenv, "gpt-4o-transcribe"),
     )
-

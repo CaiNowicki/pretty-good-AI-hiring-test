@@ -23,6 +23,10 @@ from voicebot.scenario import load_scenario, ordered_scenario_stems, scenario_pa
 from voicebot.twilio_adapter import build_call_plan, create_outbound_call
 
 
+DEFAULT_COMPLETION_TIMEOUT_SECONDS = 900.0
+DEFAULT_COMPLETION_POLL_SECONDS = 2.0
+
+
 @dataclass(frozen=True)
 class PreparedScenarioCall:
     call_id: str
@@ -294,6 +298,40 @@ def start_prepared_scenario_call(
     return result
 
 
+def _event_marks_call_completion(event: dict[str, Any]) -> bool:
+    if event.get("event") == "twilio.recording_callback":
+        return True
+    return event.get("event") == "call.boundary" and event.get("boundary") == "end"
+
+
+def wait_for_prepared_call_completion(
+    prepared: PreparedScenarioCall,
+    *,
+    timeout_seconds: float = DEFAULT_COMPLETION_TIMEOUT_SECONDS,
+    poll_seconds: float = DEFAULT_COMPLETION_POLL_SECONDS,
+) -> None:
+    """Block until the webhook server records that a live call has completed."""
+
+    deadline = time.monotonic() + timeout_seconds
+    while True:
+        if prepared.events_path.exists():
+            for raw_line in prepared.events_path.read_text(encoding="utf-8").splitlines():
+                if not raw_line.strip():
+                    continue
+                try:
+                    event = json.loads(raw_line)
+                except json.JSONDecodeError:
+                    continue
+                if _event_marks_call_completion(event):
+                    return
+
+        if time.monotonic() >= deadline:
+            raise TimeoutError(
+                f"Timed out waiting for live call completion: {prepared.call_id}"
+            )
+        time.sleep(poll_seconds)
+
+
 def run_scenario_call(
     settings: Settings,
     scenario_id: str,
@@ -324,6 +362,8 @@ def run_scenario_call_batch(
     calls_root: Path = DEFAULT_CALLS_ROOT,
     limit: int | None = None,
     inter_call_delay_seconds: float = 0.0,
+    wait_for_completion: bool = False,
+    completion_timeout_seconds: float = DEFAULT_COMPLETION_TIMEOUT_SECONDS,
 ) -> list[PreparedScenarioCall]:
     """Prepare each selected scenario and optionally start Twilio calls in order."""
 
@@ -341,8 +381,14 @@ def run_scenario_call_batch(
             calls_root=calls_root,
         )
         prepared.append(prepared_call)
-        if live and inter_call_delay_seconds > 0 and index < len(selected) - 1:
-            time.sleep(inter_call_delay_seconds)
+        if live and index < len(selected) - 1:
+            if wait_for_completion:
+                wait_for_prepared_call_completion(
+                    prepared_call,
+                    timeout_seconds=completion_timeout_seconds,
+                )
+            if inter_call_delay_seconds > 0:
+                time.sleep(inter_call_delay_seconds)
     return prepared
 
 
