@@ -1,0 +1,3033 @@
+{
+  "all_candidates": [
+    {
+      "agent_turns": 22,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-001",
+      "call_id": "appointment_scheduling-call-001",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 129.761,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...tty good AI. Am I speaking with James? Patient Bot: This is Maria Lopez. You may have the wrong patient if you were expecting James. I\u2019ll wait for your next question. PGAI Agent: Please provide...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "Longest same-speaker run: 5",
+          "severity": "medium",
+          "source_guess": "conversation",
+          "summary": "Long same-speaker run may indicate interruption, grouping, or stalled dialogue."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please tell me the number you have on file with us. If you're not sure, just let me know. No problem. Please spell your first and last name...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 8,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-001\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-01-specific-time",
+      "score": 60.319,
+      "sensibility_flags": [
+        "long_same_speaker_run_5"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-001\\transcript.txt",
+      "transcript_turns": 30,
+      "transcript_words": 261
+    },
+    {
+      "agent_turns": 22,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-006",
+      "call_id": "appointment_scheduling-call-006",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 176.09,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...PGAI Agent: Am I speaking with James? Patient Bot: This is Maria Lopez. You may have the wrong patient. I\u2019ll wait for you to confirm who you\u2019re trying to reach. PGAI Agent: Please provide the...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "factual",
+          "evidence": "...de the remaining digits so I can complete the lookup? PGAI Agent: \uadf8\ub807\uad6c\ub098. Patient Bot: That phone number is not mine. My phone number is 555-318-4492. PGAI Agent: I have your number as 555-318-4492. Is that...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have confirmed an incorrect phone number or stale record."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ll your last name, Lopez? Would you like me to look up your record using the phone number you have on file with us? If so, please provide that number. If you're not sure, I can confirm your name? Could yo...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 12,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-006\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-02-change-of-mind",
+      "score": 84.752,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-006\\transcript.txt",
+      "transcript_turns": 34,
+      "transcript_words": 345
+    },
+    {
+      "agent_turns": 16,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-015",
+      "call_id": "appointment_scheduling-call-015",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 157.75,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...tty Good A. Am I speaking with James? Patient Bot: This is Robert Hayes. You may have the wrong patient if you\u2019re looking for James. I\u2019ll wait for you to confirm who you need. PGAI Agent: Thank...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...Connecting you to a representative. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 10,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-015\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-03-vague-then-narrow",
+      "score": 73.436,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-015\\transcript.txt",
+      "transcript_turns": 26,
+      "transcript_words": 253
+    },
+    {
+      "agent_turns": 19,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-016",
+      "call_id": "appointment_scheduling-call-016",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 144.363,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...PGAI Agent: Am I speaking with James? Patient Bot: This is Maria Lopez. You may have the wrong patient. I\u2019ll wait for you to confirm before we continue. PGAI Agent: Please provide the full nam...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...esentative. PGAI Agent: Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI Test Line. Goodbye. Patient Bot: Okay, understood.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 9,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-016\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-01-specific-time",
+      "score": 71.918,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-016\\transcript.txt",
+      "transcript_turns": 28,
+      "transcript_words": 280
+    },
+    {
+      "agent_turns": 19,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-017",
+      "call_id": "appointment_scheduling-call-017",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 150.143,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...y Good AI. Am I speaking with James? Patient Bot: This is Maria Lopez. You might have the wrong patient. Please go ahead when you\u2019re ready. PGAI Agent: Please provide the full name PGAI Agent:...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": ".... I\u2019ll stay on the line. PGAI Agent: Hello. PGAI Agent: You've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 10,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-017\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-02-change-of-mind",
+      "score": 73.978,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-017\\transcript.txt",
+      "transcript_turns": 29,
+      "transcript_words": 248
+    },
+    {
+      "agent_turns": 22,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-018",
+      "call_id": "appointment_scheduling-call-018",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 162.88,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...ettyGoodAI. Am I speaking with James? Patient Bot: This is Robert Hayes. You may have the wrong patient. Please go ahead when you\u2019re ready. PGAI Agent: Please provide the full name and date of...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...e to use your phone number to look up your record? If so, please provide the phone number you have on file with us. If you're not sure I can confirm your name Just to confirm, I have your phone number as...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 14,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-018\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-03-vague-then-narrow",
+      "score": 74.977,
+      "sensibility_flags": [
+        "repeated_utterance_count_5"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-018\\transcript.txt",
+      "transcript_turns": 36,
+      "transcript_words": 319
+    },
+    {
+      "agent_turns": 11,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-019",
+      "call_id": "appointment_scheduling-call-019",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 60.026,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "...PGAI Agent: Please wait. PGAI Agent: Hello, PGAI Agent: You've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 3,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-019\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-04-cancel-no-date",
+      "score": 35.993,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-019\\transcript.txt",
+      "transcript_turns": 14,
+      "transcript_words": 119
+    },
+    {
+      "agent_turns": 22,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-020",
+      "call_id": "appointment_scheduling-call-020",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 198.798,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...tty Good AI. Am I speaking with James? Patient Bot: This is Maria Lopez. You may have the wrong patient if you were expecting James. I\u2019ll wait for your next question. PGAI Agent: Thanks for cla...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...you to a representative. Please wait PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Okay, thank you. Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "..., 1980, is that correct? Would you like to use your phone number to look up your records? you have on file with us. If you're not sure, just let me know and we'll confirm your name and date of birth again...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 11,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-020\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-05-reschedule-different-day",
+      "score": 86.303,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-020\\transcript.txt",
+      "transcript_turns": 33,
+      "transcript_words": 331
+    },
+    {
+      "agent_turns": 12,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-021",
+      "call_id": "appointment_scheduling-call-021",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 91.188,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...with James? Patient Bot: This is Taylor Brooks, calling for Emma Brooks. You may have the wrong patient. Please go ahead. PGAI Agent: Please provide Emma's full date of birth. Patient Bot: I do...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...nt Bot: Okay, I\u2019ll stay on the line. PGAI Agent: Hello, you've reached the Pretty Good AI Test Line. PGAI Agent: Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 6,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-021\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-06-closed-hours-trap",
+      "score": 53.527,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-021\\transcript.txt",
+      "transcript_turns": 18,
+      "transcript_words": 191
+    },
+    {
+      "agent_turns": 2,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-022",
+      "call_id": "appointment_scheduling-call-022",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 23.131,
+      "duration_source": "events.jsonl",
+      "gate_failures": [
+        "duration_below_60s"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...Orthopedics. Am I speaking with James? Patient Bot: This is Maya Patel. You may have the wrong patient. I\u2019ll wait while you confirm who you\u2019re trying to reach.",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 3",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 1,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-022\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-07-interruption-barge-in",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-022\\transcript.txt",
+      "transcript_turns": 3,
+      "transcript_words": 46
+    },
+    {
+      "agent_turns": 21,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-023",
+      "call_id": "appointment_scheduling-call-023",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 169.972,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...AI. Am I speaking with James? Patient Bot: This is Sofia Reyes-Montoya. You may have the wrong patient. Please go ahead when you\u2019re ready. PGAI Agent: Please provide the full name and date of...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...Montoya. and your date of birth as May 4, 1990. Could you please confirm the phone number you have on file with us? Could you please confirm the phone number you have on file with us? This will help me lo...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 12,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-023\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-07-name-lookup-confusion",
+      "score": 82.28,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-023\\transcript.txt",
+      "transcript_turns": 33,
+      "transcript_words": 315
+    },
+    {
+      "agent_turns": 22,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-024",
+      "call_id": "appointment_scheduling-call-024",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 133.47,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...PGAI Agent: Am I speaking with James? Patient Bot: This is Robert Hayes. You may have the wrong patient. Please go ahead when you\u2019re ready. PGAI Agent: Thanks for letting me know, Robert. PGAI...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...Would you like to use your phone number to look up your record? Please provide the number you have on file with us. If you're not sure, I can confirm I have your phone number as 555 Four four seven. 9023,...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "robert_hayes",
+      "patient_turns": 10,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-024\\recording.mp3",
+      "runtime_scenario_id": "a03_vague_narrow",
+      "scenario_id": "A-03-vague-then-narrow",
+      "score": 73.393,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-024\\transcript.txt",
+      "transcript_turns": 32,
+      "transcript_words": 241
+    },
+    {
+      "agent_turns": 24,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-025",
+      "call_id": "appointment_scheduling-call-025",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 162.414,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...AI Agent: Am I speaking with James? Patient Bot: This is Maria Lopez, so you may have the wrong patient. Hi, I'd like to make an appointment for next Tuesday at 10 AM. PGAI Agent: Thanks for cl...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...esentative. PGAI Agent: Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Which would you pre...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maria_lopez",
+      "patient_turns": 12,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-025\\recording.mp3",
+      "runtime_scenario_id": "a01_specific_time",
+      "scenario_id": "A-01-specific-time",
+      "score": 84.528,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-025\\transcript.txt",
+      "transcript_turns": 36,
+      "transcript_words": 374
+    },
+    {
+      "agent_turns": 18,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-026",
+      "call_id": "appointment_scheduling-call-026",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 129.384,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient name. The caller is Maria Lopez. I need to make an appointment sometime next week. PGAI A...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou to a representative. Please wait. PGAI Agent: Hello, you've reached the pretty good AI test line. PGAI Agent: Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please tell me the number you have on file with us. If you're not sure, I can confirm your I can't proceed further right now, Our clinic sup...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maria_lopez",
+      "patient_turns": 8,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-026\\recording.mp3",
+      "runtime_scenario_id": "a02_change_of_mind",
+      "scenario_id": "A-02-change-of-mind",
+      "score": 67.206,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-026\\transcript.txt",
+      "transcript_turns": 26,
+      "transcript_words": 233
+    },
+    {
+      "agent_turns": 15,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-027",
+      "call_id": "appointment_scheduling-call-027",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 136.548,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient\u2014 the caller is Robert Hayes. Yes, hello. I need to see the doctor sometime next week if p...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ive. Please wait. Patient Bot: Okay, PGAI Agent: Hello, you've reached the Pretty Good AI Test Line. Goodbye. Patient Bot: Okay, goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you are not sure, I can confirm your name and date of birth again. Which would you pr...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "robert_hayes",
+      "patient_turns": 10,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-027\\recording.mp3",
+      "runtime_scenario_id": "a03_vague_narrow",
+      "scenario_id": "A-03-vague-then-narrow",
+      "score": 70.676,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-027\\transcript.txt",
+      "transcript_turns": 25,
+      "transcript_words": 277
+    },
+    {
+      "agent_turns": 12,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-028",
+      "call_id": "appointment_scheduling-call-028",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 98.93,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...need to cancel an appointment, but I can\u2019t remember exactly when it was. You may have the wrong patient\u2014this is Robert Hayes. PGAI Agent: Can you please provide your date of birth? Patient Bot:...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        }
+      ],
+      "patient_profile": "robert_hayes",
+      "patient_turns": 7,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-028\\recording.mp3",
+      "runtime_scenario_id": "a04_cancel_no_date",
+      "scenario_id": "A-04-cancel-no-date",
+      "score": 54.509,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-028\\transcript.txt",
+      "transcript_turns": 19,
+      "transcript_words": 214
+    },
+    {
+      "agent_turns": 17,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-029",
+      "call_id": "appointment_scheduling-call-029",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 151.158,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...tty Good AI. Am I speaking with James? Patient Bot: This is Maria Lopez. You may have the wrong patient. Hi, I'd like to make an appointment for next Tuesday at 10 AM. PGAI Agent: Thanks for le...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...tative. Please wait. Patient Bot: Let PGAI Agent: Hello, you've reached the PrettyGood AI test line. Goodbye. Patient Bot: I'm just calling as a patient about my appointment.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...last name for me? Would you like to use your phone number to look up your record? number you have on file with us. If you're not sure, let me know and I'll confirm your name and date of birth again. I ha...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maria_lopez",
+      "patient_turns": 9,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-029\\recording.mp3",
+      "runtime_scenario_id": "a01_specific_time",
+      "scenario_id": "A-01-specific-time",
+      "score": 71.721,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-029\\transcript.txt",
+      "transcript_turns": 26,
+      "transcript_words": 246
+    },
+    {
+      "agent_turns": 23,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-030",
+      "call_id": "appointment_scheduling-call-030",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 159.003,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...Patient Bot: Hi, I need to make an appointment sometime next week. Also, you may have the wrong patient\u2014I\u2019m Maria Lopez, not James. PGAI Agent: Thanks for letting me know, Maria. PGAI Agent: Ar...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...esentative? PGAI Agent: Please wait. PGAI Agent: Hello. You've reached the Pretty Good AI Test Line. PGAI Agent: Goodbye. Patient Bot: Okay, thank you.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Let me know which y...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maria_lopez",
+      "patient_turns": 9,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-030\\recording.mp3",
+      "runtime_scenario_id": "a02_change_of_mind",
+      "scenario_id": "A-02-change-of-mind",
+      "score": 77.365,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-030\\transcript.txt",
+      "transcript_turns": 32,
+      "transcript_words": 289
+    },
+    {
+      "agent_turns": 24,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-031",
+      "call_id": "appointment_scheduling-call-031",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 184.782,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...etty Good AI. PGAI Agent: Am I speaking with James? Patient Bot: I think you may have the wrong patient\u2014the caller is Robert Hayes. Yes, hello. I need to see the doctor sometime next week if po...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "..., let me think about the best way to PGAI Agent: Hello, you've reached the Pretty Good AI Test Line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Which would you pre...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "robert_hayes",
+      "patient_turns": 10,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-031\\recording.mp3",
+      "runtime_scenario_id": "a03_vague_narrow",
+      "scenario_id": "A-03-vague-then-narrow",
+      "score": 83.912,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-031\\transcript.txt",
+      "transcript_turns": 34,
+      "transcript_words": 321
+    },
+    {
+      "agent_turns": 15,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-032",
+      "call_id": "appointment_scheduling-call-032",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 172.272,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...speaking with James? Patient Bot: This is actually Robert Hayes speaking\u2014you may have the wrong patient. Hi, I need to cancel an appointment, I just don't remember exactly when it was. PGAI Age...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...esentative. Please wait. PGAI Agent: Hello. PGAI Agent: You've reached the Pretty Good AI Test Line. Goodbye. Patient Bot: Okay, goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": "robert_hayes",
+      "patient_turns": 9,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-032\\recording.mp3",
+      "runtime_scenario_id": "a04_cancel_no_date",
+      "scenario_id": "A-04-cancel-no-date",
+      "score": 73.278,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-032\\transcript.txt",
+      "transcript_turns": 24,
+      "transcript_words": 250
+    },
+    {
+      "agent_turns": 15,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-033",
+      "call_id": "appointment_scheduling-call-033",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 159.164,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...tty Good AI. Am I speaking with James? Patient Bot: This is Maria Lopez. You may have the wrong patient if you\u2019re looking for James. I have an appointment on Wednesday but I need to move it to...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "factual",
+          "evidence": "...y 22, 1980, is that correct? Patient Bot: My name and date of birth are correct, but that phone number is not mine. My phone number is 555-318-4492. PGAI Agent: I can't proceed. PGAI Agent: right now, but...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have confirmed an incorrect phone number or stale record."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou to a representative. Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. PGAI Agent: Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...rst and last name for me? Would you like me to look up your record using the phone number you have on file with us? If you're not sure, I can confirm your name and date of birth again. I have your phone n...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maria_lopez",
+      "patient_turns": 8,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-033\\recording.mp3",
+      "runtime_scenario_id": "a05_reschedule_day",
+      "scenario_id": "A-05-reschedule-different-day",
+      "score": 70.493,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-033\\transcript.txt",
+      "transcript_turns": 23,
+      "transcript_words": 244
+    },
+    {
+      "agent_turns": 10,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-034",
+      "call_id": "appointment_scheduling-call-034",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 100.352,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...th James? Patient Bot: This is Taylor Brooks, calling for Emma Brooks\u2014so you may have the wrong patient name on your end. Hi, I'm trying to schedule an appointment for my daughter. Would Saturd...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        }
+      ],
+      "patient_profile": "taylor_brooks",
+      "patient_turns": 7,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-034\\recording.mp3",
+      "runtime_scenario_id": "a06_closed_hours",
+      "scenario_id": "A-06-closed-hours-trap",
+      "score": 53.373,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-034\\transcript.txt",
+      "transcript_turns": 17,
+      "transcript_words": 200
+    },
+    {
+      "agent_turns": 9,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-035",
+      "call_id": "appointment_scheduling-call-035",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 107.531,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient\u2014this is Maya Patel. Hi, I need to move an appointment I already have. PGAI Agent: Thanks....",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "factual",
+          "evidence": "...ntioned how to spell my name earlier, but My name and date of birth are correct, but that phone number is not mine. My phone number is 555-204-7731. M-A-Y-A P-A-T-E-L",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have confirmed an incorrect phone number or stale record."
+        }
+      ],
+      "patient_profile": "maya_patel",
+      "patient_turns": 6,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-035\\recording.mp3",
+      "runtime_scenario_id": "a07_interruption",
+      "scenario_id": "A-07-interruption-barge-in",
+      "score": 51.736,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-035\\transcript.txt",
+      "transcript_turns": 15,
+      "transcript_words": 208
+    },
+    {
+      "agent_turns": 8,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-036",
+      "call_id": "appointment_scheduling-call-036",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 98.203,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient\u2014I'm not James. The caller is Sofia Reyes-Montoya. Hi, I have an appointment coming up and...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        }
+      ],
+      "patient_profile": "sofia_reyes_montoya",
+      "patient_turns": 7,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-036\\recording.mp3",
+      "runtime_scenario_id": "a07_name_lookup_confusion",
+      "scenario_id": "A-07-name-lookup-confusion",
+      "score": 51.519,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-036\\transcript.txt",
+      "transcript_turns": 15,
+      "transcript_words": 183
+    },
+    {
+      "agent_turns": 14,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-001",
+      "call_id": "difficult_call_handling-call-001",
+      "call_type": "difficult_call_handling",
+      "duration_seconds": 128.05,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...James? Patient Bot: Hello? Yes, hi - I'm calling to make an appointment. You may have the wrong patient though; the caller is Robert Hayes. PGAI Agent: Please provide your date of birth. Patien...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        }
+      ],
+      "patient_profile": "robert_hayes",
+      "patient_turns": 8,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-001\\recording.mp3",
+      "runtime_scenario_id": "d01_hard_of_hearing",
+      "scenario_id": "D-01-hard-of-hearing",
+      "score": 62.658,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-001\\transcript.txt",
+      "transcript_turns": 22,
+      "transcript_words": 293
+    },
+    {
+      "agent_turns": 4,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-002",
+      "call_id": "difficult_call_handling-call-002",
+      "call_type": "difficult_call_handling",
+      "duration_seconds": 58.291,
+      "duration_source": "events.jsonl",
+      "gate_failures": [
+        "duration_below_60s"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient. The caller is Chris Navarro. Yeah hi, I need an appointment, I don't have a lot of time....",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 7",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        }
+      ],
+      "patient_profile": "impatient_adult_caller",
+      "patient_turns": 3,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-002\\recording.mp3",
+      "runtime_scenario_id": "d02_interrupter",
+      "scenario_id": "D-02-interrupter",
+      "score": 0.0,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-002\\transcript.txt",
+      "transcript_turns": 7,
+      "transcript_words": 87
+    },
+    {
+      "agent_turns": 18,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-003",
+      "call_id": "difficult_call_handling-call-003",
+      "call_type": "difficult_call_handling",
+      "duration_seconds": 135.267,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...ames? Patient Bot: This is Taylor Brooks calling for Emma Brooks\u2014I think you may have the wrong patient. Hi, I need to make an appointment for my daughter. PGAI Agent: Please provide Emma Brook...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...esentative. Please wait. PGAI Agent: Hello, PGAI Agent: You've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": "taylor_brooks",
+      "patient_turns": 9,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-003\\recording.mp3",
+      "runtime_scenario_id": "d03_background_interruptions",
+      "scenario_id": "D-03-background-interruptions",
+      "score": 69.505,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-003\\transcript.txt",
+      "transcript_turns": 27,
+      "transcript_words": 247
+    },
+    {
+      "agent_turns": 16,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-004",
+      "call_id": "difficult_call_handling-call-004",
+      "call_type": "difficult_call_handling",
+      "duration_seconds": 142.848,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient\u2014 the caller is Frank Kowalski. Yeah, I need to make an appointment. Follow-up for my knee...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou to a representative, please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Okay, goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...l your last name for me? Would you like to use your phone number to look up your records? you have on file with us. If you are not sure, let me know and we can confirm your name and date of birth again. I...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "frank_kowalski",
+      "patient_turns": 7,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-004\\recording.mp3",
+      "runtime_scenario_id": "d04_belligerent_identity",
+      "scenario_id": "D-04-belligerent-identity-paranoia",
+      "score": 66.081,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\difficult_call_handling\\call-004\\transcript.txt",
+      "transcript_turns": 23,
+      "transcript_words": 228
+    },
+    {
+      "agent_turns": 0,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-001",
+      "call_id": "information_gathering-call-001",
+      "call_type": "information_gathering",
+      "duration_seconds": null,
+      "duration_source": null,
+      "gate_failures": [
+        "duration_unknown",
+        "recording_missing",
+        "transcript_missing",
+        "no_speaker_labeled_turns"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 0",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "recording_missing",
+          "severity": "high",
+          "source_guess": "artifact",
+          "summary": "Required audio/transcript artifact failed a hard gate."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-001",
+          "severity": "medium",
+          "source_guess": "artifact",
+          "summary": "Duration could not be determined from recording metadata or events."
+        }
+      ],
+      "patient_profile": "impatient_adult_caller",
+      "patient_turns": 0,
+      "rank": null,
+      "recording_path": null,
+      "runtime_scenario_id": "i01_office_hours__patient_impatient_adult_caller",
+      "scenario_id": "I-01-office-hours__patient_impatient_adult_caller",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review",
+        "missing_one_speaker"
+      ],
+      "sensibility_status": "fail",
+      "transcript_path": null,
+      "transcript_turns": 0,
+      "transcript_words": 0
+    },
+    {
+      "agent_turns": 0,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-002",
+      "call_id": "information_gathering-call-002",
+      "call_type": "information_gathering",
+      "duration_seconds": null,
+      "duration_source": null,
+      "gate_failures": [
+        "duration_unknown",
+        "recording_missing",
+        "transcript_missing",
+        "no_speaker_labeled_turns"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 0",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "recording_missing",
+          "severity": "high",
+          "source_guess": "artifact",
+          "summary": "Required audio/transcript artifact failed a hard gate."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-002",
+          "severity": "medium",
+          "source_guess": "artifact",
+          "summary": "Duration could not be determined from recording metadata or events."
+        }
+      ],
+      "patient_profile": "no_record_refill_caller",
+      "patient_turns": 0,
+      "rank": null,
+      "recording_path": null,
+      "runtime_scenario_id": "i02_who_practices__patient_no_record_refill_caller",
+      "scenario_id": "I-02-who-practices-there__patient_no_record_refill_caller",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review",
+        "missing_one_speaker"
+      ],
+      "sensibility_status": "fail",
+      "transcript_path": null,
+      "transcript_turns": 0,
+      "transcript_words": 0
+    },
+    {
+      "agent_turns": 0,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-003",
+      "call_id": "information_gathering-call-003",
+      "call_type": "information_gathering",
+      "duration_seconds": null,
+      "duration_source": null,
+      "gate_failures": [
+        "duration_unknown",
+        "recording_missing",
+        "transcript_missing",
+        "no_speaker_labeled_turns"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 0",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "recording_missing",
+          "severity": "high",
+          "source_guess": "artifact",
+          "summary": "Required audio/transcript artifact failed a hard gate."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-003",
+          "severity": "medium",
+          "source_guess": "artifact",
+          "summary": "Duration could not be determined from recording metadata or events."
+        }
+      ],
+      "patient_profile": "aaliyah_washington",
+      "patient_turns": 0,
+      "rank": null,
+      "recording_path": null,
+      "runtime_scenario_id": "i03_wait_time__patient_aaliyah_washington",
+      "scenario_id": "I-03-new-patient-wait-time__patient_aaliyah_washington",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review",
+        "missing_one_speaker"
+      ],
+      "sensibility_status": "fail",
+      "transcript_path": null,
+      "transcript_turns": 0,
+      "transcript_words": 0
+    },
+    {
+      "agent_turns": 0,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-004",
+      "call_id": "information_gathering-call-004",
+      "call_type": "information_gathering",
+      "duration_seconds": null,
+      "duration_source": null,
+      "gate_failures": [
+        "duration_unknown",
+        "recording_missing",
+        "transcript_missing",
+        "no_speaker_labeled_turns"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 0",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "recording_missing",
+          "severity": "high",
+          "source_guess": "artifact",
+          "summary": "Required audio/transcript artifact failed a hard gate."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-004",
+          "severity": "medium",
+          "source_guess": "artifact",
+          "summary": "Duration could not be determined from recording metadata or events."
+        }
+      ],
+      "patient_profile": "robert_hayes",
+      "patient_turns": 0,
+      "rank": null,
+      "recording_path": null,
+      "runtime_scenario_id": "i04_insurance__patient_robert_hayes",
+      "scenario_id": "I-04-insurance-acceptance__patient_robert_hayes",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review",
+        "missing_one_speaker"
+      ],
+      "sensibility_status": "fail",
+      "transcript_path": null,
+      "transcript_turns": 0,
+      "transcript_words": 0
+    },
+    {
+      "agent_turns": 0,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-005",
+      "call_id": "information_gathering-call-005",
+      "call_type": "information_gathering",
+      "duration_seconds": null,
+      "duration_source": null,
+      "gate_failures": [
+        "duration_unknown",
+        "recording_missing",
+        "transcript_missing",
+        "no_speaker_labeled_turns"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 0",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "recording_missing",
+          "severity": "high",
+          "source_guess": "artifact",
+          "summary": "Required audio/transcript artifact failed a hard gate."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-005",
+          "severity": "medium",
+          "source_guess": "artifact",
+          "summary": "Duration could not be determined from recording metadata or events."
+        }
+      ],
+      "patient_profile": "dmitri_volkov",
+      "patient_turns": 0,
+      "rank": null,
+      "recording_path": null,
+      "runtime_scenario_id": "i05_visit_cost__patient_dmitri_volkov",
+      "scenario_id": "I-05-visit-cost__patient_dmitri_volkov",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review",
+        "missing_one_speaker"
+      ],
+      "sensibility_status": "fail",
+      "transcript_path": null,
+      "transcript_turns": 0,
+      "transcript_words": 0
+    },
+    {
+      "agent_turns": 0,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-006",
+      "call_id": "information_gathering-call-006",
+      "call_type": "information_gathering",
+      "duration_seconds": null,
+      "duration_source": null,
+      "gate_failures": [
+        "duration_unknown",
+        "transcript_empty",
+        "no_speaker_labeled_turns"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 0",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "transcript_empty",
+          "severity": "high",
+          "source_guess": "artifact",
+          "summary": "Required audio/transcript artifact failed a hard gate."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-006",
+          "severity": "medium",
+          "source_guess": "artifact",
+          "summary": "Duration could not be determined from recording metadata or events."
+        }
+      ],
+      "patient_profile": "dmitri_volkov",
+      "patient_turns": 0,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-006\\recording.mp3",
+      "runtime_scenario_id": "i01_office_hours__patient_dmitri_volkov",
+      "scenario_id": "I-01-office-hours__patient_dmitri_volkov",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review",
+        "missing_one_speaker"
+      ],
+      "sensibility_status": "fail",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-006\\transcript.txt",
+      "transcript_turns": 0,
+      "transcript_words": 0
+    },
+    {
+      "agent_turns": 13,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-007",
+      "call_id": "information_gathering-call-007",
+      "call_type": "information_gathering",
+      "duration_seconds": 115.497,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...nt: Part of PrettyGoodAI, am I speaking with James? Patient Bot: I think you may have the wrong patient \u2014 the caller is George Papadopoulos. I just had a quick question about your office hours....",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...I\u2019m here. Thanks for connecting me. PGAI Agent: Hello, you've reached the pretty good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ould you like to use your phone number to look up your records? Please provide the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Let me know how you...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "george_papadopoulos",
+      "patient_turns": 8,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-007\\recording.mp3",
+      "runtime_scenario_id": "i01_office_hours__patient_george_papadopoulos",
+      "scenario_id": "I-01-office-hours__patient_george_papadopoulos",
+      "score": 62.76,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-007\\transcript.txt",
+      "transcript_turns": 21,
+      "transcript_words": 250
+    },
+    {
+      "agent_turns": 18,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-008",
+      "call_id": "information_gathering-call-008",
+      "call_type": "information_gathering",
+      "duration_seconds": 154.032,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...y Good AI. Am I speaking with James? Patient Bot: This is Maria Lopez. You might have the wrong patient. Hi, I'm thinking about becoming a patient there and I was wondering who the doctors are....",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "Longest same-speaker run: 5",
+          "severity": "medium",
+          "source_guess": "conversation",
+          "summary": "Long same-speaker run may indicate interruption, grouping, or stalled dialogue."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ke to use your phone number to look up your record? \uc544\ub2cc\ub370. If so, please tell me the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Which would you pre...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maria_lopez",
+      "patient_turns": 8,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-008\\recording.mp3",
+      "runtime_scenario_id": "i02_who_practices__patient_maria_lopez",
+      "scenario_id": "I-02-who-practices-there__patient_maria_lopez",
+      "score": 61.829,
+      "sensibility_flags": [
+        "long_same_speaker_run_5"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-008\\transcript.txt",
+      "transcript_turns": 26,
+      "transcript_words": 305
+    },
+    {
+      "agent_turns": 16,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-009",
+      "call_id": "information_gathering-call-009",
+      "call_type": "information_gathering",
+      "duration_seconds": 149.287,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [],
+      "patient_profile": "workers_comp_caller",
+      "patient_turns": 8,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-009\\recording.mp3",
+      "runtime_scenario_id": "i03_wait_time__patient_workers_comp_caller",
+      "scenario_id": "I-03-new-patient-wait-time__patient_workers_comp_caller",
+      "score": 63.819,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-009\\transcript.txt",
+      "transcript_turns": 24,
+      "transcript_words": 260
+    },
+    {
+      "agent_turns": 12,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-010",
+      "call_id": "information_gathering-call-010",
+      "call_type": "information_gathering",
+      "duration_seconds": 99.411,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...d AI. Am I speaking with James? Patient Bot: This is Denise Wong\u2014I think you may have the wrong patient. Hi, I wanted to check if you take Blue Cross insurance. PGAI Agent: Please provide the p...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...f you're not sure, I can confirm your name Could you please provide the full phone number you have on file with us? I'll need the complete phone number to look up your record. Could you provide all ten di...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "denise_wong",
+      "patient_turns": 8,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-010\\recording.mp3",
+      "runtime_scenario_id": "i04_insurance__patient_denise_wong",
+      "scenario_id": "I-04-insurance-acceptance__patient_denise_wong",
+      "score": 58.542,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-010\\transcript.txt",
+      "transcript_turns": 20,
+      "transcript_words": 182
+    },
+    {
+      "agent_turns": 11,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-011",
+      "call_id": "information_gathering-call-011",
+      "call_type": "information_gathering",
+      "duration_seconds": 91.815,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [],
+      "patient_profile": "robert_hayes",
+      "patient_turns": 6,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-011\\recording.mp3",
+      "runtime_scenario_id": "i05_visit_cost__patient_robert_hayes",
+      "scenario_id": "I-05-visit-cost__patient_robert_hayes",
+      "score": 47.634,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-011\\transcript.txt",
+      "transcript_turns": 17,
+      "transcript_words": 184
+    },
+    {
+      "agent_turns": 11,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-012",
+      "call_id": "information_gathering-call-012",
+      "call_type": "information_gathering",
+      "duration_seconds": 78.637,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "...lease wait. Patient Bot: Okay, thank PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": "taylor_brooks",
+      "patient_turns": 6,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-012\\recording.mp3",
+      "runtime_scenario_id": "i01_office_hours",
+      "scenario_id": "I-01-office-hours",
+      "score": 47.441,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-012\\transcript.txt",
+      "transcript_turns": 17,
+      "transcript_words": 130
+    },
+    {
+      "agent_turns": 16,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-013",
+      "call_id": "information_gathering-call-013",
+      "call_type": "information_gathering",
+      "duration_seconds": 115.813,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient\u2014this is Maya Patel. Hi, I'm thinking about becoming a patient there and I was wondering w...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...nd I\u2019ll wait for the representative. PGAI Agent: Hello, you've reached the Pretty Good AI Test Line. PGAI Agent: Goodbye. Patient Bot: Oh, it sounds like the call ended before I could speak...",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": "maya_patel",
+      "patient_turns": 7,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-013\\recording.mp3",
+      "runtime_scenario_id": "i02_who_practices",
+      "scenario_id": "I-02-who-practices-there",
+      "score": 62.838,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-013\\transcript.txt",
+      "transcript_turns": 23,
+      "transcript_words": 312
+    },
+    {
+      "agent_turns": 17,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-014",
+      "call_id": "information_gathering-call-014",
+      "call_type": "information_gathering",
+      "duration_seconds": 131.088,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Repeated agent utterances: 2",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Agent appears to repeat the same prompt multiple times."
+        }
+      ],
+      "patient_profile": "maya_patel",
+      "patient_turns": 10,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-014\\recording.mp3",
+      "runtime_scenario_id": "i03_wait_time",
+      "scenario_id": "I-03-new-patient-wait-time",
+      "score": 58.278,
+      "sensibility_flags": [
+        "repeated_utterance_count_3"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-014\\transcript.txt",
+      "transcript_turns": 27,
+      "transcript_words": 301
+    },
+    {
+      "agent_turns": 19,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-015",
+      "call_id": "information_gathering-call-015",
+      "call_type": "information_gathering",
+      "duration_seconds": 155.953,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...AI Agent: Am I speaking with James? Patient Bot: This is Maria Lopez, so you may have the wrong patient. Hi, I wanted to check if you take Blue Cross insurance. PGAI Agent: Please provide the f...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...d you like to use a phone number to look up your record? If so, please provide the number you have on file with us. If you are not sure, I can confirm your name and date of birth again. Please tell me the...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maria_lopez",
+      "patient_turns": 11,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-015\\recording.mp3",
+      "runtime_scenario_id": "i04_insurance",
+      "scenario_id": "I-04-insurance-acceptance",
+      "score": 67.838,
+      "sensibility_flags": [
+        "repeated_utterance_count_3"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-015\\transcript.txt",
+      "transcript_turns": 30,
+      "transcript_words": 345
+    },
+    {
+      "agent_turns": 9,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-016",
+      "call_id": "information_gathering-call-016",
+      "call_type": "information_gathering",
+      "duration_seconds": 97.623,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...hopedics, part of Pretty Good AI. Am I speaking with James? Patient Bot: You may have the wrong patient. The caller is Robert Hayes. Hi, I had a question about what it costs to come in for a vi...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        }
+      ],
+      "patient_profile": "robert_hayes",
+      "patient_turns": 7,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-016\\recording.mp3",
+      "runtime_scenario_id": "i05_visit_cost",
+      "scenario_id": "I-05-visit-cost",
+      "score": 52.446,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-016\\transcript.txt",
+      "transcript_turns": 16,
+      "transcript_words": 212
+    },
+    {
+      "agent_turns": 0,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-001",
+      "call_id": "medication_refill-call-001",
+      "call_type": "medication_refill",
+      "duration_seconds": null,
+      "duration_source": null,
+      "gate_failures": [
+        "duration_unknown",
+        "recording_missing",
+        "transcript_missing",
+        "no_speaker_labeled_turns"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 0",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "recording_missing",
+          "severity": "high",
+          "source_guess": "artifact",
+          "summary": "Required audio/transcript artifact failed a hard gate."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-001",
+          "severity": "medium",
+          "source_guess": "artifact",
+          "summary": "Duration could not be determined from recording metadata or events."
+        }
+      ],
+      "patient_profile": "patricia_okonkwo",
+      "patient_turns": 0,
+      "rank": null,
+      "recording_path": null,
+      "runtime_scenario_id": "m01_standard_refill__patient_patricia_okonkwo",
+      "scenario_id": "M-01-standard-refill__patient_patricia_okonkwo",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review",
+        "missing_one_speaker"
+      ],
+      "sensibility_status": "fail",
+      "transcript_path": null,
+      "transcript_turns": 0,
+      "transcript_words": 0
+    },
+    {
+      "agent_turns": 0,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-002",
+      "call_id": "medication_refill-call-002",
+      "call_type": "medication_refill",
+      "duration_seconds": null,
+      "duration_source": null,
+      "gate_failures": [
+        "duration_unknown",
+        "recording_missing",
+        "transcript_missing",
+        "no_speaker_labeled_turns"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 0",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "recording_missing",
+          "severity": "high",
+          "source_guess": "artifact",
+          "summary": "Required audio/transcript artifact failed a hard gate."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-002",
+          "severity": "medium",
+          "source_guess": "artifact",
+          "summary": "Duration could not be determined from recording metadata or events."
+        }
+      ],
+      "patient_profile": "no_record_refill_caller",
+      "patient_turns": 0,
+      "rank": null,
+      "recording_path": null,
+      "runtime_scenario_id": "m02_refill_no_record__patient_no_record_refill_caller",
+      "scenario_id": "M-02-refill-no-record__patient_no_record_refill_caller",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review",
+        "missing_one_speaker"
+      ],
+      "sensibility_status": "fail",
+      "transcript_path": null,
+      "transcript_turns": 0,
+      "transcript_words": 0
+    },
+    {
+      "agent_turns": 0,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-003",
+      "call_id": "medication_refill-call-003",
+      "call_type": "medication_refill",
+      "duration_seconds": null,
+      "duration_source": null,
+      "gate_failures": [
+        "duration_unknown",
+        "transcript_empty",
+        "no_speaker_labeled_turns"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 0",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "transcript_empty",
+          "severity": "high",
+          "source_guess": "artifact",
+          "summary": "Required audio/transcript artifact failed a hard gate."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-003",
+          "severity": "medium",
+          "source_guess": "artifact",
+          "summary": "Duration could not be determined from recording metadata or events."
+        }
+      ],
+      "patient_profile": "carmen_reyes",
+      "patient_turns": 0,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-003\\recording.mp3",
+      "runtime_scenario_id": "m01_standard_refill__patient_carmen_reyes",
+      "scenario_id": "M-01-standard-refill__patient_carmen_reyes",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review",
+        "missing_one_speaker"
+      ],
+      "sensibility_status": "fail",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-003\\transcript.txt",
+      "transcript_turns": 0,
+      "transcript_words": 0
+    },
+    {
+      "agent_turns": 0,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-004",
+      "call_id": "medication_refill-call-004",
+      "call_type": "medication_refill",
+      "duration_seconds": null,
+      "duration_source": null,
+      "gate_failures": [
+        "duration_unknown",
+        "transcript_empty",
+        "no_speaker_labeled_turns"
+      ],
+      "gates_passed": false,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "Speaker-labeled turns: 0",
+          "severity": "low",
+          "source_guess": "conversation",
+          "summary": "Call has few turns, limiting the opportunity to judge sustained behavior."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "transcript_empty",
+          "severity": "high",
+          "source_guess": "artifact",
+          "summary": "Required audio/transcript artifact failed a hard gate."
+        },
+        {
+          "category": "voice_quality",
+          "evidence": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-004",
+          "severity": "medium",
+          "source_guess": "artifact",
+          "summary": "Duration could not be determined from recording metadata or events."
+        }
+      ],
+      "patient_profile": "no_record_refill_caller",
+      "patient_turns": 0,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-004\\recording.mp3",
+      "runtime_scenario_id": "m02_refill_no_record__patient_no_record_refill_caller",
+      "scenario_id": "M-02-refill-no-record__patient_no_record_refill_caller",
+      "score": 0.0,
+      "sensibility_flags": [
+        "too_few_turns_for_rich_review",
+        "missing_one_speaker"
+      ],
+      "sensibility_status": "fail",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-004\\transcript.txt",
+      "transcript_turns": 0,
+      "transcript_words": 0
+    },
+    {
+      "agent_turns": 19,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-005",
+      "call_id": "medication_refill-call-005",
+      "call_type": "medication_refill",
+      "duration_seconds": 135.871,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...ent: Am I speaking with James? Patient Bot: This is Denise Wong\u2014 I think you may have the wrong patient. Hi, I'm calling to request a refill on one of my medications. PGAI Agent: Can you please...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ent Bot: Okay, let me listen for the PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...rth as February 28, 1973. Would you like me to look up your record using the phone number you have on file with us? If so, please provide that number. If you're not sure, I can confirm your name and date...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "denise_wong",
+      "patient_turns": 9,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-005\\recording.mp3",
+      "runtime_scenario_id": "m01_standard_refill",
+      "scenario_id": "M-01-standard-refill",
+      "score": 70.822,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-005\\transcript.txt",
+      "transcript_turns": 28,
+      "transcript_words": 255
+    },
+    {
+      "agent_turns": 14,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-006",
+      "call_id": "medication_refill-call-006",
+      "call_type": "medication_refill",
+      "duration_seconds": 127.943,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "flow",
+          "evidence": "...ou to a representative. Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Oh, okay. Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": "no_record_refill_caller",
+      "patient_turns": 8,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-006\\recording.mp3",
+      "runtime_scenario_id": "m02_refill_no_record",
+      "scenario_id": "M-02-refill-no-record",
+      "score": 62.642,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\medication_refill\\call-006\\transcript.txt",
+      "transcript_turns": 22,
+      "transcript_words": 293
+    },
+    {
+      "agent_turns": 23,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-001",
+      "call_id": "orthopedic_edge_cases-call-001",
+      "call_type": "orthopedic_edge_cases",
+      "duration_seconds": 156.157,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "policy",
+          "evidence": "PGAI Agent: This call may be recorded for quality and training purposes. Para espa\u00f1ol, oprima el dos.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Minor or guardian context may not have been acknowledged by the agent."
+        },
+        {
+          "category": "flow",
+          "evidence": "...u want to use your phone number to look up your record? If yes, please tell me the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. I'm unable to look...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "minor_athlete",
+      "patient_turns": 12,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-001\\recording.mp3",
+      "runtime_scenario_id": "e04_minor_caller",
+      "scenario_id": "E-04-minor-without-parent",
+      "score": 72.272,
+      "sensibility_flags": [
+        "repeated_utterance_count_4"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-001\\transcript.txt",
+      "transcript_turns": 35,
+      "transcript_words": 363
+    },
+    {
+      "agent_turns": 10,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-002",
+      "call_id": "orthopedic_edge_cases-call-002",
+      "call_type": "orthopedic_edge_cases",
+      "duration_seconds": 109.376,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...lly hurts and I think something might be broken. And I\u2019m not James, so you might have the wrong patient. PGAI Agent: It sounds like you may need urgent medical attention. Please call 911 right...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        }
+      ],
+      "patient_profile": "distressed_adult_caller",
+      "patient_turns": 7,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-002\\recording.mp3",
+      "runtime_scenario_id": "e01_medical_emergency",
+      "scenario_id": "E-01-medical-emergency",
+      "score": 55.431,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-002\\transcript.txt",
+      "transcript_turns": 17,
+      "transcript_words": 252
+    },
+    {
+      "agent_turns": 20,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-003",
+      "call_id": "orthopedic_edge_cases-call-003",
+      "call_type": "orthopedic_edge_cases",
+      "duration_seconds": 166.259,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...ttyGood AI. PGAI Agent: Am I speaking with James? Patient Bot: I think you might have the wrong patient. The caller is Maya Patel. I had a quick question before making an appointment. I\u2019ve had...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "Longest same-speaker run: 5",
+          "severity": "medium",
+          "source_guess": "conversation",
+          "summary": "Long same-speaker run may indicate interruption, grouping, or stalled dialogue."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou to a representative. Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ke to use your phone number to look up your record? \u3044\u3044\u3048\u3001 If so, please provide the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Which would you pre...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maya_patel",
+      "patient_turns": 8,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-003\\recording.mp3",
+      "runtime_scenario_id": "e02_symptom_triage",
+      "scenario_id": "E-02-symptom-triage",
+      "score": 65.983,
+      "sensibility_flags": [
+        "long_same_speaker_run_5"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-003\\transcript.txt",
+      "transcript_turns": 28,
+      "transcript_words": 346
+    },
+    {
+      "agent_turns": 21,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-004",
+      "call_id": "orthopedic_edge_cases-call-004",
+      "call_type": "orthopedic_edge_cases",
+      "duration_seconds": 145.076,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...etty Good AI. PGAI Agent: Am I speaking with James? Patient Bot: I think you may have the wrong patient\u2014this is Marcus Webb. Hi, I hurt my ankle at work a couple days ago and I need to come in....",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...please wait. Patient Bot: Okay, I\u2019ll PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure, I can confirm your name. I have your phone number as 555 814-3309, a...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "workers_comp_caller",
+      "patient_turns": 12,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-004\\recording.mp3",
+      "runtime_scenario_id": "e03_workers_comp",
+      "scenario_id": "E-03-workers-comp",
+      "score": 79.078,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-004\\transcript.txt",
+      "transcript_turns": 33,
+      "transcript_words": 310
+    },
+    {
+      "agent_turns": 25,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-005",
+      "call_id": "orthopedic_edge_cases-call-005",
+      "call_type": "orthopedic_edge_cases",
+      "duration_seconds": 240.027,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "policy",
+          "evidence": "PGAI Agent: This call may be recorded for quality and training purposes. Para espa\u00f1ol, oprima el dos.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Minor or guardian context may not have been acknowledged by the agent."
+        }
+      ],
+      "patient_profile": "minor_athlete",
+      "patient_turns": 13,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-005\\recording.mp3",
+      "runtime_scenario_id": "e04_minor_caller",
+      "scenario_id": "E-04-minor-without-parent",
+      "score": 93.277,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-005\\transcript.txt",
+      "transcript_turns": 38,
+      "transcript_words": 386
+    },
+    {
+      "agent_turns": 16,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-006",
+      "call_id": "orthopedic_edge_cases-call-006",
+      "call_type": "orthopedic_edge_cases",
+      "duration_seconds": 159.519,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient. The caller is Denise Wong. Hi, I don't need an appointment. I actually need to get some...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...a represent PGAI Agent: Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Okay, thanks for your time.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": "denise_wong",
+      "patient_turns": 10,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-006\\recording.mp3",
+      "runtime_scenario_id": "e05_records_request",
+      "scenario_id": "E-05-records-request",
+      "score": 74.679,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-006\\transcript.txt",
+      "transcript_turns": 26,
+      "transcript_words": 322
+    },
+    {
+      "agent_turns": 16,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\smoke\\call-001",
+      "call_id": "smoke-call-001",
+      "call_type": "smoke",
+      "duration_seconds": 150.287,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient. The caller is Maya Patel. Hi, I'm hoping to make an appointment. I'm a new patient. PGAI...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "factual",
+          "evidence": "...h 14, 1987. Is that correct? Patient Bot: My name and date of birth are correct, but that phone number is not mine. My phone number is 555-204-7731. PGAI Agent: Thanks for confirming. I'll need to connect...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have confirmed an incorrect phone number or stale record."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou to a representative. Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Okay.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...st and last name for me? Would you like to use your phone number to look up your records? you have on file with us. If you're not sure I can confirm your name and date of birth again, which would you pref...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maya_patel",
+      "patient_turns": 10,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\smoke\\call-001\\recording.mp3",
+      "runtime_scenario_id": "t01_smoke",
+      "scenario_id": "T-01-smoke",
+      "score": 64.005,
+      "sensibility_flags": [
+        "repeated_utterance_count_3"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\smoke\\call-001\\transcript.txt",
+      "transcript_turns": 26,
+      "transcript_words": 299
+    },
+    {
+      "agent_turns": 22,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\smoke\\call-002",
+      "call_id": "smoke-call-002",
+      "call_type": "smoke",
+      "duration_seconds": 157.875,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...etty Good AI. Am I speaking with James? Patient Bot: This is Maya Patel. You may have the wrong patient if you were expecting James. Hi, I'm hoping to make an appointment. I'm a new patient. PG...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...pport team. PGAI Agent: Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Let me know what yo...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maya_patel",
+      "patient_turns": 9,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\smoke\\call-002\\recording.mp3",
+      "runtime_scenario_id": "t01_smoke",
+      "scenario_id": "T-01-smoke",
+      "score": 76.972,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\smoke\\call-002\\transcript.txt",
+      "transcript_turns": 31,
+      "transcript_words": 322
+    },
+    {
+      "agent_turns": 18,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-001",
+      "call_id": "unknown-call-001",
+      "call_type": "unknown",
+      "duration_seconds": 166.426,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [],
+      "patient_profile": "aaliyah_washington",
+      "patient_turns": 14,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-001\\recording.mp3",
+      "runtime_scenario_id": "scenario_aaliyah_reschedule_referral",
+      "scenario_id": "aaliyah_reschedule_referral",
+      "score": 78.792,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-001\\transcript.txt",
+      "transcript_turns": 32,
+      "transcript_words": 370
+    },
+    {
+      "agent_turns": 19,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-002",
+      "call_id": "unknown-call-002",
+      "call_type": "unknown",
+      "duration_seconds": 161.522,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...ty Good AI. Am I speaking with James? Patient Bot: This is Carmen Reyes. You may have the wrong patient if you\u2019re expecting James. Hi, I need to get a refill on my blood pressure medication. Th...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...d a refill on my blood pressure medication. PGAI Agent: You've reached the Pretty Good AI Test Line. Goodbye. Patient Bot: Okay, goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...Carmen, letter by letter? Would you like me to look up your record using the phone number you have on file with us? If so, please provide that number. If you're not sure, I can confirm your name and date...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "carmen_reyes",
+      "patient_turns": 12,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-002\\recording.mp3",
+      "runtime_scenario_id": "scenario_carmen_refill_identity",
+      "scenario_id": "carmen_refill_identity",
+      "score": 80.179,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-002\\transcript.txt",
+      "transcript_turns": 31,
+      "transcript_words": 306
+    },
+    {
+      "agent_turns": 24,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-003",
+      "call_id": "unknown-call-003",
+      "call_type": "unknown",
+      "duration_seconds": 162.161,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...make an appointment. I am a new patient. I have a problem with my knee. You may have the wrong patient name though\u2014the caller is Dmitri Volkov. PGAI Agent: Can you please provide your date of...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "Longest same-speaker run: 5",
+          "severity": "medium",
+          "source_guess": "conversation",
+          "summary": "Long same-speaker run may indicate interruption, grouping, or stalled dialogue."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Which would you pre...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "dmitri_volkov",
+      "patient_turns": 11,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-003\\recording.mp3",
+      "runtime_scenario_id": "scenario_dmitri_new_patient",
+      "scenario_id": "dmitri_new_patient",
+      "score": 72.633,
+      "sensibility_flags": [
+        "long_same_speaker_run_5"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-003\\transcript.txt",
+      "transcript_turns": 35,
+      "transcript_words": 352
+    },
+    {
+      "agent_turns": 14,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-004",
+      "call_id": "unknown-call-004",
+      "call_type": "unknown",
+      "duration_seconds": 139.358,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., I need to make an appointment. My name is George Papadopoulos. I think you may have the wrong patient, since I\u2019m not James. I should also mention I don\u2019t have my insurance card with me right...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...presentative. PGAI Agent: Please lay PGAI Agent: Hello, you've reached the pretty good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": "george_papadopoulos",
+      "patient_turns": 7,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-004\\recording.mp3",
+      "runtime_scenario_id": "scenario_george_insurance_parking",
+      "scenario_id": "george_insurance_parking",
+      "score": 64.025,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-004\\transcript.txt",
+      "transcript_turns": 21,
+      "transcript_words": 230
+    },
+    {
+      "agent_turns": 14,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-005",
+      "call_id": "unknown-call-005",
+      "call_type": "unknown",
+      "duration_seconds": 110.404,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient\u2014this is Patricia Okonkwo. I need to move my appointment; my schedule changed again this w...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...rst and last name for me? Would you like me to look up your record using the phone number you have on file with us? If so, please provide that number per If you're not sure, I can confirm your name and da...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "patricia_okonkwo",
+      "patient_turns": 7,
+      "rank": null,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-005\\recording.mp3",
+      "runtime_scenario_id": "scenario_patricia_availability",
+      "scenario_id": "patricia_availability",
+      "score": 59.574,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-005\\transcript.txt",
+      "transcript_turns": 21,
+      "transcript_words": 214
+    }
+  ],
+  "generated_at": "2026-06-25T20:55:02.857+00:00",
+  "selected": [
+    {
+      "agent_turns": 25,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-005",
+      "call_id": "orthopedic_edge_cases-call-005",
+      "call_type": "orthopedic_edge_cases",
+      "duration_seconds": 240.027,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "policy",
+          "evidence": "PGAI Agent: This call may be recorded for quality and training purposes. Para espa\u00f1ol, oprima el dos.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Minor or guardian context may not have been acknowledged by the agent."
+        }
+      ],
+      "patient_profile": "minor_athlete",
+      "patient_turns": 13,
+      "rank": 1,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-005\\recording.mp3",
+      "runtime_scenario_id": "e04_minor_caller",
+      "scenario_id": "E-04-minor-without-parent",
+      "score": 93.277,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-005\\transcript.txt",
+      "transcript_turns": 38,
+      "transcript_words": 386
+    },
+    {
+      "agent_turns": 22,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-020",
+      "call_id": "appointment_scheduling-call-020",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 198.798,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...tty Good AI. Am I speaking with James? Patient Bot: This is Maria Lopez. You may have the wrong patient if you were expecting James. I\u2019ll wait for your next question. PGAI Agent: Thanks for cla...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...you to a representative. Please wait PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Okay, thank you. Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "..., 1980, is that correct? Would you like to use your phone number to look up your records? you have on file with us. If you're not sure, just let me know and we'll confirm your name and date of birth again...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 11,
+      "rank": 2,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-020\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-05-reschedule-different-day",
+      "score": 86.303,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-020\\transcript.txt",
+      "transcript_turns": 33,
+      "transcript_words": 331
+    },
+    {
+      "agent_turns": 22,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-006",
+      "call_id": "appointment_scheduling-call-006",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 176.09,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...PGAI Agent: Am I speaking with James? Patient Bot: This is Maria Lopez. You may have the wrong patient. I\u2019ll wait for you to confirm who you\u2019re trying to reach. PGAI Agent: Please provide the...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "factual",
+          "evidence": "...de the remaining digits so I can complete the lookup? PGAI Agent: \uadf8\ub807\uad6c\ub098. Patient Bot: That phone number is not mine. My phone number is 555-318-4492. PGAI Agent: I have your number as 555-318-4492. Is that...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have confirmed an incorrect phone number or stale record."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ll your last name, Lopez? Would you like me to look up your record using the phone number you have on file with us? If so, please provide that number. If you're not sure, I can confirm your name? Could yo...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": null,
+      "patient_turns": 12,
+      "rank": 3,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-006\\recording.mp3",
+      "runtime_scenario_id": null,
+      "scenario_id": "A-02-change-of-mind",
+      "score": 84.752,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-006\\transcript.txt",
+      "transcript_turns": 34,
+      "transcript_words": 345
+    },
+    {
+      "agent_turns": 24,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-025",
+      "call_id": "appointment_scheduling-call-025",
+      "call_type": "appointment_scheduling",
+      "duration_seconds": 162.414,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...AI Agent: Am I speaking with James? Patient Bot: This is Maria Lopez, so you may have the wrong patient. Hi, I'd like to make an appointment for next Tuesday at 10 AM. PGAI Agent: Thanks for cl...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...esentative. PGAI Agent: Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Which would you pre...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maria_lopez",
+      "patient_turns": 12,
+      "rank": 4,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-025\\recording.mp3",
+      "runtime_scenario_id": "a01_specific_time",
+      "scenario_id": "A-01-specific-time",
+      "score": 84.528,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-025\\transcript.txt",
+      "transcript_turns": 36,
+      "transcript_words": 374
+    },
+    {
+      "agent_turns": 19,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-002",
+      "call_id": "unknown-call-002",
+      "call_type": "unknown",
+      "duration_seconds": 161.522,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...ty Good AI. Am I speaking with James? Patient Bot: This is Carmen Reyes. You may have the wrong patient if you\u2019re expecting James. Hi, I need to get a refill on my blood pressure medication. Th...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...d a refill on my blood pressure medication. PGAI Agent: You've reached the Pretty Good AI Test Line. Goodbye. Patient Bot: Okay, goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...Carmen, letter by letter? Would you like me to look up your record using the phone number you have on file with us? If so, please provide that number. If you're not sure, I can confirm your name and date...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "carmen_reyes",
+      "patient_turns": 12,
+      "rank": 5,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-002\\recording.mp3",
+      "runtime_scenario_id": "scenario_carmen_refill_identity",
+      "scenario_id": "carmen_refill_identity",
+      "score": 80.179,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-002\\transcript.txt",
+      "transcript_turns": 31,
+      "transcript_words": 306
+    },
+    {
+      "agent_turns": 21,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-004",
+      "call_id": "orthopedic_edge_cases-call-004",
+      "call_type": "orthopedic_edge_cases",
+      "duration_seconds": 145.076,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...etty Good AI. PGAI Agent: Am I speaking with James? Patient Bot: I think you may have the wrong patient\u2014this is Marcus Webb. Hi, I hurt my ankle at work a couple days ago and I need to come in....",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...please wait. Patient Bot: Okay, I\u2019ll PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure, I can confirm your name. I have your phone number as 555 814-3309, a...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "workers_comp_caller",
+      "patient_turns": 12,
+      "rank": 6,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-004\\recording.mp3",
+      "runtime_scenario_id": "e03_workers_comp",
+      "scenario_id": "E-03-workers-comp",
+      "score": 79.078,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-004\\transcript.txt",
+      "transcript_turns": 33,
+      "transcript_words": 310
+    },
+    {
+      "agent_turns": 18,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-001",
+      "call_id": "unknown-call-001",
+      "call_type": "unknown",
+      "duration_seconds": 166.426,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [],
+      "patient_profile": "aaliyah_washington",
+      "patient_turns": 14,
+      "rank": 7,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-001\\recording.mp3",
+      "runtime_scenario_id": "scenario_aaliyah_reschedule_referral",
+      "scenario_id": "aaliyah_reschedule_referral",
+      "score": 78.792,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-001\\transcript.txt",
+      "transcript_turns": 32,
+      "transcript_words": 370
+    },
+    {
+      "agent_turns": 22,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\smoke\\call-002",
+      "call_id": "smoke-call-002",
+      "call_type": "smoke",
+      "duration_seconds": 157.875,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...etty Good AI. Am I speaking with James? Patient Bot: This is Maya Patel. You may have the wrong patient if you were expecting James. Hi, I'm hoping to make an appointment. I'm a new patient. PG...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...pport team. PGAI Agent: Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Goodbye.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Let me know what yo...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "maya_patel",
+      "patient_turns": 9,
+      "rank": 8,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\smoke\\call-002\\recording.mp3",
+      "runtime_scenario_id": "t01_smoke",
+      "scenario_id": "T-01-smoke",
+      "score": 76.972,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\smoke\\call-002\\transcript.txt",
+      "transcript_turns": 31,
+      "transcript_words": 322
+    },
+    {
+      "agent_turns": 16,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-006",
+      "call_id": "orthopedic_edge_cases-call-006",
+      "call_type": "orthopedic_edge_cases",
+      "duration_seconds": 159.519,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "..., part of Pretty Good AI. Am I speaking with James? Patient Bot: I think you may have the wrong patient. The caller is Denise Wong. Hi, I don't need an appointment. I actually need to get some...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "...a represent PGAI Agent: Please wait. PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye. Patient Bot: Okay, thanks for your time.",
+          "severity": "medium",
+          "source_guess": "agent_bot",
+          "summary": "Transfer path appears to end at the test line instead of a meaningful resolution."
+        }
+      ],
+      "patient_profile": "denise_wong",
+      "patient_turns": 10,
+      "rank": 9,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-006\\recording.mp3",
+      "runtime_scenario_id": "e05_records_request",
+      "scenario_id": "E-05-records-request",
+      "score": 74.679,
+      "sensibility_flags": [],
+      "sensibility_status": "pass",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-006\\transcript.txt",
+      "transcript_turns": 26,
+      "transcript_words": 322
+    },
+    {
+      "agent_turns": 24,
+      "call_dir": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-003",
+      "call_id": "unknown-call-003",
+      "call_type": "unknown",
+      "duration_seconds": 162.161,
+      "duration_source": "events.jsonl",
+      "gate_failures": [],
+      "gates_passed": true,
+      "issue_findings": [
+        {
+          "category": "factual",
+          "evidence": "...make an appointment. I am a new patient. I have a problem with my knee. You may have the wrong patient name though\u2014the caller is Dmitri Volkov. PGAI Agent: Can you please provide your date of...",
+          "severity": "high",
+          "source_guess": "agent_bot",
+          "summary": "Agent may have assumed or surfaced the wrong patient identity."
+        },
+        {
+          "category": "flow",
+          "evidence": "Longest same-speaker run: 5",
+          "severity": "medium",
+          "source_guess": "conversation",
+          "summary": "Long same-speaker run may indicate interruption, grouping, or stalled dialogue."
+        },
+        {
+          "category": "flow",
+          "evidence": "...ou like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure, I can confirm your name and date of birth again. Which would you pre...",
+          "severity": "low",
+          "source_guess": "agent_bot",
+          "summary": "Agent utterance may be clipped or missing context."
+        }
+      ],
+      "patient_profile": "dmitri_volkov",
+      "patient_turns": 11,
+      "rank": 10,
+      "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-003\\recording.mp3",
+      "runtime_scenario_id": "scenario_dmitri_new_patient",
+      "scenario_id": "dmitri_new_patient",
+      "score": 72.633,
+      "sensibility_flags": [
+        "long_same_speaker_run_5"
+      ],
+      "sensibility_status": "review",
+      "transcript_path": "C:\\PrettyGoodAI\\artifacts\\calls\\unknown\\call-003\\transcript.txt",
+      "transcript_turns": 35,
+      "transcript_words": 352
+    }
+  ],
+  "selection_policy": {
+    "automated_first_pass": [
+      "policy",
+      "factual",
+      "flow",
+      "voice_quality"
+    ],
+    "hard_gate": "duration_seconds >= 60",
+    "intent": "Rank calls for judging bot behavior, not for making either bot look good.",
+    "manual_review_required": true,
+    "min_duration_seconds": 60.0,
+    "top_n": 10
+  }
+}
