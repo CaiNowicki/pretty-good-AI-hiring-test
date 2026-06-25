@@ -84,6 +84,22 @@ REPEATED_INFO_TEMPLATES = (
 )
 
 
+NUMBER_WORDS = {
+    "oh",
+    "o",
+    "zero",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+}
+
+
 SCHEDULER_LANGUAGE_GUARDRAIL = (
     "Stay in the patient role: do not say you can check availability, book, "
     "schedule, hold, create, adjust, move, cancel, confirm, or reschedule "
@@ -272,14 +288,15 @@ def build_assumed_patient_identity_guidance(
     caller_name = _caller_full_name(scenario)
     patient_name = scenario.facts.get("patient_name", "").strip()
     first_name = _caller_first_name(scenario)
+    identity_matches = _scenario_identity_matches_assumed_patient(scenario, transcript)
     opening_guidance = ""
-    if include_opening:
+    if include_opening or not identity_matches:
         opening_guidance = (
             f" Also introduce the call goal once in natural patient wording, using this "
             f"opening intent without needing to repeat it verbatim: {scenario.opening_line}"
         )
 
-    if _scenario_identity_matches_assumed_patient(scenario, transcript):
+    if identity_matches:
         name_to_confirm = first_name or caller_name or patient_name
         surprise_guidance = (
             " Since this is a new patient call, it is okay to sound mildly surprised "
@@ -312,16 +329,46 @@ def build_assumed_patient_identity_guidance(
         "Respond as the patient to the agent's assumed identity question. "
         f"{correction} Make clear the agent may have the wrong patient, vary the surrounding "
         "wording naturally, keep it brief, do not provide DOB or phone unless separately "
-        f"asked, and wait for the agent.{opening_guidance}"
+        f"asked.{opening_guidance}"
     )
 
 
 def build_meta_guardrail_answer(scenario: Scenario | None, transcript: str) -> str:
     if scenario is not None and scenario_allows_meta_behavior(scenario):
         return ""
+    if (
+        scenario is not None
+        and _is_clinic_ai_disclosure_offer(transcript)
+        and not _scenario_tests_transfer_or_escalation(scenario)
+    ):
+        return f"Yes, that's fine. {scenario.opening_line}"
     if not transcript_asks_about_meta_behavior(transcript):
         return ""
     return "I'm just calling as a patient about my appointment."
+
+
+def _is_clinic_ai_disclosure_offer(transcript: str) -> bool:
+    normalized = transcript.casefold()
+    return (
+        "i'm a pretty good ai" in normalized
+        or "i am a pretty good ai" in normalized
+        or "do you want to give me a try" in normalized
+        or "want to give me a try" in normalized
+    )
+
+
+def _scenario_tests_transfer_or_escalation(scenario: Scenario) -> bool:
+    text = " ".join(
+        [
+            scenario.goal,
+            scenario.must_test,
+            scenario.success_criteria,
+            *scenario.avoid,
+            *scenario.optional_edge_behavior,
+            *scenario.stop_conditions,
+        ]
+    ).casefold()
+    return "transfer" in text or "escalat" in text
 
 
 def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
@@ -590,6 +637,69 @@ def build_fact_confirmation_answer(
     return "Yes, that's correct."
 
 
+def transcript_is_fact_confirmation_prompt(scenario: Scenario, transcript: str) -> bool:
+    normalized_transcript = transcript.casefold()
+    return _asks_to_confirm_known_facts(scenario, transcript, normalized_transcript)
+
+
+def transcript_is_fact_readback_fragment(scenario: Scenario, transcript: str) -> bool:
+    if "?" in transcript:
+        return False
+
+    normalized_transcript = transcript.casefold()
+    if _mentions_confirmed_name(scenario, normalized_transcript):
+        return _looks_like_fact_readback(normalized_transcript)
+    if _mentions_known_date_of_birth(scenario, normalized_transcript):
+        return _looks_like_fact_readback(normalized_transcript)
+    if _mentions_phone_readback(scenario, transcript, normalized_transcript):
+        return True
+    return False
+
+
+def transcript_is_fact_readback_continuation(transcript: str) -> bool:
+    if "?" in transcript:
+        return False
+
+    words = re.findall(r"[a-z]+|\d+", transcript.casefold())
+    if not words:
+        return False
+    if len(words) > 8:
+        return False
+    return all(word.isdigit() or word in NUMBER_WORDS for word in words)
+
+
+def transcript_completes_fact_readback_confirmation(transcript: str) -> bool:
+    normalized_transcript = transcript.casefold().strip()
+    if transcript_is_bare_fact_confirmation_question(transcript):
+        return True
+    return any(
+        phrase in normalized_transcript
+        for phrase in (
+            "is that correct",
+            "is all of that correct",
+            "is this correct",
+            "is that right",
+            "is this right",
+            "if so",
+        )
+    )
+
+
+def transcript_is_bare_fact_confirmation_question(transcript: str) -> bool:
+    normalized_transcript = transcript.casefold().strip()
+    normalized_transcript = re.sub(r"\s+", " ", normalized_transcript)
+    normalized_transcript = normalized_transcript.strip(" .!?")
+    return normalized_transcript in {
+        "correct",
+        "right",
+        "is that correct",
+        "is all of that correct",
+        "is this correct",
+        "is that right",
+        "is this right",
+    }
+
+
 def _asks_to_confirm_known_facts(
     scenario: Scenario,
     transcript: str,
@@ -626,6 +736,28 @@ def _looks_like_fact_confirmation(normalized_transcript: str) -> bool:
     )
 
 
+def _looks_like_fact_readback(normalized_transcript: str) -> bool:
+    return any(
+        phrase in normalized_transcript
+        for phrase in (
+            "to confirm",
+            "confirming",
+            "i have",
+            "your name as",
+            "your date of birth as",
+            "your date of birth is",
+            "date of birth as",
+            "date of birth is",
+            "birthdate as",
+            "birthdate is",
+            "phone number as",
+            "phone number is",
+            "number as",
+            "number is",
+        )
+    )
+
+
 def _mentions_confirmed_name(scenario: Scenario, normalized_transcript: str) -> bool:
     full_name = _caller_full_name(scenario).casefold()
     first_name = _caller_first_name(scenario).casefold()
@@ -634,6 +766,41 @@ def _mentions_confirmed_name(scenario: Scenario, normalized_transcript: str) -> 
         full_name and full_name in normalized_transcript
         or (first_name and last_name and first_name in normalized_transcript and last_name in normalized_transcript)
     )
+
+
+def _mentions_known_date_of_birth(
+    scenario: Scenario,
+    normalized_transcript: str,
+) -> bool:
+    dob = scenario.facts.get("date_of_birth", "").strip()
+    if not dob:
+        return False
+
+    dob_tokens = re.findall(r"[a-z]+|\d+", dob.casefold())
+    transcript_tokens = set(re.findall(r"[a-z]+|\d+", normalized_transcript))
+    return bool(dob_tokens) and any(token in transcript_tokens for token in dob_tokens)
+
+
+def _mentions_phone_readback(
+    scenario: Scenario,
+    transcript: str,
+    normalized_transcript: str,
+) -> bool:
+    if not any(phrase in normalized_transcript for phrase in ("phone", "number")):
+        return False
+    if not _looks_like_fact_readback(normalized_transcript):
+        return False
+
+    phone = scenario.facts.get("phone", "").strip()
+    phone_digits = _digits_only(phone)
+    transcript_digits = _digits_only(transcript)
+    if phone_digits and transcript_digits and phone_digits.startswith(transcript_digits):
+        return True
+    if transcript_digits:
+        return True
+
+    words = set(re.findall(r"[a-z]+", normalized_transcript))
+    return bool(words & NUMBER_WORDS)
 
 
 def _mentions_wrong_name_for_confirmation(

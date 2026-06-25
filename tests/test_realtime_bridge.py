@@ -182,6 +182,27 @@ class RealtimeBridgeTests(unittest.TestCase):
 
         self.assertTrue(transcript_asks_about_meta_behavior(transcript))
 
+    def test_clinic_ai_disclosure_accepts_agent_by_default(self):
+        scenario = load_scenario("a04_cancel_no_date")
+        transcript = "I'm a Pretty Good AI and can do many of the things an operator can. Do you want to give me a try?"
+
+        answer = build_meta_guardrail_answer(scenario, transcript)
+
+        self.assertIn("Yes, that's fine.", answer)
+        self.assertIn(scenario.opening_line, answer)
+        self.assertNotIn("connect", answer.casefold())
+
+    def test_clinic_ai_disclosure_stands_down_for_transfer_scenarios(self):
+        scenario = load_scenario("d04_belligerent_identity")
+
+        self.assertEqual(
+            build_meta_guardrail_answer(
+                scenario,
+                "I'm a Pretty Good AI and can do many of the things an operator can. Do you want to give me a try?",
+            ),
+            "",
+        )
+
     def test_emergency_stop_phrase_detection_uses_scenario_limits(self):
         scenario = load_scenario("t01_smoke")
 
@@ -387,7 +408,9 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertIn("the caller is Maria Lopez", instructions)
         self.assertIn("preserve that name exactly", instructions)
         self.assertIn("may have the wrong patient", instructions)
+        self.assertIn(scenario.opening_line, instructions)
         self.assertIn("vary the surrounding wording naturally", instructions)
+        self.assertNotIn("wait for the agent", instructions)
         self.assertNotIn("Say only this exact patient answer", instructions)
 
     def test_only_matching_persona_confirms_assumed_identity_guidance(self):
@@ -678,6 +701,55 @@ class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
                 fake_ws.sent[0]["response"]["instructions"],
             )
 
+    async def test_fact_readback_fragment_waits_for_confirmation_question(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+
+            await bridge._maybe_create_patient_response(
+                {
+                    "item_id": "agent-1",
+                    "transcript": "0514, and your date of birth is March 14, 1987.",
+                }
+            )
+
+            self.assertEqual(fake_ws.sent, [])
+
+            await bridge._maybe_create_patient_response(
+                {"item_id": "agent-2", "transcript": "Is that correct?"}
+            )
+
+            self.assertEqual(len(fake_ws.sent), 1)
+            self.assertIn("Yes, that's correct.", fake_ws.sent[0]["response"]["instructions"])
+
+    async def test_fact_confirmation_prompt_waits_for_late_transcript_continuation(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+            bridge._handle_agent_speech_stopped()
+
+            bridge._schedule_patient_response(
+                {
+                    "item_id": "agent-1",
+                    "transcript": "Just to confirm, I have your name as Maya Patel?",
+                }
+            )
+            await asyncio.sleep(0.2)
+
+            self.assertEqual(fake_ws.sent, [])
+
+            bridge._schedule_patient_response(
+                {
+                    "item_id": "agent-2",
+                    "transcript": (
+                        "And your date of birth as March 14, 1987. Is that correct? "
+                        "If so, could you please spell your first and last name for me?"
+                    ),
+                }
+            )
+            await asyncio.sleep(1.0)
+
+            self.assertEqual(len(fake_ws.sent), 1)
+            self.assertIn("M-A-Y-A P-A-T-E-L", fake_ws.sent[0]["response"]["instructions"])
+
     async def test_dob_confirmation_does_not_increment_repeated_info_counter(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
@@ -787,6 +859,56 @@ class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(fake_twilio.close_code, 1000)
             self.assertIn({"event": "clear", "streamSid": "MZ123"}, fake_twilio.sent)
 
+    async def test_fact_readback_fragments_do_not_burn_turn_limit(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_ws = FakeOpenAIWebSocket()
+            fake_twilio = FakeTwilioWebSocket()
+            scenario = replace(
+                load_scenario("t01_smoke"),
+                limits=CallLimits(
+                    max_call_seconds=240,
+                    max_silence_seconds=20,
+                    max_turns=1,
+                ),
+            )
+            bridge = RealtimeBridge(
+                self.settings(),
+                BridgeState(
+                    stream_sid="MZ123",
+                    scenario=scenario,
+                    events_path=Path(temp_dir) / "events.jsonl",
+                ),
+            )
+            bridge._openai_ws = fake_ws
+
+            stopped = await bridge._stop_if_transcript_hits_hard_limit(
+                fake_twilio,
+                {"item_id": "agent-1", "transcript": "I have your phone number as 555"},
+            )
+            self.assertFalse(stopped)
+            self.assertEqual(bridge._agent_turn_count, 0)
+            bridge._pending_fact_readback_fragments.append("I have your phone number as 555")
+
+            stopped = await bridge._stop_if_transcript_hits_hard_limit(
+                fake_twilio,
+                {"item_id": "agent-2", "transcript": "Four four seven."},
+            )
+            self.assertFalse(stopped)
+            self.assertEqual(bridge._agent_turn_count, 0)
+
+            stopped = await bridge._stop_if_transcript_hits_hard_limit(
+                fake_twilio,
+                {"item_id": "agent-3", "transcript": "How can I help you?"},
+            )
+            self.assertFalse(stopped)
+            self.assertEqual(bridge._agent_turn_count, 1)
+
+            stopped = await bridge._stop_if_transcript_hits_hard_limit(
+                fake_twilio,
+                {"item_id": "agent-4", "transcript": "Can you repeat that?"},
+            )
+            self.assertTrue(stopped)
+
     async def test_emergency_stop_phrase_closes_twilio_stream(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             fake_ws = FakeOpenAIWebSocket()
@@ -877,6 +999,28 @@ class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(fake_ws.closed)
             self.assertTrue(fake_twilio.closed)
             self.assertNotIn({"event": "clear", "streamSid": "MZ123"}, fake_twilio.sent)
+
+    async def test_playback_mark_refreshes_silence_activity_without_closing(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fake_twilio = FakeTwilioWebSocket()
+            bridge = RealtimeBridge(
+                self.settings(),
+                BridgeState(
+                    stream_sid="MZ123",
+                    scenario=load_scenario("t01_smoke"),
+                    events_path=Path(temp_dir) / "events.jsonl",
+                ),
+            )
+            bridge._last_conversation_activity_at = asyncio.get_running_loop().time() - 20.0
+
+            ended = await bridge.handle_twilio_mark(fake_twilio, "audio-r1")
+
+            self.assertFalse(ended)
+            self.assertFalse(fake_twilio.closed)
+            self.assertLess(
+                asyncio.get_running_loop().time() - bridge._last_conversation_activity_at,
+                1.0,
+            )
 
     async def test_final_goodbye_silence_watchdog_closes_without_clearing_audio(self):
         with tempfile.TemporaryDirectory() as temp_dir:

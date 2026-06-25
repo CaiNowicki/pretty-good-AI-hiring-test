@@ -54,6 +54,10 @@ from voicebot.patient_response_builders import (
     repeated_info_probability,
     requested_info_key,
     should_point_out_repeated_info,
+    transcript_completes_fact_readback_confirmation,
+    transcript_is_fact_confirmation_prompt,
+    transcript_is_fact_readback_continuation,
+    transcript_is_fact_readback_fragment,
 )
 from voicebot.scenario_loader import Scenario
 from voicebot.scenario_prompts import build_patient_system_prompt
@@ -109,6 +113,7 @@ __all__ = [
 
 DEFAULT_RESPONSE_DELAY_SECONDS = 0.0
 POST_VAD_SILENCE_CONFIRMATION_SECONDS = 0.05
+POST_FACT_CONFIRMATION_DEBOUNCE_SECONDS = 0.85
 POST_RESPONSE_COOLDOWN_SECONDS = 0.25
 LIMIT_WATCH_INTERVAL_SECONDS = 1.0
 MIN_COMPLETION_CHECK_SECONDS = 45.0
@@ -157,6 +162,7 @@ class RealtimeBridge:
         self._provided_info_counts: dict[str, int] = {}
         self._last_repeated_info_template_index: dict[str, int] = {}
         self._conversation_turns: list[dict[str, str]] = []
+        self._pending_fact_readback_fragments: list[str] = []
         self._completion_closing_requested = False
         self._pending_polite_end_mark_name = ""
         self._pending_polite_end_details: dict[str, Any] = {}
@@ -200,6 +206,7 @@ class RealtimeBridge:
         await self._terminate_call(twilio_ws, "emergency_stop", {"reason": reason})
 
     async def handle_twilio_mark(self, twilio_ws: WebSocket, mark_name: str) -> bool:
+        self._mark_conversation_activity()
         if not self._pending_polite_end_mark_name:
             return False
         if mark_name != self._pending_polite_end_mark_name:
@@ -474,6 +481,16 @@ class RealtimeBridge:
             )
             return True
 
+        if self._agent_turn_count_exempt(transcript):
+            self._log(
+                {
+                    "event": "call.agent_turn_not_counted",
+                    "reason": "partial_fact_readback",
+                    "trigger": transcript,
+                }
+            )
+            return False
+
         turn_key = build_agent_turn_key(event)
         if turn_key in self._counted_agent_turns:
             return False
@@ -541,6 +558,9 @@ class RealtimeBridge:
     def _schedule_patient_response(self, event: dict[str, Any]) -> None:
         if self._stop_requested:
             return
+        event = self._prepare_agent_transcript_event(event)
+        if event is None:
+            return
         self._pending_transcript_event = dict(event)
         if self._agent_speech_in_progress and not self.state.scenario.interruption_test:
             self._log(
@@ -561,6 +581,7 @@ class RealtimeBridge:
 
         if self._pending_response_task is not None:
             self._pending_response_task.cancel()
+        event = self._pending_transcript_event
         loop_time = asyncio.get_running_loop().time()
         cooldown_delay = max(0.0, self._cooldown_until - loop_time)
         vad_delay = 0.0
@@ -573,12 +594,16 @@ class RealtimeBridge:
                 0.0,
                 POST_VAD_SILENCE_CONFIRMATION_SECONDS - elapsed_since_speech_stopped,
             )
+            if self._agent_transcript_should_wait_for_late_context(event):
+                vad_delay = max(
+                    0.0,
+                    POST_FACT_CONFIRMATION_DEBOUNCE_SECONDS - elapsed_since_speech_stopped,
+                )
         delay = (
             INTERRUPTION_RESPONSE_DELAY_SECONDS
             if self.state.scenario.interruption_test
             else DEFAULT_RESPONSE_DELAY_SECONDS
         )
-        event = self._pending_transcript_event
         self._pending_transcript_event = None
         self._pending_response_task = asyncio.create_task(
             self._delayed_patient_response(event, max(delay, cooldown_delay, vad_delay))
@@ -648,6 +673,10 @@ class RealtimeBridge:
         if not transcript:
             self._log({"event": "patient_response.skipped", "reason": "empty_transcript"})
             return
+        event = self._prepare_agent_transcript_event(event)
+        if event is None:
+            return
+        transcript = str(event.get("transcript", "")).strip()
         if self._already_responded_or_busy(event):
             return
 
@@ -814,6 +843,57 @@ class RealtimeBridge:
             template_index = (previous_index + 1 + offset) % template_count
         self._last_repeated_info_template_index[info_key] = template_index
         return build_repeated_info_answer(info_key, exact_answer, template_index)
+
+    def _prepare_agent_transcript_event(self, event: dict[str, Any]) -> dict[str, Any] | None:
+        transcript = str(event.get("transcript", "")).strip()
+        if not transcript:
+            return event
+
+        if self._should_hold_fact_readback_fragment(transcript):
+            self._pending_fact_readback_fragments.append(transcript)
+            self._pending_fact_readback_fragments = self._pending_fact_readback_fragments[-4:]
+            self._log(
+                {
+                    "event": "patient_response.skipped",
+                    "reason": "partial_fact_readback",
+                    "trigger": transcript,
+                }
+            )
+            return None
+
+        if (
+            self._pending_fact_readback_fragments
+            and transcript_completes_fact_readback_confirmation(transcript)
+        ):
+            combined_transcript = " ".join(
+                [*self._pending_fact_readback_fragments, transcript]
+            )
+            self._pending_fact_readback_fragments = []
+            combined_event = dict(event)
+            combined_event["transcript"] = combined_transcript
+            combined_event["contextualized_transcript"] = True
+            return combined_event
+
+        if self._pending_fact_readback_fragments:
+            self._pending_fact_readback_fragments = []
+        return event
+
+    def _should_hold_fact_readback_fragment(self, transcript: str) -> bool:
+        if transcript_is_fact_readback_fragment(self.state.scenario, transcript):
+            return True
+        return bool(
+            self._pending_fact_readback_fragments
+            and transcript_is_fact_readback_continuation(transcript)
+        )
+
+    def _agent_transcript_should_wait_for_late_context(self, event: dict[str, Any]) -> bool:
+        transcript = str(event.get("transcript", "")).strip()
+        if not transcript:
+            return False
+        return transcript_is_fact_confirmation_prompt(self.state.scenario, transcript)
+
+    def _agent_turn_count_exempt(self, transcript: str) -> bool:
+        return self._should_hold_fact_readback_fragment(transcript)
 
     def _record_conversation_turn(self, speaker: str, text: str) -> None:
         cleaned = " ".join(text.split())
