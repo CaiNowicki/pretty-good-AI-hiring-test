@@ -263,6 +263,17 @@ class RealtimeBridgeTests(unittest.TestCase):
             build_exact_fact_answer(
                 scenario,
                 (
+                    "Just to confirm, I have your name as Maya Patel and your date of "
+                    "birth as March 14, 1987. Is that correct? If so, could you "
+                    "please spell your first and last name for me?"
+                ),
+            ),
+            "Yes, that's correct. M-A-Y-A P-A-T-E-L",
+        )
+        self.assertEqual(
+            build_exact_fact_answer(
+                scenario,
+                (
                     "I have your name as Maya Patel, your date of birth as March 14, "
                     "1987, and your phone number as 941-842-0514. Is all of that correct?"
                 ),
@@ -770,6 +781,53 @@ class RealtimeBridgeTurnGateTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.sleep(1.0)
 
             self.assertEqual(len(fake_ws.sent), 1)
+            self.assertIn("Yes, that's correct.", fake_ws.sent[0]["response"]["instructions"])
+            self.assertIn("M-A-Y-A P-A-T-E-L", fake_ws.sent[0]["response"]["instructions"])
+
+    async def test_partial_dob_name_readback_waits_for_late_spell_request(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bridge, fake_ws = self.bridge(Path(temp_dir) / "events.jsonl")
+            bridge._agent_speech_in_progress = True
+
+            bridge._schedule_patient_response(
+                {
+                    "item_id": "agent-1",
+                    "transcript": (
+                        "Just to confirm, I have your name as Maya Patel and your "
+                        "date of birth as March 14"
+                    ),
+                }
+            )
+
+            self.assertEqual(fake_ws.sent, [])
+            self.assertEqual(
+                bridge._pending_fact_readback_fragments,
+                [
+                    (
+                        "Just to confirm, I have your name as Maya Patel and your "
+                        "date of birth as March 14"
+                    )
+                ],
+            )
+
+            bridge._handle_agent_speech_stopped()
+            await asyncio.sleep(1.0)
+
+            self.assertEqual(fake_ws.sent, [])
+
+            bridge._schedule_patient_response(
+                {
+                    "item_id": "agent-2",
+                    "transcript": (
+                        "1987? Is that correct? If so, please spell your first and "
+                        "last name for me."
+                    ),
+                }
+            )
+            await asyncio.sleep(0.2)
+
+            self.assertEqual(len(fake_ws.sent), 1)
+            self.assertIn("Yes, that's correct.", fake_ws.sent[0]["response"]["instructions"])
             self.assertIn("M-A-Y-A P-A-T-E-L", fake_ws.sent[0]["response"]["instructions"])
 
     async def test_dob_confirmation_does_not_increment_repeated_info_counter(self):

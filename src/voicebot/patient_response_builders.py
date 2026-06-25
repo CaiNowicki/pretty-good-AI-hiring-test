@@ -382,10 +382,12 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     first_name = _caller_first_name(scenario)
     last_name = _caller_last_name(scenario)
 
+    confirmation_answer = build_fact_confirmation_answer(scenario, transcript, normalized)
     name_spelling_answer = _name_spelling_answer(scenario, normalized)
+    if confirmation_answer and name_spelling_answer:
+        return f"{confirmation_answer} {name_spelling_answer}"
     if name_spelling_answer:
         return name_spelling_answer
-    confirmation_answer = build_fact_confirmation_answer(scenario, transcript, normalized)
     if confirmation_answer:
         return confirmation_answer
     if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
@@ -859,6 +861,16 @@ def _mentions_wrong_name_for_confirmation(
     if "name" not in normalized_transcript:
         return False
     if _mentions_confirmed_name(scenario, normalized_transcript):
+        return False
+    if not any(
+        phrase in normalized_transcript
+        for phrase in (
+            "your name as",
+            "your name is",
+            "name as",
+            "name is",
+        )
+    ):
         return False
     return _looks_like_fact_confirmation(normalized_transcript)
 
