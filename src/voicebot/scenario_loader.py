@@ -96,7 +96,7 @@ class Scenario:
         default_factory=lambda: CallLimits(
             max_call_seconds=240,
             max_silence_seconds=20,
-            max_turns=22,
+            max_turns=34,
         )
     )
 
@@ -442,7 +442,7 @@ def _default_limits_for_scenario(
     return CallLimits(
         max_call_seconds=max_call_seconds,
         max_silence_seconds=20,
-        max_turns=22,
+        max_turns=34,
     )
 
 

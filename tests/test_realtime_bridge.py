@@ -344,6 +344,14 @@ class RealtimeBridgeTests(unittest.TestCase):
             self.assertIn("new patient", answer.casefold())
             self.assertIn("consultation", answer.casefold())
 
+    def test_minor_caller_phone_answer_uses_number_not_context_note(self):
+        scenario = load_scenario("e04_minor_caller")
+
+        answer = build_exact_fact_answer(scenario, "What is your phone number?")
+
+        self.assertEqual(answer, "555-684-2190")
+        self.assertNotIn("borrowed for the call", answer.casefold())
+
     def test_patient_subject_dob_uses_patient_date_of_birth(self):
         scenario = load_scenario("d03_background_interruptions")
 

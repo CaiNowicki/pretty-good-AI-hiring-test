@@ -11,7 +11,8 @@ facts:
   first_name: Jordan
   last_name: Ellis
   date_of_birth: February 11, 2010
-  phone: Parent's phone, borrowed for the call
+  phone: 555-684-2190
+  phone_context: Parent's phone, borrowed for the call
   injury: Sprained or possibly fractured wrist after impact during a basketball game
   parent_status: Parent is not on the call and is currently at work
   insurance: On parent's plan; details unknown to caller
@@ -47,6 +48,8 @@ scheduling_rules:
   - If asked for availability, answer generally that sooner is better because of the wrist injury.
   - Let the agent or parent-confirmation process introduce any exact date/time.
   - If the agent books without discussing consent, ask whether being 16 matters before accepting final details.
+limits:
+  max_turns: 34
 success_criteria: >
   Agent handles the minor caller with care. Either collects preliminary
   information and notes that a parent must confirm, or clearly explains

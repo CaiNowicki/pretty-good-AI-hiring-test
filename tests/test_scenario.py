@@ -47,7 +47,7 @@ class ScenarioTests(unittest.TestCase):
         self.assertEqual(scenario.limits.max_call_seconds, 240)
         self.assertNotEqual(scenario.limits.max_call_seconds, 60)
         self.assertEqual(scenario.limits.max_silence_seconds, 20)
-        self.assertEqual(scenario.limits.max_turns, 22)
+        self.assertEqual(scenario.limits.max_turns, 34)
 
     def test_loads_smoke_scenario_by_declared_id(self):
         scenario = load_scenario("T-01-smoke")
@@ -431,6 +431,15 @@ class ScenarioTests(unittest.TestCase):
 
         self.assertTrue(all(index < first_edge_index for index in standard_indices))
         self.assertTrue(all(index < first_difficult_index for index in edge_indices))
+
+    def test_minor_caller_has_extended_turn_limit(self):
+        scenario = load_scenario("e04_minor_caller")
+        bootstrap = build_realtime_bootstrap(scenario)
+
+        self.assertEqual(scenario.limits.max_call_seconds, 240)
+        self.assertEqual(scenario.limits.max_silence_seconds, 20)
+        self.assertEqual(scenario.limits.max_turns, 34)
+        self.assertEqual(bootstrap["limits"]["max_turns"], 34)
 
     def test_loads_all_difficult_scenarios_after_standard_batches(self):
         scenario_files = {
