@@ -93,6 +93,32 @@ class ScenarioCallPipelineTests(unittest.TestCase):
             )
             self.assertTrue((Path(temp_dir) / "calls" / "medication_refill" / "call-001").exists())
 
+    def test_shuffled_batch_records_composed_runtime_scenario_id(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            prepared = prepare_scenario_call_batch(
+                self.settings(),
+                ["a01_specific_time"],
+                calls_root=Path(temp_dir) / "calls",
+                shuffle_fungible=True,
+                shuffle_seed="unit-test",
+            )
+
+            self.assertEqual(len(prepared), 1)
+            self.assertEqual(prepared[0].scenario_stem, "a01_specific_time")
+            self.assertIn("__patient_", prepared[0].runtime_scenario_id)
+
+            metadata = json.loads((prepared[0].call_dir / "metadata.json").read_text())
+            self.assertEqual(metadata["scenario_stem"], "a01_specific_time")
+            self.assertEqual(metadata["runtime_scenario_id"], prepared[0].runtime_scenario_id)
+            self.assertEqual(
+                metadata["call_plan"]["scenario_id"],
+                prepared[0].runtime_scenario_id,
+            )
+            self.assertIn(
+                f"scenario_id={prepared[0].runtime_scenario_id}",
+                metadata["call_plan"]["url"],
+            )
+
     def test_run_scenario_call_starts_live_call_after_preparing_artifacts(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             with patch(

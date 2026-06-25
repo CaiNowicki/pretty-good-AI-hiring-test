@@ -5,8 +5,10 @@ from pathlib import Path
 from voicebot.scenario import (
     CallLimits,
     Scenario,
+    build_shuffled_call_set,
     build_patient_system_prompt,
     build_realtime_bootstrap,
+    compose_scenario_patient_id,
     load_scenario,
     ordered_scenario_stems,
     scenario_allows_meta_behavior,
@@ -51,6 +53,52 @@ class ScenarioTests(unittest.TestCase):
         scenario = load_scenario("T-01-smoke")
 
         self.assertEqual(scenario.patient_profile, "maya_patel")
+
+    def test_composed_fungible_scenario_uses_shuffled_patient_facts(self):
+        scenario = load_scenario(
+            compose_scenario_patient_id("a01_specific_time", "robert_hayes")
+        )
+
+        self.assertEqual(scenario.patient_profile, "robert_hayes")
+        self.assertEqual(
+            scenario.id,
+            "A-01-specific-time__patient_robert_hayes",
+        )
+        self.assertEqual(scenario.facts["full_name"], "Robert Hayes")
+        self.assertEqual(scenario.facts["date_of_birth"], "November 3, 1951")
+        self.assertEqual(scenario.facts["provider_preference"], "I don't have a provider preference")
+        self.assertIn("first_name_spelling", scenario.required_facts)
+
+    def test_non_fungible_scenarios_reject_patient_shuffle(self):
+        self.assertFalse(load_scenario("d01_hard_of_hearing").fungible)
+        self.assertFalse(load_scenario("e04_minor_caller").fungible)
+
+        with self.assertRaises(ValueError):
+            load_scenario(
+                compose_scenario_patient_id("d01_hard_of_hearing", "maya_patel")
+            )
+
+        with self.assertRaises(ValueError):
+            load_scenario(
+                compose_scenario_patient_id("e04_minor_caller", "maya_patel")
+            )
+
+    def test_build_shuffled_call_set_composes_only_fungible_scenarios(self):
+        shuffled = build_shuffled_call_set(
+            [
+                "a01_specific_time",
+                "d01_hard_of_hearing",
+                "m01_standard_refill",
+            ],
+            seed="unit-test",
+        )
+
+        self.assertEqual(len(shuffled), 3)
+        self.assertTrue(shuffled[0].startswith("a01_specific_time__patient_"))
+        self.assertEqual(shuffled[1], "d01_hard_of_hearing")
+        self.assertTrue(shuffled[2].startswith("m01_standard_refill__patient_"))
+        for scenario_id in shuffled:
+            load_scenario(scenario_id)
 
     def test_all_scenarios_have_phase_2_data_shape(self):
         for file_stem in ordered_scenario_stems():

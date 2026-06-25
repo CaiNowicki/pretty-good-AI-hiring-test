@@ -19,7 +19,12 @@ from voicebot.artifacts import (
 )
 from voicebot.config import Settings
 from voicebot.constants import ALLOWED_DESTINATION
-from voicebot.scenario import load_scenario, ordered_scenario_stems, scenario_path_for_id
+from voicebot.scenario import (
+    build_shuffled_call_set,
+    load_scenario,
+    ordered_scenario_stems,
+    scenario_path_for_id,
+)
 from voicebot.twilio_adapter import build_call_plan, create_outbound_call
 
 
@@ -34,6 +39,7 @@ class PreparedScenarioCall:
     call_dir: Path
     scenario_id: str
     scenario_stem: str
+    runtime_scenario_id: str
     metadata_path: Path
     events_path: Path
     transcript_path: Path
@@ -46,6 +52,7 @@ class PreparedScenarioCall:
             "call_dir": str(self.call_dir),
             "scenario_id": self.scenario_id,
             "scenario_stem": self.scenario_stem,
+            "runtime_scenario_id": self.runtime_scenario_id,
             "metadata_path": str(self.metadata_path),
             "events_path": str(self.events_path),
             "transcript_path": str(self.transcript_path),
@@ -148,6 +155,7 @@ def prepare_scenario_call(
     scenario = load_scenario(scenario_id)
     scenario_path = scenario_path_for_id(scenario_id)
     scenario_stem = scenario_path.stem
+    runtime_scenario_id = scenario_id
     call_type = scenario_type_for_id(scenario_stem)
     call_dir = next_call_dir(calls_root, call_type)
     call_id = _call_id_for(call_type, call_dir)
@@ -159,7 +167,7 @@ def prepare_scenario_call(
     call_plan = build_call_plan(
         settings,
         to_number,
-        scenario_stem,
+        runtime_scenario_id,
         call_id=call_id,
         call_type=call_type,
         call_dir_name=call_dir.name,
@@ -174,6 +182,8 @@ def prepare_scenario_call(
             "call_type": call_type,
             "scenario_id": scenario.id,
             "scenario_stem": scenario_stem,
+            "runtime_scenario_id": runtime_scenario_id,
+            "patient_profile": scenario.patient_profile,
             "status": "planned",
             "review_state": "not_started",
             "call_execution": {
@@ -203,6 +213,8 @@ def prepare_scenario_call(
             "status": "planned",
             "calls_enabled": False,
             "scenario_stem": scenario_stem,
+            "runtime_scenario_id": runtime_scenario_id,
+            "patient_profile": scenario.patient_profile,
         },
     )
     return PreparedScenarioCall(
@@ -211,6 +223,7 @@ def prepare_scenario_call(
         call_dir=call_dir,
         scenario_id=scenario.id,
         scenario_stem=scenario_stem,
+        runtime_scenario_id=runtime_scenario_id,
         metadata_path=metadata_path,
         events_path=events_path,
         transcript_path=transcript_path,
@@ -238,7 +251,7 @@ def start_prepared_scenario_call(
         result = create_outbound_call(
             settings,
             to_number,
-            prepared.scenario_stem,
+            prepared.runtime_scenario_id,
             call_id=prepared.call_id,
             call_type=prepared.call_type,
             call_dir_name=prepared.call_dir.name,
@@ -364,10 +377,14 @@ def run_scenario_call_batch(
     inter_call_delay_seconds: float = 0.0,
     wait_for_completion: bool = False,
     completion_timeout_seconds: float = DEFAULT_COMPLETION_TIMEOUT_SECONDS,
+    shuffle_fungible: bool = False,
+    shuffle_seed: int | str | None = None,
 ) -> list[PreparedScenarioCall]:
     """Prepare each selected scenario and optionally start Twilio calls in order."""
 
     selected = list(scenario_ids if scenario_ids is not None else ordered_scenario_stems())
+    if shuffle_fungible:
+        selected = build_shuffled_call_set(selected, seed=shuffle_seed)
     if limit is not None:
         selected = selected[:limit]
 
@@ -399,10 +416,14 @@ def prepare_scenario_call_batch(
     to_number: str = ALLOWED_DESTINATION,
     calls_root: Path = DEFAULT_CALLS_ROOT,
     limit: int | None = None,
+    shuffle_fungible: bool = False,
+    shuffle_seed: int | str | None = None,
 ) -> list[PreparedScenarioCall]:
     """Prepare grouped call artifacts for a scenario list without placing calls."""
 
     selected = list(scenario_ids if scenario_ids is not None else ordered_scenario_stems())
+    if shuffle_fungible:
+        selected = build_shuffled_call_set(selected, seed=shuffle_seed)
     if limit is not None:
         selected = selected[:limit]
     return [

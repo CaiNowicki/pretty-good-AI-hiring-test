@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import random
 import shutil
 import sys
 from dataclasses import replace
@@ -12,7 +13,7 @@ from pathlib import Path
 from voicebot.config import DEFAULT_ENV_FILE, load_settings
 from voicebot.config import Settings
 from voicebot.constants import ALLOWED_DESTINATION, DEFAULT_SCENARIO_ID
-from voicebot.scenario import load_scenario, ordered_scenario_stems
+from voicebot.scenario import build_shuffled_call_set, load_scenario, ordered_scenario_stems
 from voicebot.scenario_call_pipeline import (
     DEFAULT_COMPLETION_TIMEOUT_SECONDS,
     prepare_scenario_call_batch,
@@ -48,20 +49,23 @@ TOP_LEVEL_COMMANDS = {
 }
 
 CATEGORY_COMMANDS = {
-    "smoke": ("t", "smoke scenarios"),
-    "appointments": ("a", "appointment scheduling scenarios"),
-    "medication": ("m", "medication refill scenarios"),
-    "informational": ("i", "informational scenarios"),
-    "orthopedic": ("e", "orthopedic edge-case scenarios"),
-    "difficult": ("d", "difficult-call handling scenarios"),
+    "smoke": (("t",), "smoke scenarios"),
+    "appointment": (("a",), "appointment scheduling scenarios"),
+    "medication": (("m",), "medication refill scenarios"),
+    "informational": (("i",), "informational scenarios"),
+    "difficult": (("e", "d"), "difficult and edge-case scenarios"),
 }
 
 CATEGORY_ALIASES = {
-    "appointments": ["appointment", "appointment-scheduling", "scheduling"],
+    "appointment": ["appointments", "appointment-scheduling", "scheduling"],
     "medication": ["medication-refill", "refill"],
     "informational": ["information-gathering", "info"],
-    "orthopedic": ["orthopedic-edge-cases", "edge-cases"],
-    "difficult": ["difficult-call-handling"],
+    "difficult": [
+        "difficult-call-handling",
+        "orthopedic",
+        "orthopedic-edge-cases",
+        "edge-cases",
+    ],
 }
 
 
@@ -80,13 +84,20 @@ def _load_settings(args: argparse.Namespace) -> Settings:
     return settings
 
 
-def _scenario_stems_for_prefix(prefix: str) -> list[str]:
-    normalized = prefix.casefold()
+def _scenario_stems_for_prefixes(prefixes: tuple[str, ...]) -> list[str]:
+    normalized = tuple(prefix.casefold() for prefix in prefixes)
     return [
         scenario_id
         for scenario_id in ordered_scenario_stems()
-        if scenario_id[:1].casefold() == normalized
+        if scenario_id[:1].casefold() in normalized
     ]
+
+
+def _choose_random_scenario(scenario_ids: list[str], seed: str | None) -> list[str]:
+    if not scenario_ids:
+        return []
+    rng = random.Random(seed)
+    return [rng.choice(scenario_ids)]
 
 
 def dry_run(args: argparse.Namespace) -> int:
@@ -144,7 +155,10 @@ def _confirm_pipeline_user_understands(
         return True
 
     print("")
-    print(f"LIVE BATCH: this will start {len(scenario_ids)} Twilio calls to {args.to}.")
+    if len(scenario_ids) == 1:
+        print(f"LIVE SCENARIO: this will start 1 Twilio call to {args.to}.")
+    else:
+        print(f"LIVE BATCH: this will start {len(scenario_ids)} Twilio calls to {args.to}.")
     print("The local webhook server and PUBLIC_BASE_URL tunnel must already be reachable.")
     if wait_for_completion and len(scenario_ids) > 1:
         print("Each next call will start after the previous call completes.")
@@ -222,15 +236,27 @@ def call(args: argparse.Namespace) -> int:
 
 def prepare_pipeline(args: argparse.Namespace) -> int:
     settings = _load_settings(args)
-    category_prefix = getattr(args, "category_prefix", None)
-    if category_prefix:
-        scenario_ids = _scenario_stems_for_prefix(category_prefix)
+    category_prefixes = getattr(args, "category_prefixes", None)
+    category_mode = category_prefixes is not None
+    if category_mode:
+        scenario_ids = _scenario_stems_for_prefixes(category_prefixes)
+        if args.limit is not None:
+            scenario_ids = scenario_ids[: args.limit]
+        if not args.batch:
+            scenario_ids = _choose_random_scenario(scenario_ids, args.shuffle_seed)
+        scenario_ids = build_shuffled_call_set(scenario_ids, seed=args.shuffle_seed)
     elif args.all_scenarios:
         scenario_ids = ordered_scenario_stems()
+        if args.limit is not None:
+            scenario_ids = scenario_ids[: args.limit]
+        if args.shuffle_fungible:
+            scenario_ids = build_shuffled_call_set(scenario_ids, seed=args.shuffle_seed)
     else:
         scenario_ids = args.scenario or [DEFAULT_SCENARIO_ID]
-    if args.limit is not None:
-        scenario_ids = scenario_ids[: args.limit]
+        if args.limit is not None:
+            scenario_ids = scenario_ids[: args.limit]
+        if args.shuffle_fungible:
+            scenario_ids = build_shuffled_call_set(scenario_ids, seed=args.shuffle_seed)
 
     wait_for_completion = args.live and not args.no_wait_for_completion
     inter_call_delay_seconds = args.inter_call_delay_seconds
@@ -265,15 +291,35 @@ def prepare_pipeline(args: argparse.Namespace) -> int:
         )
         print("Prepared scenario-call pipeline artifacts without placing calls:")
     for item in prepared:
-        print(f"  {item.call_id}: {item.call_dir}")
+        print(f"  {item.call_id}: {item.call_dir} [{item.runtime_scenario_id}]")
     return 0
 
 
-def _add_batch_args(parser: argparse.ArgumentParser, *, include_selection: bool) -> None:
+def _add_batch_args(
+    parser: argparse.ArgumentParser,
+    *,
+    include_selection: bool,
+    include_batch_modifier: bool = False,
+) -> None:
     if include_selection:
         parser.add_argument("--scenario", action="append")
         parser.add_argument("--all-scenarios", action="store_true")
+    if include_batch_modifier:
+        parser.add_argument(
+            "--batch",
+            action="store_true",
+            help="Run one shuffled call for every scenario in this category",
+        )
     parser.add_argument("--limit", type=int)
+    parser.add_argument(
+        "--shuffle-fungible",
+        action="store_true",
+        help="Pair fungible scenario templates with shuffled patient profiles",
+    )
+    parser.add_argument(
+        "--shuffle-seed",
+        help="Seed for reproducible fungible scenario/patient shuffles",
+    )
     parser.add_argument("--live", action="store_true", help="Originate Twilio calls")
     parser.add_argument(
         "--inter-call-delay-seconds",
@@ -351,14 +397,18 @@ def main(argv: list[str] | None = None) -> int:
     _add_batch_args(pipeline_parser, include_selection=True)
     pipeline_parser.set_defaults(func=prepare_pipeline)
 
-    for command, (prefix, description) in CATEGORY_COMMANDS.items():
+    for command, (prefixes, description) in CATEGORY_COMMANDS.items():
         category_parser = subparsers.add_parser(
             command,
             aliases=CATEGORY_ALIASES.get(command, []),
-            help=f"Batch all {description}",
+            help=f"Run a shuffled {description[:-1] if description.endswith('s') else description}",
         )
-        _add_batch_args(category_parser, include_selection=False)
-        category_parser.set_defaults(func=prepare_pipeline, category_prefix=prefix)
+        _add_batch_args(
+            category_parser,
+            include_selection=False,
+            include_batch_modifier=True,
+        )
+        category_parser.set_defaults(func=prepare_pipeline, category_prefixes=prefixes)
 
     list_parser = subparsers.add_parser("list-scenarios", help="List runnable scenario codes")
     list_parser.set_defaults(func=list_scenarios)

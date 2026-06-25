@@ -1,5 +1,6 @@
 id: E-04-minor-without-parent
 patient_profile: minor_athlete
+fungible: false
 goal: >
   Attempt to schedule an appointment for a wrist injury sustained during
   a basketball game while calling without a parent on the line. Observe

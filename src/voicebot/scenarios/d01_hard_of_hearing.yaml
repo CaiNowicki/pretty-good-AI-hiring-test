@@ -1,5 +1,6 @@
 id: D-01-hard-of-hearing
 patient_profile: robert_hayes
+fungible: false
 goal: >
   Schedule a routine appointment while mishearing several details and asking
   for repeats. The agent must stay patient and clear while still completing
