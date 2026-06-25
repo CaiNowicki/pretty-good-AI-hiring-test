@@ -47,3 +47,33 @@ ask for identity verification after the caller states the reason for calling.
 If caller identity is inferred from phone metadata or an existing record, the
 agent should phrase it as a verification step and avoid mixing that with its own
 name.
+
+## CB-IDENTITY-02: Agent Repeats "I Can't Verify You" Despite Caller Participation
+
+Severity: Medium
+
+Status: Observation / potential bug. Needs transcript-backed reproduction before
+being used in the final report.
+
+Evidence:
+
+- Manual observation: the agent bot has repeatedly said variants of "I can't
+  verify you" across calls.
+- Suspected contributing factor: repeated use of the same patient personas may
+  be causing the agent to rely on stale or hallucinated identity context instead
+  of the facts provided in the current call. This is only a hypothesis until
+  confirmed against call transcripts and scenario/persona inputs.
+
+Why it matters:
+
+Identity verification should be strict, but it should also be explainable and
+grounded in the current conversation. Repeatedly refusing verification without a
+clear mismatch can block legitimate callers, create confusion, and make the
+agent appear to be using hidden or incorrect patient details.
+
+Expected behavior:
+
+The agent should state exactly which required identifier is missing or
+mismatched, allow the caller to provide or correct that identifier, and avoid
+repeating a generic verification failure when the caller has supplied the
+requested information.
