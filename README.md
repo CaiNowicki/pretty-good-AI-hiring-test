@@ -453,3 +453,5 @@ Difficult call handling:
   after the call ends, not when the CLI exits.
 - Transcripts are generated from OpenAI Realtime transcript events and should be
   reviewed before being used as final bug evidence.
+- Patient bot current limitation, no intent to fix: voice gender cues do not
+  always match the patient persona.
