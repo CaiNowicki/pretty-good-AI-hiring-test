@@ -45,6 +45,15 @@ class IssueFinding:
 
 
 @dataclass(frozen=True)
+class TurnTakingMetrics:
+    events_observed: bool
+    agent_over_patient_count: int
+    patient_over_agent_count: int
+    patient_response_cancelled_count: int
+    score_adjustment: float
+
+
+@dataclass(frozen=True)
 class CallCandidate:
     call_id: str
     call_type: str
@@ -65,6 +74,7 @@ class CallCandidate:
     sensibility_status: str
     sensibility_flags: list[str]
     issue_findings: list[IssueFinding]
+    turn_taking: TurnTakingMetrics
     score: float
     rank: int | None = None
 
@@ -111,6 +121,7 @@ def evaluate_call_dir(call_dir: Path, *, min_duration_seconds: float = 60.0) -> 
         turns=turns,
     )
     sensibility_status, sensibility_flags = _sensibility_check(turns)
+    turn_taking = _turn_taking_metrics(call_dir, turns)
     issue_findings = _automated_issue_scan(
         call_dir,
         metadata,
@@ -125,6 +136,7 @@ def evaluate_call_dir(call_dir: Path, *, min_duration_seconds: float = 60.0) -> 
         sensibility_flags=sensibility_flags,
         gate_failures=gate_failures,
         issue_findings=issue_findings,
+        turn_taking=turn_taking,
     )
 
     agent_turns = sum(1 for turn in turns if turn.speaker == "PGAI Agent")
@@ -150,6 +162,7 @@ def evaluate_call_dir(call_dir: Path, *, min_duration_seconds: float = 60.0) -> 
         sensibility_status=sensibility_status,
         sensibility_flags=sensibility_flags,
         issue_findings=issue_findings,
+        turn_taking=turn_taking,
         score=score,
     )
 
@@ -163,6 +176,7 @@ def evaluate_calls(
     return [
         evaluate_call_dir(call_dir, min_duration_seconds=min_duration_seconds)
         for call_dir in discover_call_dirs(calls_root, include_legacy=include_legacy)
+        if (call_dir / "transcript.txt").exists()
     ]
 
 
@@ -180,26 +194,130 @@ def select_top_candidates(
     eligible.sort(key=lambda candidate: (-candidate.score, candidate.call_type, candidate.call_id))
 
     selected: list[CallCandidate] = []
+    remaining = list(eligible)
     type_counts: dict[str, int] = {}
-    for candidate in eligible:
-        if len(selected) >= top_n:
+    seen_issue_signatures: set[tuple[str, str]] = set()
+    issue_signature_counts = _issue_signature_counts(eligible)
+    while len(selected) < top_n:
+        candidate = _pop_next_selection_candidate(
+            remaining,
+            seen_issue_signatures=seen_issue_signatures,
+            issue_signature_counts=issue_signature_counts,
+            type_counts=type_counts,
+            max_per_call_type=max_per_call_type,
+        )
+        if candidate is None:
             break
-        if type_counts.get(candidate.call_type, 0) >= max_per_call_type:
-            continue
         selected.append(candidate)
         type_counts[candidate.call_type] = type_counts.get(candidate.call_type, 0) + 1
+        seen_issue_signatures.update(_agent_bug_issue_signatures(candidate.issue_findings))
 
-    if len(selected) < top_n:
-        already_selected = {candidate.call_dir for candidate in selected}
-        for candidate in eligible:
-            if len(selected) >= top_n:
-                break
-            if candidate.call_dir in already_selected:
-                continue
-            selected.append(candidate)
-            already_selected.add(candidate.call_dir)
+    while len(selected) < top_n:
+        candidate = _pop_next_selection_candidate(
+            remaining,
+            seen_issue_signatures=seen_issue_signatures,
+            issue_signature_counts=issue_signature_counts,
+            type_counts=type_counts,
+            max_per_call_type=None,
+        )
+        if candidate is None:
+            break
+        selected.append(candidate)
+        type_counts[candidate.call_type] = type_counts.get(candidate.call_type, 0) + 1
+        seen_issue_signatures.update(_agent_bug_issue_signatures(candidate.issue_findings))
 
     return [replace(candidate, rank=index) for index, candidate in enumerate(selected, start=1)]
+
+
+def _pop_next_selection_candidate(
+    candidates: list[CallCandidate],
+    *,
+    seen_issue_signatures: set[tuple[str, str]],
+    issue_signature_counts: dict[tuple[str, str], int],
+    type_counts: dict[str, int],
+    max_per_call_type: int | None,
+) -> CallCandidate | None:
+    best_index: int | None = None
+    best_key: tuple[float, float, int] | None = None
+    for index, candidate in enumerate(candidates):
+        if (
+            max_per_call_type is not None
+            and type_counts.get(candidate.call_type, 0) >= max_per_call_type
+        ):
+            continue
+        novelty_bonus = _selection_novelty_bonus(
+            candidate,
+            seen_issue_signatures=seen_issue_signatures,
+            issue_signature_counts=issue_signature_counts,
+        )
+        key = (candidate.score + novelty_bonus, candidate.score, -index)
+        if best_key is None or key > best_key:
+            best_key = key
+            best_index = index
+    if best_index is None:
+        return None
+    return candidates.pop(best_index)
+
+
+def _selection_novelty_bonus(
+    candidate: CallCandidate,
+    *,
+    seen_issue_signatures: set[tuple[str, str]],
+    issue_signature_counts: dict[tuple[str, str], int],
+) -> float:
+    bonus = 0.0
+    for finding in candidate.issue_findings:
+        signature = _agent_bug_issue_signature(finding)
+        if signature is None or signature in seen_issue_signatures:
+            continue
+        bonus += _finding_bug_value(finding)
+        frequency = issue_signature_counts.get(signature, 0)
+        if frequency == 1:
+            bonus += 4.0
+        elif frequency == 2:
+            bonus += 2.0
+    return min(bonus, 12.0)
+
+
+def _issue_signature_counts(candidates: Iterable[CallCandidate]) -> dict[tuple[str, str], int]:
+    counts: dict[tuple[str, str], int] = {}
+    for candidate in candidates:
+        for signature in set(_agent_bug_issue_signatures(candidate.issue_findings)):
+            counts[signature] = counts.get(signature, 0) + 1
+    return counts
+
+
+def _agent_bug_issue_signatures(findings: Iterable[IssueFinding]) -> list[tuple[str, str]]:
+    signatures: list[tuple[str, str]] = []
+    for finding in findings:
+        signature = _agent_bug_issue_signature(finding)
+        if signature is not None:
+            signatures.append(signature)
+    return signatures
+
+
+def _agent_bug_issue_signature(finding: IssueFinding) -> tuple[str, str] | None:
+    if finding.source_guess not in {"agent_bot", "conversation", "unknown"}:
+        return None
+    if finding.source_guess == "conversation" and finding.summary != (
+        "Patient repeatedly indicates the agent is re-asking for already-provided verification."
+    ):
+        return None
+    if finding.severity == "low":
+        return None
+    return (finding.category, finding.summary)
+
+
+def _finding_bug_value(finding: IssueFinding) -> float:
+    if finding.severity == "high":
+        value = 8.0
+    elif finding.severity == "medium":
+        value = 4.0
+    else:
+        value = 1.0
+    if finding.source_guess == "unknown":
+        value *= 0.5
+    return value
 
 
 def write_selection_reports(
@@ -259,11 +377,6 @@ def render_markdown_report(
         if candidate.gates_passed and candidate.sensibility_status != "fail"
     ]
     rejected = [candidate for candidate in candidates if not candidate.gates_passed]
-    needs_review = [
-        candidate
-        for candidate in selected
-        if candidate.sensibility_status == "review"
-    ]
     issue_counts = _issue_counts(candidates)
     lines = [
         "# Final Call Candidate Review",
@@ -310,15 +423,13 @@ def render_markdown_report(
             "",
         ]
     )
-    if needs_review:
-        lines.extend(["## Selected Calls With Review Flags", ""])
-        lines.extend(_candidate_table(needs_review, include_rank=True))
-        lines.append("")
-
-    selected_with_issues = [candidate for candidate in selected if candidate.issue_findings]
-    if selected_with_issues:
+    selected_findings = _selected_automated_findings(selected)
+    if selected_findings:
         lines.extend(["## Automated Issues In Selected Calls", ""])
-        lines.extend(_issue_table(selected_with_issues))
+        lines.extend(_selected_issue_count_table(selected_findings))
+        lines.append("")
+        lines.extend(["## Selected Call Findings", ""])
+        lines.extend(_selected_findings_table(selected_findings))
         lines.append("")
 
     near_misses = sorted(
@@ -407,7 +518,7 @@ def _candidate_table(candidates: list[CallCandidate], *, include_rank: bool) -> 
     ]
     for candidate in candidates:
         rank_cell = f"| {candidate.rank} " if include_rank else ""
-        flags = "; ".join(candidate.sensibility_flags) or "none"
+        flags = _candidate_flags_text(candidate)
         duration = (
             f"{candidate.duration_seconds:.0f}s"
             if candidate.duration_seconds is not None
@@ -423,19 +534,128 @@ def _candidate_table(candidates: list[CallCandidate], *, include_rank: bool) -> 
     return lines
 
 
-def _issue_table(candidates: list[CallCandidate]) -> list[str]:
+def _candidate_flags_text(candidate: CallCandidate) -> str:
+    if not candidate.sensibility_flags:
+        return "none"
+
+    labels = [
+        _sensibility_flag_evidence(flag, candidate)
+        if flag.startswith("possible_verification_loop_")
+        else flag
+        for flag in candidate.sensibility_flags
+    ]
+    return _escape_table("; ".join(label for label in labels if label) or "none")
+
+
+def _selected_findings_table(findings: list[tuple[CallCandidate, IssueFinding]]) -> list[str]:
     lines = ["| Call | Category | Severity | Source | Finding | Evidence |"]
     lines.append("| --- | --- | --- | --- | --- | --- |")
-    for candidate in candidates:
-        for finding in candidate.issue_findings:
-            lines.append(
-                (
-                    f"| `{candidate.call_id}` | {finding.category} | {finding.severity} | "
-                    f"{finding.source_guess} | {_escape_table(finding.summary)} | "
-                    f"{_escape_table(finding.evidence)} |"
-                )
+    for candidate, finding in findings:
+        lines.append(
+            (
+                f"| `{candidate.call_id}` | {finding.category} | {finding.severity} | "
+                f"{finding.source_guess} | {_escape_table(finding.summary)} | "
+                f"{_escape_table(finding.evidence)} |"
             )
+        )
     return lines
+
+
+def _selected_issue_count_table(findings: list[tuple[CallCandidate, IssueFinding]]) -> list[str]:
+    counts: dict[str, int] = {}
+    for _candidate, finding in findings:
+        counts[finding.summary] = counts.get(finding.summary, 0) + 1
+    lines = ["| Type of Error | Selected Calls |"]
+    lines.append("| --- | ---: |")
+    for summary, count in sorted(counts.items(), key=lambda item: (-item[1], item[0])):
+        lines.append(f"| {_escape_table(summary)} | {count} |")
+    return lines
+
+
+def _selected_automated_findings(
+    candidates: list[CallCandidate],
+) -> list[tuple[CallCandidate, IssueFinding]]:
+    findings: list[tuple[CallCandidate, IssueFinding]] = []
+    for candidate in candidates:
+        findings.extend((candidate, finding) for finding in candidate.issue_findings)
+        findings.extend(
+            (candidate, _sensibility_flag_finding(flag, candidate))
+            for flag in candidate.sensibility_flags
+        )
+    return findings
+
+
+def _sensibility_flag_finding(flag: str, candidate: CallCandidate) -> IssueFinding:
+    return IssueFinding(
+        "review_flag",
+        "medium",
+        "conversation",
+        _sensibility_flag_summary(flag),
+        _sensibility_flag_evidence(flag, candidate),
+    )
+
+
+def _sensibility_flag_summary(flag: str) -> str:
+    if flag.startswith("possible_verification_loop_"):
+        return "Possible verification loop detected from repeated verification exchanges."
+    if flag.startswith("repeated_utterance_count_"):
+        return "Repeated non-verification utterances may indicate a loop."
+    if flag.startswith("long_same_speaker_run_"):
+        return "Long same-speaker run may indicate interruption, grouping, or stalled dialogue."
+    if flag == "patient_role_drift_phrase":
+        return "Patient bot may have drifted into agent-side role language."
+    if flag == "too_few_turns_for_rich_review":
+        return "Call has few turns, limiting the opportunity to judge sustained behavior."
+    return flag.replace("_", " ").capitalize()
+
+
+def _sensibility_flag_evidence(flag: str, candidate: CallCandidate) -> str:
+    if flag.startswith("possible_verification_loop_"):
+        return _verification_loop_evidence(candidate) or flag
+    return flag
+
+
+def _verification_loop_evidence(candidate: CallCandidate) -> str:
+    if candidate.transcript_path is None:
+        return ""
+
+    turns = _read_transcript_turns(Path(candidate.transcript_path))
+    if not turns:
+        return ""
+
+    details: list[tuple[str, str, int]] = []
+    seen: dict[tuple[str, str], tuple[str, int]] = {}
+    ordered_keys: list[tuple[str, str]] = []
+    for turn in turns:
+        normalized = re.sub(r"\W+", " ", turn.text.casefold()).strip()
+        if len(normalized.split()) < 3 or not _is_verification_utterance(normalized):
+            continue
+        key = (turn.speaker, normalized)
+        if key not in seen:
+            seen[key] = (turn.text, 0)
+            ordered_keys.append(key)
+        original, count = seen[key]
+        seen[key] = (original, count + 1)
+
+    for key in ordered_keys:
+        original, count = seen[key]
+        if count > 1:
+            details.append((key[0], original, count))
+
+    if details:
+        return "; ".join(
+            f"{speaker} repeated {count} times: {text}"
+            for speaker, text, count in details[:5]
+        )
+
+    pushback = _already_provided_pushback_details(turns)
+    if pushback:
+        return "; ".join(
+            f"Patient Bot repeated already-provided pushback {count} times: {text}"
+            for text, count in pushback[:5]
+        )
+
+    return ""
 
 
 def _issue_counts(candidates: list[CallCandidate]) -> dict[str, int]:
@@ -605,6 +825,111 @@ def _duration_from_events(path: Path) -> float | None:
     return max((end_time - start_time).total_seconds(), 0.0)
 
 
+def _turn_taking_metrics(call_dir: Path, turns: list[TranscriptTurn]) -> TurnTakingMetrics:
+    path = call_dir / "events.jsonl"
+    if not path.exists():
+        return TurnTakingMetrics(False, 0, 0, 0, 0.0)
+
+    agent_over_patient_ids: set[str] = set()
+    patient_over_agent_ids: set[str] = set()
+    patient_response_cancelled = 0
+    events_observed = False
+    agent_speech_active = False
+    patient_response_active_ids: set[str] = set()
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return TurnTakingMetrics(False, 0, 0, 0, 0.0)
+
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+
+        event_name = event.get("event")
+        if event_name == "agent_speech_during_bot_audio":
+            events_observed = True
+            agent_over_patient_ids.add(str(event.get("response_id") or len(agent_over_patient_ids)))
+            continue
+        if event_name == "patient_response.cancelled" and event.get("reason") == "agent_continued":
+            events_observed = True
+            patient_response_cancelled += 1
+            continue
+
+        payload = event.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        event_type = payload.get("type")
+        if event_type == "input_audio_buffer.speech_started":
+            events_observed = True
+            agent_speech_active = True
+            agent_over_patient_ids.update(patient_response_active_ids)
+            continue
+        if event_type == "input_audio_buffer.speech_stopped":
+            events_observed = True
+            agent_speech_active = False
+            continue
+        if event_type == "response.output_audio_transcript.delta":
+            events_observed = True
+            response_id = str(payload.get("response_id") or payload.get("item_id") or "unknown")
+            patient_response_active_ids.add(response_id)
+            if agent_speech_active and response_id not in agent_over_patient_ids:
+                patient_over_agent_ids.add(response_id)
+            continue
+        if event_type == "response.output_audio_transcript.done":
+            events_observed = True
+            response_id = str(payload.get("response_id") or payload.get("item_id") or "unknown")
+            if agent_speech_active and response_id not in agent_over_patient_ids:
+                patient_over_agent_ids.add(response_id)
+            patient_response_active_ids.discard(response_id)
+            continue
+        if event_type == "conversation.item.input_audio_transcription.completed":
+            events_observed = True
+            continue
+
+    adjustment = _turn_taking_score_adjustment(
+        events_observed=events_observed,
+        turns=turns,
+        agent_over_patient=len(agent_over_patient_ids),
+        patient_over_agent=len(patient_over_agent_ids),
+        patient_response_cancelled=patient_response_cancelled,
+    )
+    return TurnTakingMetrics(
+        events_observed,
+        len(agent_over_patient_ids),
+        len(patient_over_agent_ids),
+        patient_response_cancelled,
+        adjustment,
+    )
+
+
+def _turn_taking_score_adjustment(
+    *,
+    events_observed: bool,
+    turns: list[TranscriptTurn],
+    agent_over_patient: int,
+    patient_over_agent: int,
+    patient_response_cancelled: int,
+) -> float:
+    if not events_observed:
+        return 0.0
+
+    adjustment = 0.0
+    clean_turn_taking = (
+        len(turns) >= 8
+        and agent_over_patient == 0
+        and patient_over_agent == 0
+        and patient_response_cancelled == 0
+    )
+    if clean_turn_taking:
+        adjustment += 4.0
+
+    adjustment -= min(agent_over_patient * 0.75, 3.0)
+    adjustment -= min(patient_over_agent * 3.0, 12.0)
+    return round(adjustment, 3)
+
+
 def _parse_iso_datetime(value: Any) -> datetime | None:
     if not isinstance(value, str):
         return None
@@ -665,9 +990,12 @@ def _sensibility_check(turns: list[TranscriptTurn]) -> tuple[str, list[str]]:
     if longest_run >= 5:
         flags.append(f"long_same_speaker_run_{longest_run}")
 
-    repeated = _repeated_utterance_count(turns)
-    if repeated >= 3:
-        flags.append(f"repeated_utterance_count_{repeated}")
+    verification_repeated, other_repeated = _repeated_utterance_counts_by_context(turns)
+    verification_repeated += _already_provided_pushback_count(turns)
+    if verification_repeated >= 2:
+        flags.append(f"possible_verification_loop_{verification_repeated}")
+    if other_repeated >= 3:
+        flags.append(f"repeated_utterance_count_{other_repeated}")
 
     patient_text = "\n".join(turn.text for turn in turns if turn.speaker == "Patient Bot")
     if META_DISCLOSURE_PATTERN.search(patient_text):
@@ -682,6 +1010,8 @@ def _sensibility_check(turns: list[TranscriptTurn]) -> tuple[str, list[str]]:
     if severe.intersection(flags):
         return "fail", flags
     if any(flag.startswith("long_same_speaker_run_") for flag in flags):
+        return "review", flags
+    if any(flag.startswith("possible_verification_loop_") for flag in flags):
         return "review", flags
     if any(flag.startswith("repeated_utterance_count_") for flag in flags):
         return "review", flags
@@ -715,7 +1045,7 @@ def _automated_issue_scan(
 
     _scan_policy_issues(findings, transcript_text, agent_text, patient_text, scenario_blob)
     _scan_factual_issues(findings, transcript_text, agent_text, patient_text, scenario_blob)
-    _scan_flow_issues(findings, turns, agent_text)
+    _scan_flow_issues(findings, turns, patient_text, agent_text, scenario_blob)
     _scan_voice_quality_issues(
         findings,
         call_dir,
@@ -760,7 +1090,7 @@ def _scan_policy_issues(
                 "high",
                 "agent_bot",
                 "Emergency-like scenario lacks an obvious urgent-care or 911 redirect.",
-                _first_nonempty_line(transcript_text),
+                "No direct transcript line: this issue is inferred from emergency context and the absence of an urgent-care or 911 redirect.",
             )
         )
 
@@ -777,7 +1107,7 @@ def _scan_policy_issues(
                 "medium",
                 "agent_bot",
                 "Minor or guardian context may not have been acknowledged by the agent.",
-                _snippet(transcript_text, re.compile(r"\b(16|sixteen|mom|mother|guardian)\b", re.I)),
+                "No direct transcript line: this issue is inferred from minor or guardian context and the absence of agent acknowledgement.",
             )
         )
 
@@ -853,7 +1183,9 @@ def _scan_factual_issues(
 def _scan_flow_issues(
     findings: list[IssueFinding],
     turns: list[TranscriptTurn],
+    patient_text: str,
     agent_text: str,
+    scenario_blob: str,
 ) -> None:
     repeated_agent = _repeated_utterance_count(
         [turn for turn in turns if turn.speaker == "PGAI Agent"]
@@ -892,6 +1224,21 @@ def _scan_flow_issues(
             )
         )
 
+    already_provided = re.compile(
+        r"\bi already (?:gave|provided|shared|told|said|answered)\b",
+        re.I,
+    )
+    if len(already_provided.findall(patient_text)) >= 2:
+        findings.append(
+            IssueFinding(
+                "flow",
+                "medium",
+                "conversation",
+                "Patient repeatedly indicates the agent is re-asking for already-provided verification.",
+                _snippet(patient_text, already_provided),
+            )
+        )
+
     escalation = re.compile(
         r"\b("
         r"connect(?:ing)? you|transfer(?:ring)? you|representative|please wait|"
@@ -899,7 +1246,10 @@ def _scan_flow_issues(
         r")\b",
         re.I,
     )
-    if escalation.search(agent_text):
+    if escalation.search(agent_text) and not _escalation_appears_warranted(
+        agent_text,
+        scenario_blob,
+    ):
         findings.append(
             IssueFinding(
                 "flow",
@@ -909,6 +1259,66 @@ def _scan_flow_issues(
                 _snippet(agent_text, escalation),
             )
         )
+
+
+def _escalation_appears_warranted(agent_text: str, scenario_blob: str) -> bool:
+    normalized_agent = agent_text.casefold()
+    normalized_scenario = scenario_blob.casefold()
+
+    if re.search(
+        r"\b("
+        r"can'?t proceed further|can'?t access your record|can'?t locate your record|"
+        r"unable to proceed|can'?t check .* right now|can'?t process .* right now"
+        r")\b",
+        normalized_agent,
+    ):
+        return False
+
+    if re.search(
+        r"\b(?:do not|does not|should not|must not)\s+\w{0,20}\s*(?:escalate|transfer)\b",
+        normalized_scenario,
+    ):
+        return False
+
+    if (
+        "records request" in normalized_scenario
+        or "record sent" in normalized_scenario
+        or "medical records" in normalized_scenario
+    ):
+        return bool(
+            re.search(r"\b(record|records|authorization|release|fax|route)\b", normalized_agent)
+        )
+
+    if "no record" in normalized_scenario and "refill" in normalized_scenario:
+        return bool(
+            re.search(
+                r"\b(new patient|callback|call back|right place|alternative|staff|support team)\b",
+                normalized_agent,
+            )
+        )
+
+    if "refill" in normalized_scenario:
+        return bool(
+            re.search(r"\b(documented|submitted|sent it|request is in|clinic support team)\b", normalized_agent)
+            and re.search(r"\b(refill|medication)\b", normalized_agent)
+        )
+
+    if (
+        "appropriately escalate" in normalized_scenario
+        or "accept an escalation" in normalized_scenario
+        or "office follow-up" in normalized_scenario
+    ):
+        return bool(
+            re.search(
+                r"\b(policy|paperwork|question|staff|support team|follow up|follow-up)\b",
+                normalized_agent,
+            )
+        )
+
+    if "emergency" in normalized_scenario:
+        return bool(re.search(r"\b(911|emergency|urgent care| er\b)\b", normalized_agent))
+
+    return False
 
 
 def _scan_voice_quality_issues(
@@ -962,6 +1372,7 @@ def _score_candidate(
     sensibility_flags: list[str],
     gate_failures: list[str],
     issue_findings: list[IssueFinding],
+    turn_taking: TurnTakingMetrics,
 ) -> float:
     if gate_failures or sensibility_status == "fail":
         return 0.0
@@ -980,7 +1391,7 @@ def _score_candidate(
     balance_score = balance * 15.0
     complexity_bonus = min(max(turn_count - 8, 0), 10) * 0.5
     review_penalty = 8.0 if sensibility_status == "review" else 0.0
-    flag_penalty = min(len(sensibility_flags) * 2.0, 8.0)
+    flag_penalty = min(sum(_sensibility_flag_penalty(flag) for flag in sensibility_flags), 16.0)
     issue_bonus = _issue_opportunity_bonus(issue_findings)
     issue_penalty = _issue_source_penalty(issue_findings)
 
@@ -992,6 +1403,7 @@ def _score_candidate(
             + balance_score
             + complexity_bonus
             + issue_bonus
+            + turn_taking.score_adjustment
             - review_penalty
             - flag_penalty
             - issue_penalty,
@@ -1005,10 +1417,26 @@ def _issue_opportunity_bonus(findings: list[IssueFinding]) -> float:
     reviewable_findings = [
         finding
         for finding in findings
-        if finding.source_guess in {"agent_bot", "conversation", "unknown"}
+        if _agent_bug_issue_signature(finding) is not None
     ]
     categories = {finding.category for finding in reviewable_findings}
-    return min(len(categories) * 2.0 + len(reviewable_findings) * 0.5, 8.0)
+    return min(
+        sum(_finding_bug_value(finding) for finding in reviewable_findings)
+        + len(categories) * 2.0,
+        24.0,
+    )
+
+
+def _sensibility_flag_penalty(flag: str) -> float:
+    if flag == "patient_role_drift_phrase":
+        return 8.0
+    if (
+        flag.startswith("long_same_speaker_run_")
+        or flag.startswith("repeated_utterance_count_")
+        or flag.startswith("possible_verification_loop_")
+    ):
+        return 3.0
+    return 2.0
 
 
 def _issue_source_penalty(findings: list[IssueFinding]) -> float:
@@ -1038,6 +1466,11 @@ def _longest_same_speaker_run(turns: list[TranscriptTurn]) -> int:
 
 
 def _repeated_utterance_count(turns: list[TranscriptTurn]) -> int:
+    verification_repeated, other_repeated = _repeated_utterance_counts_by_context(turns)
+    return verification_repeated + other_repeated
+
+
+def _repeated_utterance_counts_by_context(turns: list[TranscriptTurn]) -> tuple[int, int]:
     counts: dict[tuple[str, str], int] = {}
     for turn in turns:
         normalized = re.sub(r"\W+", " ", turn.text.casefold()).strip()
@@ -1045,7 +1478,55 @@ def _repeated_utterance_count(turns: list[TranscriptTurn]) -> int:
             continue
         key = (turn.speaker, normalized)
         counts[key] = counts.get(key, 0) + 1
-    return sum(count - 1 for count in counts.values() if count > 1)
+    verification_repeated = 0
+    other_repeated = 0
+    for (_speaker, normalized), count in counts.items():
+        if count <= 1:
+            continue
+        repeated = count - 1
+        if _is_verification_utterance(normalized):
+            verification_repeated += repeated
+        else:
+            other_repeated += repeated
+    return verification_repeated, other_repeated
+
+
+def _is_verification_utterance(normalized: str) -> bool:
+    if re.search(r"\b\d{3}\s+\d{3}\s+\d{4}\b", normalized):
+        return True
+    return bool(
+        re.search(
+            r"\b("
+            r"date of birth|dob|phone number|full phone number|number you have on file|"
+            r"name|first name|last name|spell|spelling|confirm|correct|records?"
+            r")\b",
+            normalized,
+        )
+    )
+
+
+def _already_provided_pushback_count(turns: list[TranscriptTurn]) -> int:
+    patient_text = "\n".join(turn.text for turn in turns if turn.speaker == "Patient Bot")
+    count = len(_already_provided_pushback_pattern().findall(patient_text))
+    if count < 2:
+        return 0
+    return count
+
+
+def _already_provided_pushback_details(turns: list[TranscriptTurn]) -> list[tuple[str, int]]:
+    pushbacks = [
+        turn.text
+        for turn in turns
+        if turn.speaker == "Patient Bot"
+        and _already_provided_pushback_pattern().search(turn.text)
+    ]
+    if len(pushbacks) < 2:
+        return []
+    return [(pushbacks[0], len(pushbacks))]
+
+
+def _already_provided_pushback_pattern() -> re.Pattern[str]:
+    return re.compile(r"\bi already (?:gave|provided|shared|told|said|answered)\b", re.I)
 
 
 def _friendly_now() -> str:
