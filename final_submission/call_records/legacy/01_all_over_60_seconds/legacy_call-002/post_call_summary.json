@@ -1,0 +1,94 @@
+{
+  "call_sid": "CA96040aadeef492890a5532cb4532de35",
+  "control_events": [
+    {
+      "event": "patient_response.skipped",
+      "reason": "pre_opening_ivr",
+      "time": "2026-06-24T16:02:01+00:00"
+    },
+    {
+      "event": "patient_response.goal_opening",
+      "time": "2026-06-24T16:02:16+00:00",
+      "trigger": "Thanks for calling Pivot Point Orthopedics. This is James. How can I help you today?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:02:25+00:00",
+      "trigger": "Can you please provide your date of birth?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:02:41+00:00",
+      "trigger": "Thanks. What type of appointment do you need? For example, is this for a new patient consultation?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:02:44+00:00",
+      "trigger": "A follow-up, a routine visit, or something urgent?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:02:58+00:00",
+      "trigger": "Thanks for confirming."
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:03:02+00:00",
+      "trigger": "specific provider you'd like to see or"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:03:16+00:00",
+      "trigger": "It looks"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:03:20+00:00",
+      "trigger": "like you already have a new patient consultation"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:03:23+00:00",
+      "trigger": "In a peer"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:03:36+00:00",
+      "trigger": "You already have a new patient consultation appointment on file. I can help you reschedule or cancel it, or connect you to a team member for more help."
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:03:38+00:00",
+      "trigger": "What would you like to do?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:03:53+00:00",
+      "trigger": "I'm not able to reschedule directly, but I can connect you to a team member who could help with that. Please hold while I transfer."
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:03:54+00:00",
+      "trigger": "for you."
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:04:08+00:00",
+      "trigger": "It looks like you need to reschedule a new patient consultation and this requires help from our clinic support team. I'll connect you now, please stay on the line. Connecting you to a representative. Please wait."
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:04:13+00:00",
+      "trigger": "Hello, you've reached the Pretty Good AI Test Line. Goodbye."
+    }
+  ],
+  "created_at": "2026-06-24T16:05:20+00:00",
+  "duration_seconds": "152",
+  "recording_file": "artifacts\\calls\\call-002\\recording.mp3",
+  "recording_sid": "RE90c2bc0628a435b476237b30e602785a",
+  "recording_status": "completed",
+  "status": "completed",
+  "stream_sid": "MZbe5859890aaf82fa38ba8369037f783b",
+  "transcript_file": "artifacts\\calls\\call-002\\transcript.txt",
+  "turn_count": 31
+}

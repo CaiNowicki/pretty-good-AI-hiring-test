@@ -1,0 +1,54 @@
+id: M-02-refill-no-record
+patient_profile: no_record_refill_caller
+goal: >
+  Attempt to get a refill for a blood pressure medication. Discover that
+  there is no patient record. Observe what the agent offers as a next step.
+opening_line: "Hi, I'm hoping to get a refill called in for my blood pressure medication."
+facts:
+  full_name: Daniel Marsh
+  first_name: Daniel
+  last_name: Marsh
+  date_of_birth: September 6, 1968
+  phone: 555-743-0156
+  medication: Amlodipine 5mg
+  pharmacy: Walgreens on Route 9
+  patient_status: Not in the system
+  spelling: M-A-R-S-H
+  pills_remaining: Running a little low
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - medication
+  - pharmacy
+  - patient_status
+  - spelling
+  - pills_remaining
+must_test: >
+  Agent cannot locate a record and communicates this clearly. Agent offers
+  at least one actionable next step, such as new patient intake, a callback
+  number, or a referral to the right place. Agent does not submit a refill
+  without a verified patient record.
+avoid:
+  - Submitting or appearing to submit a refill with no patient on file
+  - Leaving the caller with no path forward
+  - Being dismissive or abruptly ending the call
+  - Asking for more and more verification details in a loop with no resolution
+optional_edge_behavior:
+  - Present as Daniel Marsh calling for a refill and provide name and date of birth when asked.
+  - When told no record is found, express mild confusion and ask whether it could be a spelling issue, then spell M-A-R-S-H.
+  - If still no record is found, ask what options are available.
+  - If offered new patient enrollment, ask how long it takes and whether there is anything to do in the meantime about the low supply.
+  - If the agent proceeds as though a record was found, ask "Oh, you found me?" before confirming the Walgreens refill, so the bug is clear on the transcript.
+  - Flag any apparent refill submission without a verified record as a high-severity bug for post-call analysis.
+success_criteria: >
+  Agent clearly states it cannot find a record under the given name and DOB.
+  Agent offers a concrete next step, such as new patient enrollment, a number
+  to call, or an alternative, without making the caller feel like a dead end.
+stop_conditions:
+  - Agent clearly states no record found and offers a next step
+  - Agent submits refill without a record; log as high-severity bug
+  - Caller accepts or declines the offered next step and hangs up
+  - Call exceeds 4 minutes

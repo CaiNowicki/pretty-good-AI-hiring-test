@@ -1,0 +1,36 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics.
+PGAI Agent: Part of PrettyGood.ai.
+PGAI Agent: Am I speaking with James?
+Patient Bot: This is Maria Lopez, so you may have the wrong patient. Hi, I'd like to make an appointment for next Tuesday at 10 AM.
+PGAI Agent: Thanks for clarifying. Maria, are you calling to book this appointment for yourself or for someone else?
+Patient Bot: For myself.
+PGAI Agent: Please provide your date of birth.
+Patient Bot: My date of birth is July 22, 1980.
+PGAI Agent: Just to confirm, I have your name as Maria Lopez and your date of birth as July 22nd.
+PGAI Agent: Is that correct? If so, could you please spell your first and last name for me?
+Patient Bot: Yes, that's correct. M-A-R-I-A L-O-P-E-Z
+PGAI Agent: Could you please spell your first and last name for me?
+Patient Bot: M-A-R-I-A L-O-P-E-Z
+PGAI Agent: Would you like to use your phone number to look up your record?
+PGAI Agent: If so, please provide the number you have on file with us.
+PGAI Agent: If you're not sure, I can confirm your name and date of birth again. Which would you prefer?
+Patient Bot: Okay, let me respond as the patient and keep it simple.
+Patient Bot: Iâ€™m not sure of the number you have on file. Please use my name and date of birth to look me up.
+PGAI Agent: No problem.
+PGAI Agent: Would you like to use your phone number for the lookup, or should I confirm your name and date of birth again?
+Patient Bot: My
+PGAI Agent: Take your time.
+PGAI Agent: Let me know if you'd like to use your phone number or confirm your name and date of birth again.
+Patient Bot: I already gave you my date of birth, but My date of birth is July 22, 1980.
+PGAI Agent: That's right. I have your date of birth as July 22, 1980.
+PGAI Agent: To move forward, could you please confirm your first and last name one more time by spelling them out?
+Patient Bot: M-A-R-I-A L-O-P-E-Z
+PGAI Agent: I can't proceed further right now, but I can make sure our clinic support team follows up
+PGAI Agent: What's up with you?
+Patient Bot: Please have the clinic support team follow up with me.
+PGAI Agent: Please stay on the line while I connect you to a team member.
+PGAI Agent: Connecting you to a representative.
+PGAI Agent: Please wait.
+PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye.
+Patient Bot: Goodbye.

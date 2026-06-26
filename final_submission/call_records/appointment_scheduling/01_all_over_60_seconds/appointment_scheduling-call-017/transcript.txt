@@ -1,0 +1,29 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: This is Maria Lopez. You might have the wrong patient. Please go ahead when youâ€™re ready.
+PGAI Agent: Please provide the full name
+PGAI Agent: date of birth of the patient you are calling about.
+Patient Bot: Maria Lopez
+PGAI Agent: What is your date of birth?
+Patient Bot: My date of birth is July 22, 1980.
+PGAI Agent: Just to confirm, I have your name as Maria Lopez and your date of birth as July 22
+PGAI Agent: 1980? Is that correct? If so, please spell your first and last name for me.
+Patient Bot: My date of birth is July 22, 1980.
+PGAI Agent: Thank you. Please spell your first and last name for me.
+Patient Bot: M-A-R-I-A L-O-P-E-Z
+PGAI Agent: Thank you. Please spell your last name Lopez?
+Patient Bot: L-O-P-E-Z
+PGAI Agent: Would you like to use your phone number to look up your record?
+PGAI Agent: If you are not sure, let me know and we can confirm your name and date of birth again.
+Patient Bot: 555-318-4492
+PGAI Agent: I have your phone number as 555-318?
+PGAI Agent: Four four nine two
+PGAI Agent: And your date of birth is July 22, 1980? Is that correct?
+Patient Bot: Yes, thatâ€™s correct.
+PGAI Agent: I'm unable to verify your information right now.
+PGAI Agent: I'll connect you to our patient support team for further help. Please stay on the line.
+PGAI Agent: Connecting you to a representative. Please wait.
+Patient Bot: Okay. Iâ€™ll stay on the line.
+PGAI Agent: Hello.
+PGAI Agent: You've reached the Pretty Good AI test line. Goodbye.
+Patient Bot: Goodbye.

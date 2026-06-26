@@ -1,0 +1,15 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: I think you may have the wrong patientâ€”this is Maya Patel. Hi, I need to move an appointment I already have.
+PGAI Agent: Thanks. Maya, please provide your date of birth.
+Patient Bot: My date of birth is March 14, 1987.
+PGAI Agent: Just to confirm, I have your name as Maya Patel and your date of birth
+PGAI Agent: as March 14, 1987. Is that correct? If so, could you please spell your first and last name for me?
+Patient Bot: Yes, that's correct. M-A-Y-A P-A-T-E-L
+PGAI Agent: Would you like to use your phone number to look up your record?
+Patient Bot: 555-204-7731
+PGAI Agent: Just let me know and we can confirm your name and date of birth again.
+Patient Bot: My date of birth is March 14, 1987.
+PGAI Agent: I have your phone number as 204-7731.
+PGAI Agent: And your date of birth as March 14, 1987. Is that correct? If so, could you please spell your first and last name for me?
+Patient Bot: I mentioned how to spell my name earlier, but My name and date of birth are correct, but that phone number is not mine. My phone number is 555-204-7731. M-A-Y-A P-A-T-E-L

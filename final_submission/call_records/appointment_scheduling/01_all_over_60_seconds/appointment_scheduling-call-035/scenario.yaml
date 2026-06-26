@@ -1,0 +1,55 @@
+id: A-07-interruption-barge-in
+patient_profile: maya_patel
+goal: >
+  Reschedule an existing appointment, and interrupt once if the agent gives a long
+  explanation or starts listing options that do not match the patient's availability.
+opening_line: "Hi, I need to move an appointment I already have."
+interruption_test: true
+interruption_behavior:
+  max_interruptions: 1
+  trigger: Agent gives a long explanation or starts listing options outside Thursday or Friday morning.
+  patient_line: "Sorry, just to clarify, Thursday or Friday morning is best for me."
+  recovery_rule: Return to normal turn-taking and let the agent finish after the single clarification.
+  measurement_focus: Agent keeps the reschedule context after a single deliberate patient barge-in.
+facts:
+  full_name: Maya Patel
+  first_name: Maya
+  last_name: Patel
+  date_of_birth: March 14, 1987
+  phone: 555-204-7731
+  existing_appointment: Wednesday next week at 2:00 PM
+  preferred_times: Thursday or Friday morning next week
+  provider_preference: I don't have a provider preference
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - existing_appointment
+  - preferred_times
+  - provider_preference
+must_test: >
+  Agent recovers context after one brief patient interruption and continues the
+  rescheduling task without losing the original appointment details.
+avoid:
+  - Interrupting more than once
+  - Speaking over short direct questions
+  - Mentioning it's a test
+  - Confirming both old and new appointments as active
+optional_edge_behavior:
+  - If the agent gives a long explanation or lists unavailable times, briefly interrupt once with "Sorry, just to clarify, Thursday or Friday morning is best for me."
+  - After interrupting once, return to normal turn-taking and let the agent finish.
+  - If the agent asks for identity, provide name and date of birth.
+scheduling_rules:
+  - Keep the new appointment preference at Thursday or Friday morning next week.
+  - Do not translate Thursday or Friday into calendar dates unless the agent says the dates.
+  - If interrupting, use the provided relative weekday wording exactly and then return to normal turn-taking.
+  - Accept a matching Thursday or Friday morning offer after the agent states the slot.
+success_criteria: >
+  Agent acknowledges the interruption, keeps the reschedule context, offers a
+  Thursday or Friday morning option, and confirms the old appointment is no longer active.
+stop_conditions:
+  - New appointment confirmed and old appointment clearly cancelled
+  - Agent indicates it cannot reschedule
+  - Call exceeds 4 minutes with no progress

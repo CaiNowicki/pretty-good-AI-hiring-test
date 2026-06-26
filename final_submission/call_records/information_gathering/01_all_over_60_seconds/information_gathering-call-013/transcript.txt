@@ -1,0 +1,23 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: I think you may have the wrong patientâ€”this is Maya Patel. Hi, I'm thinking about becoming a patient there and I was wondering who the doctors are.
+PGAI Agent: Welcome, Maya.
+PGAI Agent: Pivot Point Orthopedics has several providers.
+PGAI Agent: Dr. Dudihouser focuses on quick orthopedic procedures and first-time evaluations. Dr. Doug Ross handles complex or advanced orthopedic procedures. Dr. Adam Bricker provides care for a wide range of joint and muscle conditions.
+PGAI Agent: We also have physical therapist Lynn Anderson.
+Patient Bot: Okay, let me think about which provider fits best for what you need.
+Patient Bot: Iâ€™d like to see Dr. Adam Bricker for a general joint and muscle concern.
+PGAI Agent: We'd be happy to help you get started as a new patient with Dr. Adam Bricker.
+PGAI Agent: Since you're new, you'll need to complete a quick registration when you arrive for your first visit.
+PGAI Agent: Would you like to schedule an appointment now?
+Patient Bot: Yes, please. Iâ€™d like to set something up, ideally within the next couple of weeks if you have availability.
+PGAI Agent: Since you're a new patient, I'll need to connect you with our patient
+PGAI Agent: support team to help set up your first appointment with Dr. Bricker.
+Patient Bot: Could you connect me with the patient support team to arrange it? And can you confirm the details once theyâ€™ve got a time?
+PGAI Agent: Please stay on the line while I transfer you.
+PGAI Agent: Connecting you to a representative.
+PGAI Agent: Please wait.
+Patient Bot: Iâ€™m still here. Please go ahead with the transfer, and Iâ€™ll wait for the representative.
+PGAI Agent: Hello, you've reached the Pretty Good AI Test Line.
+PGAI Agent: Goodbye.
+Patient Bot: Oh, it sounds like the call ended before I could speak with anyone. Could you connect me with the patient support team again, or let me know the next step?

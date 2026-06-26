@@ -1,0 +1,22 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thank you for calling Pivot Point Orthopedics.
+PGAI Agent: Part of PrettyGood AI. Am I speaking with James?
+Patient Bot: I'm just calling as a patient about my appointment.
+PGAI Agent: Can you please provide your date of birth?
+Patient Bot: My date of birth is September 6, 1968.
+PGAI Agent: The birthday doesn't match our records, but for demo purposes I'll accept it.
+PGAI Agent: How can I help with your appointment today?
+Patient Bot: Hi, I'm hoping to get a refill called in for my blood pressure medication.
+PGAI Agent: Which blood pressure medication do you need refilled today?
+Patient Bot: I need a refill for my blood pressure medication, but I donâ€™t have the name in front of me. Could you check that for me?
+PGAI Agent: I don't see any medications listed in your chart. If you remember the name or can describe the medication, I can help you with the refill.
+PGAI Agent: Do you recall anything about it, like the color, dose, or how often you take it?
+Patient Bot: I donâ€™t recall the name, dose, color, or how often I take it. Could you check with my pharmacy for the prescription details?
+PGAI Agent: No problem.
+PGAI Agent: Do you remember anything about the pill, such as its color, shape, or how many times a day you take it? Any detail can help.
+Patient Bot: I donâ€™t remember any details. Could you check with my pharmacy for the prescription information?
+PGAI Agent: That's okay. Without the medication name or details, I can't process the refill right now. Would you like to speak with a staff member for further help?
+Patient Bot: Yes, could you connect me with a staff member for help with the refill?
+PGAI Agent: Connecting you to a representative. Please wait.
+PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye.
+Patient Bot: Oh, okay. Goodbye.

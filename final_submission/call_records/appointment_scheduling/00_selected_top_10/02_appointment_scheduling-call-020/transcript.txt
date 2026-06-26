@@ -1,0 +1,33 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: This is Maria Lopez. You may have the wrong patient if you were expecting James. Iâ€™ll wait for your next question.
+PGAI Agent: Thanks for clarifying, Maria. Are you calling for yourself today or on behalf of someone else?
+Patient Bot: Iâ€™m calling for myself today.
+PGAI Agent: Please provide your date of birth.
+Patient Bot: My date of birth is July 22, 1980.
+PGAI Agent: Just to confirm, I have your name as Maria Lopez
+PGAI Agent: and your date of birth as July 22, 1980, is that correct?
+Patient Bot: Maria Lopez
+PGAI Agent: Would you like to use your phone number to look up your records?
+PGAI Agent: you have on file with us.
+PGAI Agent: If you're not sure, just let me know and we'll confirm your name and date of birth again.
+Patient Bot: Let me think about the best way to handle that for you.
+Patient Bot: Iâ€™m not sure what number you have on file. Could you confirm using my name and date of birth again?
+PGAI Agent: Of course! Could you please spell your first and last name for me and confirm your date of birth one more time?
+Patient Bot: M-A-R-I-A L-O-P-E-Z
+PGAI Agent: Just to confirm, is your first name spelled N-A-R-I-A and your last name L-O-P
+PGAI Agent: And is your date of birth still July 22, 1980?
+Patient Bot: M-A-R-I-A
+PGAI Agent: Thank you. So your first name is spelled M-a-r-i-a, and your last name is L-o-p-e-z.
+PGAI Agent: with a date of birth of July 22, 1980.
+PGAI Agent: That all correct?
+Patient Bot: M-A-R-I-A
+PGAI Agent: I have your phone number as 941-842-0514.
+PGAI Agent: Ø£ØµØ¹Ø¨
+PGAI Agent: And your date of birth as July 22, 1980, is that correct?
+Patient Bot: Yes, thatâ€™s correct.
+PGAI Agent: I can't put these further right now,
+PGAI Agent: I can make sure our clinic support team follows up with you. Please hold while I connect you to our patient support team.
+PGAI Agent: Connecting you to a representative. Please wait
+PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye.
+Patient Bot: Okay, thank you. Goodbye.

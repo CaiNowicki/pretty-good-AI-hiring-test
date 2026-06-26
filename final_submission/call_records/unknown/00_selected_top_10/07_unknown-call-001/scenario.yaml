@@ -1,0 +1,60 @@
+id: aaliyah_reschedule_referral
+patient_profile: aaliyah_washington
+goal: Reschedule a vaguely remembered appointment and request a specialist referral.
+opening_line: "Yeah hi, so I need to move my appointment? I think it's next Thursday. Or Wednesday. I'm not totally sure."
+interruption_test: true
+interruption_behavior:
+  max_interruptions: 2
+  trigger: Agent begins a lengthy verification or scheduling explanation after the appointment has been identified.
+  patient_line: "Wait, actually hold on, I also need to ask about a referral after this."
+  recovery_rule: Let the agent finish recovering, then return to whichever task is active.
+  measurement_focus: Agent handles casual barge-in and mid-call task switching without losing context.
+facts:
+  full_name: Aaliyah Washington
+  first_name: Aaliyah
+  last_name: Washington
+  date_of_birth: "2000-06-05"
+  phone: "9785550219"
+  insurance: Tufts Health Plan
+  pharmacy: Rite Aid
+  patient_type: established
+  existing_appointment_vague: Next Thursday or maybe Wednesday, not totally sure.
+  secondary_need: Referral to a specialist
+  preferred_times: After 4 PM, because she gets out of work at 3:30
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - insurance
+  - existing_appointment_vague
+  - secondary_need
+  - preferred_times
+must_test: >
+  Whether the agent can locate an appointment given a vague description; whether
+  the agent handles mid-call task switching from reschedule to referral without
+  losing either thread; and whether barge-in recovery works when the patient cuts
+  in casually.
+avoid:
+  - Giving the exact appointment date without being prompted
+  - Raising the referral until the reschedule is resolved or nearly resolved
+  - Dropping the referral request after the reschedule is complete
+  - Losing prior context after the patient interrupts
+optional_edge_behavior:
+  - Speak quickly and casually because you are on break at work.
+  - Correct yourself if you initially say Thursday and then remember it might be Wednesday.
+  - After the reschedule is resolved or nearly resolved, bring up the referral as a second task.
+  - Interrupt once or twice with casual wording, then let the agent recover.
+scheduling_rules:
+  - Describe the existing appointment vaguely as next Thursday or maybe Wednesday until the agent looks it up.
+  - Prefer appointments after 4 PM.
+  - Do not give an exact calendar date before the agent introduces one.
+success_criteria: >
+  Agent locates or confirms the existing appointment, reschedules it, and then
+  handles the referral request as a second task without restarting verification
+  or becoming confused by the switch.
+stop_conditions:
+  - Both tasks resolved
+  - Agent asks for the same information more than twice on either task
+  - Call exceeds 4 minutes

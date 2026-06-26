@@ -1,0 +1,47 @@
+Call 012 Transcript
+===================
+
+Call SID: CA248e1172a136da79127c33002d3bc89e
+Recording SID: RE57c91dcb999128a44ae33b8ce3661396
+Stream SID: MZ3a3fc4e5c197714100a7615c2684e041
+Scenario: t01_smoke
+Started: 2026-06-24T20:57:32+00:00
+Ended: 2026-06-24T20:59:52+00:00
+Duration: 140 seconds
+Local stop reason: max_turns
+
+Note: Generated from OpenAI realtime transcript events in artifacts/media-events.jsonl.
+Consecutive repeated patient lines are preserved because they appear in the call event stream.
+
+[2026-06-24T20:57:39.015+00:00] PGAI Agent: This call may be recorded for quality and training purposes. Para espanol, oprima el dos.
+[2026-06-24T20:57:41.522+00:00] PGAI Agent: Thanks for calling Pivot Point Orthopedics.
+[2026-06-24T20:57:43.034+00:00] PGAI Agent: part of Pretty Good AI.
+[2026-06-24T20:57:45.053+00:00] PGAI Agent: Am I speaking with James?
+[2026-06-24T20:57:45.211+00:00] Patient Bot: Yes, this is James.
+[2026-06-24T20:57:54.475+00:00] PGAI Agent: Please provide your date of birth.
+[2026-06-24T20:57:56.539+00:00] Patient Bot: My date of birth is March 14, 1987.
+[2026-06-24T20:58:08.051+00:00] PGAI Agent: The birthdate doesn't match our records, but for demo purposes I'll accept it.
+[2026-06-24T20:58:09.676+00:00] PGAI Agent: How can I help you today?
+[2026-06-24T20:58:11.665+00:00] Patient Bot: My date of birth is March 14, 1987.
+[2026-06-24T20:58:21.923+00:00] PGAI Agent: I have your date of birth as March 14th.
+[2026-06-24T20:58:23.795+00:00] PGAI Agent: 1987.
+[2026-06-24T20:58:24.842+00:00] PGAI Agent: for this demo.
+[2026-06-24T20:58:26.583+00:00] PGAI Agent: What can I help you with today?
+[2026-06-24T20:58:27.091+00:00] Patient Bot: Okay, let me share what I need help with today.
+[2026-06-24T20:58:27.095+00:00] Patient Bot: I'm calling as part of this demo.
+[2026-06-24T20:58:38.262+00:00] PGAI Agent: Sounds good.
+[2026-06-24T20:58:40.352+00:00] PGAI Agent: Go ahead and let me know what you'd like help with.
+[2026-06-24T20:58:41.977+00:00] Patient Bot: I'd like to complete the demo intake.
+[2026-06-24T20:58:49.954+00:00] PGAI Agent: Sure. What would you like to focus on for the demo intake?
+[2026-06-24T20:58:54.259+00:00] PGAI Agent: Appointments, medication refills, insurance updates,
+[2026-06-24T20:58:55.407+00:00] PGAI Agent: Or something else.
+[2026-06-24T20:58:56.081+00:00] Patient Bot: Appointments.
+[2026-06-24T20:59:04.508+00:00] PGAI Agent: Are you looking to book a new appointment, reschedule, or cancel an existing one?
+[2026-06-24T20:59:05.495+00:00] Patient Bot: Book a new appointment.
+[2026-06-24T20:59:17.427+00:00] PGAI Agent: Is this appointment for a routine check-up, a follow-up, a new patient consultation
+[2026-06-24T20:59:20.163+00:00] PGAI Agent: specific concern or procedure in mind.
+[2026-06-24T20:59:21.798+00:00] Patient Bot: It's a new patient consultation, not a follow-up.
+[2026-06-24T20:59:30.577+00:00] PGAI Agent: Thanks for clarifying.
+[2026-06-24T20:59:35.720+00:00] PGAI Agent: Do you have a specific provider you'd like to see, or are you open to the first available?
+[2026-06-24T20:59:36.730+00:00] Patient Bot: I'm open to the first available provider.
+[2026-06-24T20:59:49.294+00:00] PGAI Agent: It looks like you already have a new patient consultation appointment booked.

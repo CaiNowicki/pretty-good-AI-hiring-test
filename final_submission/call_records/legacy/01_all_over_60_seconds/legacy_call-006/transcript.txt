@@ -1,0 +1,18 @@
+# Smoke Call 006 Transcript
+
+Call SID: CAc013e084b5d0e8024229c1abd4c8973f
+Scenario: t01_smoke
+Duration: 74 seconds
+Note: Rough transcript reconstructed from realtime transcription events in artifacts/media-events.jsonl.
+
+[2026-06-24T18:04:38+00:00] PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+[2026-06-24T18:04:45+00:00] PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+[2026-06-24T18:05:00+00:00] PGAI Agent: Hello, this is Pivot Point Orthopedics. Am I speaking with James? How can I help you today?
+[2026-06-24T18:05:03+00:00] Patient Bot: Hi, I'm hoping to make an appointment. I'm a new patient.
+[2026-06-24T18:05:11+00:00] PGAI Agent: Can you please provide your date of birth?
+[2026-06-24T18:05:13+00:00] Patient Bot: My date of birth is March 14, 1987.
+[2026-06-24T18:05:27+00:00] PGAI Agent: Thank you. Just to confirm, you'd like to schedule a new patient consultation, correct?
+[2026-06-24T18:05:28+00:00] Patient Bot: It's a new patient consultation, not a follow-up.
+[2026-06-24T18:05:35+00:00] PGAI Agent: Perfect.
+[2026-06-24T18:05:39+00:00] PGAI Agent: Do you know the specific provider you'd like to see, or are you open to the first available?
+[2026-06-24T18:05:41+00:00] Patient Bot: I'm open to first available.

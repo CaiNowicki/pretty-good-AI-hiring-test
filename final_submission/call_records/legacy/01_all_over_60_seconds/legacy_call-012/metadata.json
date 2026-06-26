@@ -1,0 +1,24 @@
+{
+  "created_at": "2026-06-24T20:57:27.404+00:00",
+  "scenario_id": "t01_smoke",
+  "twilio_call": {
+    "plan": {
+      "allowed_destination": "+18054398008",
+      "from": "<twilio_from_number>",
+      "record": true,
+      "scenario_id": "t01_smoke",
+      "to": "+18054398008",
+      "url": "<public_base_url>/twilio/voice?scenario_id=t01_smoke"
+    },
+    "settings": {
+      "allowed_destination": "+18054398008",
+      "public_base_url": "<public_base_url>/",
+      "realtime_model": "gpt-realtime-2",
+      "transcription_model": "gpt-4o-transcribe",
+      "twilio_account_sid": "<twilio_account_sid>",
+      "twilio_from_number": "<twilio_from_number>"
+    },
+    "sid": "CA248e1172a136da79127c33002d3bc89e",
+    "status": "queued"
+  }
+}

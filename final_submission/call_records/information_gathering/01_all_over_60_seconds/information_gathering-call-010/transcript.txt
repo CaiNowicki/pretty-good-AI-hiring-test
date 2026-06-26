@@ -1,0 +1,20 @@
+PGAI Agent: Calidad y entrenamiento. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: This is Denise Wongâ€”I think you may have the wrong patient. Hi, I wanted to check if you take Blue Cross insurance.
+PGAI Agent: Please provide the patient's full name and date of birth.
+Patient Bot: My date of birth is February 28, 1973.
+PGAI Agent: Just to confirm, I have your name as Denise Wong and your date of birth as
+PGAI Agent: February 28, 1973. Is that correct? If so, could you please spell your first and last name for me?
+Patient Bot: Yes, that's correct. D-E-N-I-S-E W-O-N-G
+PGAI Agent: Would you like to use your phone number to look up your record?
+PGAI Agent: us.
+Patient Bot: 555-629-3817
+PGAI Agent: If you're not sure, I can confirm your name
+Patient Bot: Denise Wong
+PGAI Agent: Could you please provide the full phone number you have on file with us?
+Patient Bot: 555-629-3817
+PGAI Agent: I'll need the complete phone number to look up your record. Could you provide all ten digits, please?
+Patient Bot: 555-629-3817
+PGAI Agent: I have the number as 555-3817.
+PGAI Agent: Ten-digit phone number?
+Patient Bot: I think we're stuck, I'll call back later. Goodbye.

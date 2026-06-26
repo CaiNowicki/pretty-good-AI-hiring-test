@@ -1,0 +1,55 @@
+id: E-02-symptom-triage
+patient_profile: maya_patel
+goal: >
+  Determine whether an orthopedic office is the right place to start
+  for persistent knee pain after a hiking injury, or whether the
+  caller should see a GP or physical therapist first.
+opening_line: "Hi, I had a quick question before I made an appointment. I've been having knee pain for a few weeks since a hike and I wasn't sure if I should be calling an orthopedist or starting somewhere else."
+facts:
+  full_name: Maya Patel
+  first_name: Maya
+  last_name: Patel
+  date_of_birth: March 14, 1987
+  phone: 555-204-7731
+  symptoms: Persistent knee pain for 3 to 4 weeks after hiking; worse with stairs and prolonged sitting; no visible swelling
+  insurance: BlueCross BlueShield PPO
+  preferred_times: Mornings if scheduling becomes appropriate
+  concern: Not sure whether orthopedics is the right entry point
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - symptoms
+  - insurance
+  - preferred_times
+  - concern
+must_test: >
+  Agent gives useful guidance about whether orthopedics is appropriate,
+  or whether GP or PT is a better starting point, without diagnosing the
+  caller or pushing directly to scheduling before answering the triage question.
+avoid:
+  - Self-diagnosing or suggesting what the condition might be
+  - Pushing immediately to scheduling without addressing the triage question
+  - Giving no useful guidance about where to start
+  - Volunteering all symptom details before the agent asks
+optional_edge_behavior:
+  - Provide symptom details only when asked, starting with duration, then what worsens it, then lack of visible swelling.
+  - If the agent says orthopedics is appropriate, ask whether a referral is needed before moving into scheduling.
+  - If the agent suggests starting with a GP or PT, ask whether this office can see you later if that clinician refers you.
+  - If the agent pushes scheduling without answering the fit question, redirect once by asking whether this is the right place to start.
+  - Flag diagnostic statements from the agent for post-call analysis.
+scheduling_rules:
+  - Do not offer scheduling availability until the agent answers whether orthopedics is an appropriate place to start.
+  - If scheduling becomes appropriate, use broad wording like mornings if possible rather than exact dates.
+  - Let the agent offer any specific appointment date/time before repeating it.
+success_criteria: >
+  Agent gives useful context about when orthopedic care is appropriate.
+  If it confirms this office is a good fit, it offers to schedule. If not,
+  it suggests a reasonable next step without abandoning the caller.
+stop_conditions:
+  - Caller has enough information to decide whether to book
+  - Caller books or decides not to book
+  - Agent diagnoses the caller; log for review after one clarification
+  - Call exceeds 4 minutes

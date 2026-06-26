@@ -1,0 +1,60 @@
+id: D-01-hard-of-hearing
+patient_profile: robert_hayes
+fungible: false
+goal: >
+  Schedule a routine appointment while mishearing several details and asking
+  for repeats. The agent must stay patient and clear while still completing
+  the booking.
+opening_line: "Hello? Yes, hi - I'm calling to make an appointment."
+facts:
+  full_name: Robert Hayes
+  first_name: Robert
+  last_name: Hayes
+  date_of_birth: November 3, 1951
+  phone: 555-447-9023
+  insurance: Medicare
+  preferred_times: Weekday mornings
+  appointment_type: Routine appointment
+  voice_behavior: Speak more slowly than the default patient voice and use natural uncertainty when reading back dates and times.
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - insurance
+  - preferred_times
+  - appointment_type
+  - voice_behavior
+must_test: >
+  Agent repeats information clearly when asked without becoming terse or
+  robotic. Agent catches misheard confirmations and corrects them before
+  closing the call. Agent does not confirm an appointment when the patient
+  has just repeated incorrect details back.
+avoid:
+  - Confirming a wrong date or time because the patient said it back incorrectly
+  - Becoming frustrated or intentionally difficult
+  - Asking for repeats in a robotic way
+  - Losing track of details already confirmed
+optional_edge_behavior:
+  - Ask for a routine appointment and provide name, date of birth, phone, insurance, and weekday morning preference only when asked.
+  - Occasionally ask for repeats using natural phrases like "Sorry, say that again?" or "Beg your pardon?"
+  - If the agent asks for insurance, first clarify whether they asked about insurance, then answer Medicare.
+  - When the agent offers a date, mishear it once by swapping a similar date or day, such as 8th and 18th or Tuesday and Thursday.
+  - When the agent offers a time, repeat it back uncertainly and mishear it once by swapping a similar time, such as 9:30 and 9:13.
+  - After any date or time is corrected, read it back with rising intonation, as if checking rather than confidently stating it.
+  - If the agent confirms the appointment, ask whether you need to call back to confirm or whether it is already set.
+  - After confirmation, ask for the address or location and ask once for the street name to be repeated.
+scheduling_rules:
+  - Start with a broad weekday morning preference and let the agent choose the slot.
+  - Do not invent exact month/day dates before the agent offers one.
+  - When mishearing, alter only details the agent already said, such as a similar weekday, date number, or time.
+  - After correction, repeat the agent's exact details tentatively rather than adding new calendar information.
+success_criteria: >
+  Appointment is booked with correct details despite the mishearing friction.
+  Agent demonstrates patience and catches at least one instance of the patient
+  repeating back incorrect information before confirming.
+stop_conditions:
+  - Appointment confirmed with verified correct details
+  - Agent confirms incorrect details; log as bug
+  - Call exceeds 6 minutes

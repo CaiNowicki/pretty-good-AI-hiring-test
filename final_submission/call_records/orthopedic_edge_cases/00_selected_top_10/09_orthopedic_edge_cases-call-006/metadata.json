@@ -1,0 +1,75 @@
+{
+  "artifact_requirements": {
+    "analysis_md": "pending_manual_review",
+    "events_jsonl": "created",
+    "metadata_json": "created",
+    "recording_mp3_or_ogg": "created",
+    "scenario_yaml": "created",
+    "transcript_txt": "created"
+  },
+  "call_execution": {
+    "enabled": true,
+    "twilio_call_created": true,
+    "twilio_call_sid": "CA0d3551da81490d0aa63fd70de3238f6b",
+    "twilio_call_status": "queued"
+  },
+  "call_id": "orthopedic_edge_cases-call-006",
+  "call_plan": {
+    "allowed_destination": "+18054398008",
+    "call_dir_name": "call-006",
+    "call_id": "orthopedic_edge_cases-call-006",
+    "call_type": "orthopedic_edge_cases",
+    "from": "<twilio_from_number>",
+    "record": true,
+    "recording_status_callback": "<public_base_url>/twilio/recording?scenario_id=e05_records_request&call_id=orthopedic_edge_cases-call-006&call_type=orthopedic_edge_cases&call_dir_name=call-006",
+    "scenario_id": "e05_records_request",
+    "to": "+18054398008",
+    "url": "<public_base_url>/twilio/voice?scenario_id=e05_records_request&call_id=orthopedic_edge_cases-call-006&call_type=orthopedic_edge_cases&call_dir_name=call-006"
+  },
+  "call_type": "orthopedic_edge_cases",
+  "created_at": "2026-06-25T20:29:07.116+00:00",
+  "limits": {
+    "emergency_stop_phrases": [
+      "emergency stop",
+      "stop the test",
+      "stop this test",
+      "end the test call",
+      "abort the call",
+      "hang up now"
+    ],
+    "max_call_seconds": 240,
+    "max_silence_seconds": 20,
+    "max_turns": 34
+  },
+  "patient_profile": "denise_wong",
+  "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\orthopedic_edge_cases\\call-006\\recording.mp3",
+  "review_state": "not_started",
+  "runtime_scenario_id": "e05_records_request",
+  "scenario_id": "E-05-records-request",
+  "scenario_stem": "e05_records_request",
+  "status": "recording_received",
+  "twilio_call": {
+    "plan": {
+      "allowed_destination": "+18054398008",
+      "call_dir_name": "call-006",
+      "call_id": "orthopedic_edge_cases-call-006",
+      "call_type": "orthopedic_edge_cases",
+      "from": "<twilio_from_number>",
+      "record": true,
+      "recording_status_callback": "<public_base_url>/twilio/recording?scenario_id=e05_records_request&call_id=orthopedic_edge_cases-call-006&call_type=orthopedic_edge_cases&call_dir_name=call-006",
+      "scenario_id": "e05_records_request",
+      "to": "+18054398008",
+      "url": "<public_base_url>/twilio/voice?scenario_id=e05_records_request&call_id=orthopedic_edge_cases-call-006&call_type=orthopedic_edge_cases&call_dir_name=call-006"
+    },
+    "settings": {
+      "allowed_destination": "+18054398008",
+      "public_base_url": "<public_base_url>/",
+      "realtime_model": "gpt-realtime-2",
+      "transcription_model": "gpt-4o-transcribe",
+      "twilio_account_sid": "<twilio_account_sid>",
+      "twilio_from_number": "<twilio_from_number>"
+    },
+    "sid": "CA0d3551da81490d0aa63fd70de3238f6b",
+    "status": "queued"
+  }
+}

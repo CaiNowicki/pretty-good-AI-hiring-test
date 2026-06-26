@@ -1,0 +1,21 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling To The Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: I think you may have the wrong patientâ€”this is Patricia Okonkwo. I need to move my appointment; my schedule changed again this week.
+PGAI Agent: Please provide your date of birth.
+Patient Bot: My date of birth is 1977-03-14.
+PGAI Agent: Just to confirm, I have your name as Patricia Okambo, and your date of birth as March 14, 1977.
+PGAI Agent: Jestem.
+PGAI Agent: Is that correct? If so, could you please spell your first and last name for me?
+Patient Bot: P-A-T-R-I-C-I-A O-K-O-N-K-W-O
+PGAI Agent: Would you like me to look up your record using the phone number you have on file with us? If so, please provide that number
+PGAI Agent: per
+PGAI Agent: If you're not sure, I can confirm your name and date of birth again.
+PGAI Agent: Just let me know which you prefer.
+Patient Bot: My date of birth is 1977-03-14.
+PGAI Agent: Thank you.
+PGAI Agent: To make sure I have everything correct, could you please spell your first and last name for me one more time?
+Patient Bot: P-A-T-R-I-C-I-A O-K-O-N-K-W-O
+PGAI Agent: Thank you. Could you please spell your last name as well?
+Patient Bot: O-K-O-N-K-W-O
+PGAI Agent: Could you please finish spelling your last name for me?
+Patient Bot: I think we're stuck, I'll call back later. Goodbye.

@@ -1,0 +1,53 @@
+id: dmitri_new_patient
+patient_profile: dmitri_volkov
+goal: Schedule a first appointment for knee pain and ask procedural intake questions.
+opening_line: "Hello, I would like to make an appointment. I am a new patient. I have a problem with my knee."
+facts:
+  full_name: Dmitri Volkov
+  first_name: Dmitri
+  last_name: Volkov
+  date_of_birth: "1963-09-27"
+  phone: "5085550341"
+  insurance: Blue Cross Blue Shield PPO
+  pharmacy: Walgreens
+  patient_type: new
+  chief_complaint: Knee pain, left side, for about two months
+  preferred_times: Mornings, before noon
+  procedural_questions: Paperwork to bring, whether the doctor is board-certified, and the cancellation policy.
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - insurance
+  - pharmacy
+  - chief_complaint
+  - preferred_times
+must_test: >
+  Whether the agent books the correct appointment type for a complaint-driven
+  new patient visit; whether the agent can answer or appropriately escalate
+  questions about paperwork and cancellation policy; and whether formal,
+  non-idiomatic English is handled without misinterpretation.
+avoid:
+  - Accepting any appointment type without specifying knee pain as the reason for visit
+  - Rushing through the intake questions
+  - Inventing a cancellation policy or board certification claim
+  - Misinterpreting formal phrasing as confusion
+optional_edge_behavior:
+  - Ask what paperwork should be brought before agreeing fully to the appointment.
+  - Ask whether the doctor is board-certified if a clinician or department is named.
+  - Ask about the cancellation policy and accept an escalation or office follow-up if the agent does not know.
+  - Use formal wording such as I would like and could you tell me.
+scheduling_rules:
+  - Prefer mornings before noon.
+  - Tie the appointment type to left knee pain rather than a generic new patient visit.
+  - Accept a morning appointment if the agent clearly connects it to the knee complaint.
+success_criteria: >
+  Agent collects full new patient intake details, books an appropriate
+  appointment type tied to the knee complaint, and either answers or correctly
+  routes the procedural questions without making up a cancellation policy.
+stop_conditions:
+  - Appointment confirmed with correct type
+  - Agent is unable to proceed after three clarification attempts
+  - Call exceeds 4 minutes

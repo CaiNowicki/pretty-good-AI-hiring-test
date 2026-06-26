@@ -1,0 +1,48 @@
+id: A-02-change-of-mind
+patient_profile: maria_lopez
+goal: >
+  Accept an initial appointment offer, then change to a different time
+  and confirm the new slot cleanly.
+opening_line: "Hi, I need to make an appointment sometime next week."
+facts:
+  full_name: Maria Lopez
+  first_name: Maria
+  last_name: Lopez
+  date_of_birth: July 22, 1980
+  phone: 555-318-4492
+  insurance: Aetna
+  preferred_times: Morning, next week, but flexible
+  provider_preference: I don't have a specific provider in mind
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - insurance
+  - preferred_times
+  - provider_preference
+must_test: >
+  Agent correctly replaces the first offered slot with the new one.
+  Confirmation at the end reflects only the new appointment.
+avoid:
+  - Confirming both the old and new slot as if both are booked
+  - Losing track of what the patient now wants
+  - Asking the patient to re-verify info already collected
+optional_edge_behavior:
+  - If the agent offers an afternoon slot, first ask whether anything in the morning is available instead.
+  - After the agent searches for morning availability, change preference to Wednesday afternoon and ask whether it is open.
+  - If Wednesday afternoon is available, accept it and later double-check that the appointment is Wednesday, not Tuesday.
+  - If Wednesday afternoon is unavailable, ask for the next available afternoon slot and accept a reasonable option.
+scheduling_rules:
+  - Begin with a broad relative window such as sometime next week, preferably morning.
+  - Let the agent make the first specific offer before changing the preference.
+  - When changing your mind, ask for Wednesday afternoon using weekday language only, not a calendar date.
+  - Repeat exact month/day details only if the agent has already said them, especially in the final confirmation.
+success_criteria: >
+  Agent updates to the new time without confusion. Final confirmation
+  clearly states only the new appointment details.
+stop_conditions:
+  - New appointment confirmed cleanly
+  - Agent becomes confused and cannot resolve the conflict
+  - Call exceeds 5 minutes

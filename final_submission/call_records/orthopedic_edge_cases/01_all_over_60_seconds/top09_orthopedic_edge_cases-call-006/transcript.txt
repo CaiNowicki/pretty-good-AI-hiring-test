@@ -1,0 +1,26 @@
+PGAI Agent: Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: I think you may have the wrong patient. The caller is Denise Wong. Hi, I don't need an appointment. I actually need to get some of my records sent over to another doctor.
+PGAI Agent: Can you please provide the full name and date of birth of the patient whose records need to be sent?
+Patient Bot: My date of birth is February 28, 1973.
+PGAI Agent: Just to confirm, can you please spell your first and last name for me?
+Patient Bot: D-E-N-I-S-E W-O-N-G
+PGAI Agent: Thank you. Could you also spell your last name for me?
+Patient Bot: W-O-N-G
+PGAI Agent: Would you like to use your phone number to look up your record? If so, please provide the number you have on file.
+PGAI Agent: with us?
+PGAI Agent: If you're not sure, I can confirm your name and date of birth again. Which would you prefer?
+Patient Bot: Let me think for a moment about the quickest way to match your chart.
+Patient Bot: Please confirm with my name and date of birth.
+PGAI Agent: Take your time. Just let me know if you'd like to use your phone number or confirm your name and date of birth again.
+Patient Bot: My date of birth is February 28, 1973.
+PGAI Agent: Thank you. Could you please spell your first and last name for me one more time just to make sure I have it correct?
+Patient Bot: I mentioned how to spell my name earlier, but D-E-N-I-S-E W-O-N-G
+PGAI Agent: I have your name as Denise Wong, date of birth February
+PGAI Agent: 1973, and your phone number as 941-842-0514.
+PGAI Agent: Let me look up your record now.
+Patient Bot: Thatâ€™s correct.
+PGAI Agent: I can't proceed further right now, but I can make sure our clinic support team follows up with you. Please hold while I connect you to our patient support team. Connecting you to a represent
+PGAI Agent: Please wait.
+PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye.
+Patient Bot: Okay, thanks for your time.

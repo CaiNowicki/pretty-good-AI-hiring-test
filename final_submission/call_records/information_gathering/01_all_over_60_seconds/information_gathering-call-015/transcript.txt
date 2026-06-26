@@ -1,0 +1,30 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics.
+PGAI Agent: Am I speaking with James?
+Patient Bot: This is Maria Lopez, so you may have the wrong patient. Hi, I wanted to check if you take Blue Cross insurance.
+PGAI Agent: Please provide the full name and date of birth of the patient you are calling about.
+Patient Bot: My date of birth is July 22, 1980.
+PGAI Agent: Just to confirm, I have your name as Maria Lopez and your date of birth
+PGAI Agent: as July 22, 1980.
+PGAI Agent: Is that correct? If so, please spell your first and last name for me.
+Patient Bot: Yes, thatâ€™s correct. My name is spelled M-A-R-I-A, L-O-P-E-Z.
+PGAI Agent: Could you please spell your first and last name for me?
+Patient Bot: M-A-R-I-A L-O-P-E-Z
+PGAI Agent: Thank you, Maria Lopez. Please confirm your date of birth for me.
+Patient Bot: My date of birth is July 22, 1980.
+PGAI Agent: Would you like to use a phone number to look up your record?
+PGAI Agent: If so, please provide the number you have on file with us.
+PGAI Agent: If you are not sure, I can confirm your name and date of birth again.
+Patient Bot: Okay, letâ€™s go with the phone number option to help you find my record.
+Patient Bot: Iâ€™m not sure which phone number you have on file. Please confirm using my name and date of birth.
+PGAI Agent: Please tell me the phone number you have on file with us.
+Patient Bot: Iâ€™m not sure which phone number you have on file for me. Please confirm my record using my name and date of birth.
+PGAI Agent: Let's confirm your information. Please spell your first and last name and state your date of birth once more.
+Patient Bot: M-A-R-I-A L-O-P-E-Z
+PGAI Agent: Thank you. Please confirm your date of birth.
+Patient Bot: My date of birth is July 22, 1980.
+PGAI Agent: I have your phone number as 941
+PGAI Agent: Eight four two zero five one four.
+PGAI Agent: And your date of birth is July 22, 1980?
+PGAI Agent: Is that correct? If so, please confirm the spelling of your first and last name one more time.
+Patient Bot: I already gave you how to spell my name, but M-A-R-I-A L-O-P-E-Z

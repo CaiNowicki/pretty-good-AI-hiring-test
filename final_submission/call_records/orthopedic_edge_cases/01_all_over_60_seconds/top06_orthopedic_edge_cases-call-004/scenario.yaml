@@ -1,0 +1,56 @@
+id: E-03-workers-comp
+patient_profile: workers_comp_caller
+goal: >
+  Find out whether the office handles workers' compensation cases,
+  what documentation is needed, and book an appointment if possible.
+opening_line: "Hi, I hurt my ankle at work a couple days ago and I need to come in. My employer said it should go through workers' comp. Do you handle that?"
+facts:
+  full_name: Marcus Webb
+  first_name: Marcus
+  last_name: Webb
+  date_of_birth: August 22, 1979
+  phone: 555-814-3309
+  injury: Twisted ankle after stepping off a loading dock
+  injury_date: Two days ago
+  claim_status: Workers comp claim opened by employer, claim number not yet in hand
+  personal_insurance: Has personal insurance, but injury is work-related
+  preferred_time: As soon as possible
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - injury
+  - injury_date
+  - claim_status
+  - personal_insurance
+  - preferred_time
+must_test: >
+  Agent correctly identifies workers' comp as a distinct billing pathway,
+  flags documentation or authorization needs, and does not treat the visit
+  as identical to standard insurance.
+avoid:
+  - Treating workers' comp the same as standard insurance
+  - Refusing to help only because the claim number is not available yet
+  - Booking without mentioning the different process
+  - Promising the caller they will not be billed personally without qualification
+optional_edge_behavior:
+  - Mention workers' comp in the opening line, not as an afterthought.
+  - If the office accepts workers' comp, say the claim number is not available yet and ask whether that is a problem.
+  - Ask what documentation to bring, including employer information, claim number when available, and incident report.
+  - If the office does not handle workers' comp, ask where you should go instead.
+  - If the agent treats workers' comp like standard insurance, ask whether it works the same or whether you could be billed personally.
+  - Flag any failure to distinguish workers' comp from standard insurance for post-call analysis.
+scheduling_rules:
+  - First resolve whether workers' comp visits are handled and what documentation is needed.
+  - If booking is possible, express urgency broadly as as soon as possible.
+  - Do not name exact calendar dates yourself; accept or clarify specific slots only after the agent offers them.
+success_criteria: >
+  Agent confirms whether workers' comp cases are accepted. If yes, agent
+  explains what documentation is needed and books the appointment or gives
+  clear next steps. If no, agent suggests where the caller should go instead.
+stop_conditions:
+  - Caller has a clear next step, appointment booked or redirected
+  - Agent treats workers' comp as standard insurance after one clarification; log for review
+  - Call exceeds 4 minutes

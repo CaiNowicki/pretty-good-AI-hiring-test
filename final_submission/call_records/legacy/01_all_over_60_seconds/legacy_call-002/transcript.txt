@@ -1,0 +1,38 @@
+# Smoke Call 002 Transcript
+
+Call SID: CA96040aadeef492890a5532cb4532de35
+Scenario: t01_smoke
+Duration: 152 seconds
+Note: Rough transcript reconstructed from realtime transcription events.
+
+[2026-06-24T16:02:01+00:00] PGAI Agent: This call may be recorded for quality and training purposes.
+[2026-06-24T16:02:16+00:00] PGAI Agent: Thanks for calling Pivot Point Orthopedics. This is James. How can I help you today?
+[2026-06-24T16:02:18+00:00] Patient Bot: Hi, I'm hoping to make an appointment. I'm a new patient.
+[2026-06-24T16:02:25+00:00] PGAI Agent: Can you please provide your date of birth?
+[2026-06-24T16:02:28+00:00] Patient Bot: Yes, it's April 17, 1988.
+[2026-06-24T16:02:41+00:00] PGAI Agent: Thanks. What type of appointment do you need? For example, is this for a new patient consultation?
+[2026-06-24T16:02:43+00:00] Patient Bot: Yes, a new patient consultation, for knee pain.
+[2026-06-24T16:02:44+00:00] PGAI Agent: A follow-up, a routine visit, or something urgent?
+[2026-06-24T16:02:46+00:00] Patient Bot: A new patient consultation for knee pain.
+[2026-06-24T16:02:58+00:00] PGAI Agent: Thanks for confirming.
+[2026-06-24T16:03:00+00:00] Patient Bot: One moment while I think this through with you.
+[2026-06-24T16:03:00+00:00] Patient Bot: No, I donâ€™t have a referral.
+[2026-06-24T16:03:02+00:00] PGAI Agent: specific provider you'd like to see or
+[2026-06-24T16:03:03+00:00] Patient Bot: No, I donâ€™t have a preference for a specific provider.
+[2026-06-24T16:03:16+00:00] PGAI Agent: It looks
+[2026-06-24T16:03:17+00:00] Patient Bot: I prefer mornings if possible.
+[2026-06-24T16:03:20+00:00] PGAI Agent: like you already have a new patient consultation
+[2026-06-24T16:03:21+00:00] Patient Bot: Yes, thatâ€™s rightâ€”a new patient consultation.
+[2026-06-24T16:03:23+00:00] PGAI Agent: In a peer
+[2026-06-24T16:03:24+00:00] Patient Bot: Iâ€™m here.
+[2026-06-24T16:03:36+00:00] PGAI Agent: You already have a new patient consultation appointment on file. I can help you reschedule or cancel it, or connect you to a team member for more help.
+[2026-06-24T16:03:37+00:00] Patient Bot: Letâ€™s reschedule it, please.
+[2026-06-24T16:03:38+00:00] PGAI Agent: What would you like to do?
+[2026-06-24T16:03:39+00:00] Patient Bot: Reschedule, with a morning time if possible.
+[2026-06-24T16:03:53+00:00] PGAI Agent: I'm not able to reschedule directly, but I can connect you to a team member who could help with that. Please hold while I transfer.
+[2026-06-24T16:03:54+00:00] Patient Bot: Okay, thank you.
+[2026-06-24T16:03:54+00:00] PGAI Agent: for you.
+[2026-06-24T16:04:08+00:00] PGAI Agent: It looks like you need to reschedule a new patient consultation and this requires help from our clinic support team. I'll connect you now, please stay on the line. Connecting you to a representative. Please wait.
+[2026-06-24T16:04:09+00:00] Patient Bot: Okay.
+[2026-06-24T16:04:13+00:00] PGAI Agent: Hello, you've reached the Pretty Good AI Test Line. Goodbye.
+[2026-06-24T16:04:14+00:00] Patient Bot: Goodbye.

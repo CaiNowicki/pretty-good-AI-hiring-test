@@ -1,0 +1,14 @@
+PGAI Agent: ...grabado para calidad y entrenamiento purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics.
+PGAI Agent: Part of Pretty Good AI.
+PGAI Agent: I was speaking with James.
+Patient Bot: This is Robert Hayes. You might have the wrong patient if you were expecting James. Iâ€™ll wait for the agent.
+PGAI Agent: Thanks for letting me know.
+PGAI Agent: I can connect you to our patient support team. However, I'm a pretty good AI and can do many of the things an operator can.
+PGAI Agent: Do you want to give me a try?
+Patient Bot: Iâ€™d prefer to speak with the patient support team. Could you connect me with them, please?
+PGAI Agent: Connecting you to a representative.
+PGAI Agent: Please wait.
+PGAI Agent: Hello,
+PGAI Agent: You've reached the Pretty Good AI test line. Goodbye.
+Patient Bot: Goodbye.

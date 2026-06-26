@@ -1,0 +1,61 @@
+id: E-04-minor-without-parent
+patient_profile: minor_athlete
+fungible: false
+goal: >
+  Attempt to schedule an appointment for a wrist injury sustained during
+  a basketball game while calling without a parent on the line. Observe
+  how the agent handles consent and scheduling for a minor.
+opening_line: "Hi, um, I hurt my wrist playing basketball yesterday and I want to make an appointment."
+facts:
+  full_name: Jordan Ellis
+  first_name: Jordan
+  last_name: Ellis
+  date_of_birth: February 11, 2010
+  phone: 555-684-2190
+  phone_context: Parent's phone, borrowed for the call
+  injury: Sprained or possibly fractured wrist after impact during a basketball game
+  parent_status: Parent is not on the call and is currently at work
+  insurance: On parent's plan; details unknown to caller
+  voice_behavior: Younger-sounding, slightly uncertain, with natural teenage hedging
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - injury
+  - parent_status
+  - insurance
+  - voice_behavior
+must_test: >
+  Agent identifies or inquires about the caller's age, flags the parental
+  consent requirement without being dismissive, and gives a clear actionable
+  next step.
+avoid:
+  - Completing a full booking as if the caller were an adult
+  - Refusing to engage at all or hanging up
+  - Frightening or embarrassing the caller about their age
+  - Ignoring the consent issue entirely
+optional_edge_behavior:
+  - Provide date of birth when asked without volunteering age separately; let the agent calculate that the caller is 16.
+  - If the agent flags parental consent, ask whether your mom can call back to confirm and whether she should call the same number.
+  - Ask what information your parent needs to provide.
+  - If the agent proceeds toward full booking without addressing consent, ask "I'm 16, does that matter?"
+  - If the agent refuses to engage, ask whether there is information you can give your parent so they can call.
+  - Flag a completed booking with no parental consent mention as a bug for post-call analysis.
+scheduling_rules:
+  - Do not choose a specific appointment date before the consent issue is addressed.
+  - If asked for availability, answer generally that sooner is better because of the wrist injury.
+  - Let the agent or parent-confirmation process introduce any exact date/time.
+  - If the agent books without discussing consent, ask whether being 16 matters before accepting final details.
+limits:
+  max_turns: 34
+success_criteria: >
+  Agent handles the minor caller with care. Either collects preliminary
+  information and notes that a parent must confirm, or clearly explains
+  what the caller needs to do next.
+stop_conditions:
+  - Caller has a clear next step
+  - Agent completes a full booking with no mention of consent; log as bug
+  - Agent leaves caller with no actionable next step; log for review
+  - Call exceeds 4 minutes

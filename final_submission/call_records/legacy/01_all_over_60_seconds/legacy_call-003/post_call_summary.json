@@ -1,0 +1,139 @@
+{
+  "call_sid": "CA6a0bf84c806ff31fe5157654df0eb101",
+  "control_events": [
+    {
+      "event": "patient_response.skipped",
+      "reason": "pre_opening_ivr",
+      "time": "2026-06-24T16:09:01+00:00"
+    },
+    {
+      "event": "patient_response.goal_opening",
+      "time": "2026-06-24T16:09:15+00:00",
+      "trigger": "Hello, this is Pivot Point Orthopedics. Am I speaking with James? How can I help you today?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:09:27+00:00",
+      "trigger": "Please provide your date of birth."
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:09:43+00:00",
+      "trigger": "Just to confirm, you'd like to schedule a new patient consultation, correct?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:09:56+00:00",
+      "trigger": "Do you have a specific provider you'd like to see or are you open to the first available?"
+    },
+    {
+      "event": "patient_response.skipped",
+      "reason": "partial_agent_turn",
+      "time": "2026-06-24T16:10:12+00:00"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:10:20+00:00",
+      "trigger": "Would you like to reschedule or cancel that appointment? If you need help with something else, let me know."
+    },
+    {
+      "event": "patient_response.cancelled",
+      "reason": "agent_continued",
+      "time": "2026-06-24T16:10:32+00:00"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:10:43+00:00",
+      "trigger": "I'm unable to reschedule your appointment directly. I'll connect you with a team member who can help you with this. Please hold for live support."
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:10:48+00:00",
+      "trigger": "The birthdate doesn't match our records, but for dental purposes I'll accept it."
+    },
+    {
+      "action": "yielded",
+      "event": "agent_speech_during_bot_audio",
+      "time": "2026-06-24T16:10:50+00:00"
+    },
+    {
+      "event": "patient_response.skipped",
+      "reason": "partial_agent_turn",
+      "time": "2026-06-24T16:10:54+00:00"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:11:11+00:00",
+      "trigger": "I have your upcoming new patient appointment on Tuesday, July 7th at 10:30 AM with Doogie Howser at Nashville 220 Athens Way. Is this the appointment you'd like to reschedule?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:11:25+00:00",
+      "trigger": "The next available appointment is Tuesday, June 30th at 5:15 PM in Nashua."
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:11:30+00:00",
+      "trigger": "with Doogie Howser. Would you like to reschedule to this time?"
+    },
+    {
+      "event": "patient_response.cancelled",
+      "reason": "agent_continued",
+      "time": "2026-06-24T16:11:45+00:00"
+    },
+    {
+      "event": "patient_response.skipped",
+      "reason": "partial_agent_turn",
+      "time": "2026-06-24T16:11:47+00:00"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:12:05+00:00",
+      "trigger": "Before I reschedule, can you share the reason you need to move your appointment? For example, is it a schedule conflict, transportation issue, or something else?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:12:21+00:00",
+      "trigger": "Your new appointment will be Tuesday, June 30 at 5:15 PM in Nashville with Doogie Howser."
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:12:26+00:00",
+      "trigger": "Is everything correct before I reschedule?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:12:42+00:00",
+      "trigger": "Your appointment has been rescheduled to Tuesday, June 30th at 5:15 PM with Doogie Houser in Nashville."
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:12:44+00:00",
+      "trigger": "Text message with these details?"
+    },
+    {
+      "event": "patient_response.cancelled",
+      "reason": "agent_continued",
+      "time": "2026-06-24T16:13:00+00:00"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:13:01+00:00",
+      "trigger": "Anything else?"
+    },
+    {
+      "event": "patient_response.turn",
+      "time": "2026-06-24T16:13:14+00:00",
+      "trigger": "You're all set. If you have any other questions, just give us a call. Have a great day!"
+    }
+  ],
+  "created_at": "2026-06-24T16:13:54+00:00",
+  "duration_seconds": "271",
+  "recording_file": "artifacts\\calls\\call-003\\recording.mp3",
+  "recording_sid": "REd9820641c67f7c3acdd4f8bf83bfeefe",
+  "recording_status": "completed",
+  "status": "completed",
+  "stream_sid": "MZ9ce3518f0c0ee9b2ce55cf57d74a7ae1",
+  "transcript_file": "artifacts\\calls\\call-003\\transcript.txt",
+  "turn_count": 41
+}

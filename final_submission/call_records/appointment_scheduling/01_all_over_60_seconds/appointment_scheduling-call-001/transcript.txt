@@ -1,0 +1,30 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics.
+PGAI Agent: Part of pretty good AI. Am I speaking with James?
+Patient Bot: This is Maria Lopez. You may have the wrong patient if you were expecting James. Iâ€™ll wait for your next question.
+PGAI Agent: Please provide your date of birth.
+Patient Bot: My date of birth is July 22, 1980.
+PGAI Agent: Just to confirm, I have your name as Maria Lopez and your date of birth as
+PGAI Agent: July 22, 1980
+PGAI Agent: Is that correct? If so, please spell your first and last name for me.
+Patient Bot: M-A-R-I-A L-O-P-E-Z
+PGAI Agent: Would you like to use your phone number to look up your record?
+PGAI Agent: If so, please tell me the number you have on file with us.
+PGAI Agent: If you're not sure, just let me know.
+Patient Bot: Okay, let me think for a moment.
+Patient Bot: Iâ€™m not sure which number you have on file.
+PGAI Agent: No problem.
+PGAI Agent: Please spell your first and last name for me one more time and confirm your date of birth.
+Patient Bot: M-A-R-I-A L-O-P-E-Z
+PGAI Agent: And your date of birth is July 22, 1980, correct?
+Patient Bot: Yes, that's correct.
+PGAI Agent: I have your phone number as 941-842-0514.
+PGAI Agent: And your date of birth?
+PGAI Agent: as July 22, 1980.
+PGAI Agent: Is that correct?
+Patient Bot: I've already shared my date of birth; My date of birth is July 22, 1980.
+PGAI Agent: Thanks for confirming.
+PGAI Agent: I'm unable to verify your record right now, so I can't proceed further.
+PGAI Agent: I'll make sure our clinic support team follows up with you.
+PGAI Agent: Please hold while I document this for our team.
+PGAI Agent: Connecting you to a representative.

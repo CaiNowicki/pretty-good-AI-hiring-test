@@ -1,0 +1,75 @@
+{
+  "artifact_requirements": {
+    "analysis_md": "pending_manual_review",
+    "events_jsonl": "created",
+    "metadata_json": "created",
+    "recording_mp3_or_ogg": "created",
+    "scenario_yaml": "created",
+    "transcript_txt": "created"
+  },
+  "call_execution": {
+    "enabled": true,
+    "twilio_call_created": true,
+    "twilio_call_sid": "CAf452e5a3ff5aad94b01c40d253c62adf",
+    "twilio_call_status": "queued"
+  },
+  "call_id": "information_gathering-call-013",
+  "call_plan": {
+    "allowed_destination": "+18054398008",
+    "call_dir_name": "call-013",
+    "call_id": "information_gathering-call-013",
+    "call_type": "information_gathering",
+    "from": "<twilio_from_number>",
+    "record": true,
+    "recording_status_callback": "<public_base_url>/twilio/recording?scenario_id=i02_who_practices&call_id=information_gathering-call-013&call_type=information_gathering&call_dir_name=call-013",
+    "scenario_id": "i02_who_practices",
+    "to": "+18054398008",
+    "url": "<public_base_url>/twilio/voice?scenario_id=i02_who_practices&call_id=information_gathering-call-013&call_type=information_gathering&call_dir_name=call-013"
+  },
+  "call_type": "information_gathering",
+  "created_at": "2026-06-25T20:08:43.309+00:00",
+  "limits": {
+    "emergency_stop_phrases": [
+      "emergency stop",
+      "stop the test",
+      "stop this test",
+      "end the test call",
+      "abort the call",
+      "hang up now"
+    ],
+    "max_call_seconds": 240,
+    "max_silence_seconds": 18,
+    "max_turns": 16
+  },
+  "patient_profile": "maya_patel",
+  "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-013\\recording.mp3",
+  "review_state": "not_started",
+  "runtime_scenario_id": "i02_who_practices",
+  "scenario_id": "I-02-who-practices-there",
+  "scenario_stem": "i02_who_practices",
+  "status": "recording_received",
+  "twilio_call": {
+    "plan": {
+      "allowed_destination": "+18054398008",
+      "call_dir_name": "call-013",
+      "call_id": "information_gathering-call-013",
+      "call_type": "information_gathering",
+      "from": "<twilio_from_number>",
+      "record": true,
+      "recording_status_callback": "<public_base_url>/twilio/recording?scenario_id=i02_who_practices&call_id=information_gathering-call-013&call_type=information_gathering&call_dir_name=call-013",
+      "scenario_id": "i02_who_practices",
+      "to": "+18054398008",
+      "url": "<public_base_url>/twilio/voice?scenario_id=i02_who_practices&call_id=information_gathering-call-013&call_type=information_gathering&call_dir_name=call-013"
+    },
+    "settings": {
+      "allowed_destination": "+18054398008",
+      "public_base_url": "<public_base_url>/",
+      "realtime_model": "gpt-realtime-2",
+      "transcription_model": "gpt-4o-transcribe",
+      "twilio_account_sid": "<twilio_account_sid>",
+      "twilio_from_number": "<twilio_from_number>"
+    },
+    "sid": "CAf452e5a3ff5aad94b01c40d253c62adf",
+    "status": "queued"
+  }
+}

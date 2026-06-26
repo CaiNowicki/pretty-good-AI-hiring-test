@@ -1,0 +1,8 @@
+{
+  "bytes": 727040,
+  "call_sid": "CA00e2ba1360fba9b5b36d063bfd488ea8",
+  "channels": 1,
+  "duration": "182",
+  "recording_sid": "RE221173d842fa2064c45676d1c067697a",
+  "source": "https://api.twilio.com/2010-04-01/Accounts/<account_sid>/Recordings/RE221173d842fa2064c45676d1c067697a.mp3"
+}

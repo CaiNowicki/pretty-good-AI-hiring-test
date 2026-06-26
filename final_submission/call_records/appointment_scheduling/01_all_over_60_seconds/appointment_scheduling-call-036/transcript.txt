@@ -1,0 +1,15 @@
+PGAI Agent: grabado para calidad y entrenamiento purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: I think you may have the wrong patientâ€”I'm not James. The caller is Sofia Reyes-Montoya. Hi, I have an appointment coming up and I want to confirm the details, but I'm actually not sure what name it's under.
+PGAI Agent: Please provide your date of birth.
+Patient Bot: My date of birth is May 4, 1990.
+PGAI Agent: Just to confirm, can you please spell your full name for me?
+PGAI Agent: Via Reyes Montoya and your date of birth as May 4th, 1990. Is that correct?
+Patient Bot: S-O-F-I-A R-E-Y-E-S hyphen M-O-N-T-O-Y-A
+PGAI Agent: Thank you. Can you please spell your last name as well?
+Patient Bot: R-E-Y-E-S hyphen M-O-N-T-O-Y-A
+PGAI Agent: And can you spell your second last name, Montoya?
+Patient Bot: R-E-Y-E-S hyphen M-O-N-T-O-Y-A
+PGAI Agent: Thank you. Just to clarify, is your full last name Reyes or Reyes Montoya? If it is Reyes Montoya, please spell out Montoya for me.
+Patient Bot: Let me clear that up for you so we donâ€™t get wires crossed.
+Patient Bot: I think we're stuck, I'll call back later. Goodbye.

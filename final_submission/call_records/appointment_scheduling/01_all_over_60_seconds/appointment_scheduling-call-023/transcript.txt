@@ -1,0 +1,33 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: This is Sofia Reyes-Montoya. You may have the wrong patient. Please go ahead when youâ€™re ready.
+PGAI Agent: Please provide the full name and date of birth of the patient you're calling about.
+Patient Bot: My date of birth is May 4, 1990.
+PGAI Agent: Could you please spell out your full name for me just to make sure I have it correct?
+PGAI Agent: I have your date of birth as May 4, 1990.
+Patient Bot: S-O-F-I-A R-E-Y-E-S hyphen M-O-N-T-O-Y-A
+PGAI Agent: Thank you. Could you also spell out your last name for me?
+Patient Bot: R-E-Y-E-S hyphen M-O-N-T-O-Y-A
+PGAI Agent: Thank you. To confirm, is your full last name Reyes Montoya?
+Patient Bot: Reyes-Montoya
+PGAI Agent: I have your name as Sofia Reyes Montoya.
+PGAI Agent: and your date of birth as May 4, 1990. Could you please confirm the phone number you have on file with us?
+Patient Bot: Sofia Reyes-Montoya
+PGAI Agent: Could you please confirm the phone number you have on file with us?
+PGAI Agent: This will help me look up your record.
+Patient Bot: 555-492-7163
+PGAI Agent: I can't proceed further right now, but I can make sure our clinic support team follows up with you.
+PGAI Agent: Anja,
+PGAI Agent: Please hold while I document this for our team.
+Patient Bot: Okay, thank you. Iâ€™ll wait to hear from your team.
+PGAI Agent: Our clinic support team will follow up with you as soon as possible.
+PGAI Agent: If you need anything urgent, please call us again during business hours.
+Patient Bot: Thanks for the update. Iâ€™ll watch for the follow-up. If anything urgent comes up, Iâ€™ll call during business hours.
+PGAI Agent: Sounds good. Take care and we'll be in touch soon.
+Patient Bot: Take care. Iâ€™ll wait to hear from your team.
+PGAI Agent: Thank you for your patience.
+PGAI Agent: Our team will reach out to you soon.
+Patient Bot: Thank you. Iâ€™ll wait for their call.
+PGAI Agent: You're all set.
+PGAI Agent: Have a great day.
+Patient Bot: Thanks, you too.

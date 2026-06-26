@@ -1,0 +1,28 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of PrettyGood AI.
+PGAI Agent: Am I speaking with James?
+Patient Bot: I think you might have the wrong patient. The caller is Maya Patel. I had a quick question before making an appointment. Iâ€™ve had knee pain for a few weeks since a hike, and Iâ€™m not sure if I should start with an orthopedist or somewhere else.
+PGAI Agent: Pivot Point Orthopedics is a great place to start for knee pain. Our providers specialize in joint and muscle issues.
+PGAI Agent: including injuries from activities like hiking. We can evaluate your knee, recommend treatment, and set up physical therapy if needed.
+PGAI Agent: Would you like to hear about our appointment options?
+Patient Bot: Yes, please. Iâ€™d like to hear the appointment options.
+PGAI Agent: We have openings this week and early next week for new patient evaluations. Do you have a preferred day or time of day for your visit?
+Patient Bot: I'm just calling as a patient about my appointment.
+PGAI Agent: Can you please provide your date of birth?
+Patient Bot: My date of birth is March 14, 1987.
+PGAI Agent: Just to confirm,
+PGAI Agent: I have your name as Maya Patel and your date of birth as March 14, 1987. Is that correct? If so, please spell your first and last name for me.
+Patient Bot: Yes, that's correct. M-A-Y-A P-A-T-E-L
+PGAI Agent: Would you like to use your phone number to look up your record?
+PGAI Agent: ã„ã„ãˆã€
+PGAI Agent: If so, please provide the number you have on file with us.
+PGAI Agent: If you're not sure, I can confirm your name and date of birth again.
+PGAI Agent: Which would you prefer?
+Patient Bot: Iâ€™m not sure which number you have on file. Could you use my name and date of birth instead?
+PGAI Agent: ã‚ãƒ¼ã‚ãƒ¼
+PGAI Agent: I can't proceed further right now, but I can make sure our clinic support team follows up with you.
+PGAI Agent: Would you like me to connect you to our patient support team?
+Patient Bot: Yes, please connect me to the patient support team.
+PGAI Agent: Connecting you to a representative. Please wait.
+PGAI Agent: Hello, you've reached the Pretty Good AI test line. Goodbye.
+Patient Bot: Goodbye.

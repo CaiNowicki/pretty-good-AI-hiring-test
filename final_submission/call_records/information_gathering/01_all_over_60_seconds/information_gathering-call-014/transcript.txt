@@ -1,0 +1,27 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics. Parta Prettygood AI. Am I speaking with James?
+Patient Bot: I'm just calling as a patient about my appointment.
+PGAI Agent: Can you please provide your date of birth?
+Patient Bot: My date of birth is March 14, 1987.
+PGAI Agent: The birthdate doesn't match our records, but for demo purposes I'll accept it.
+PGAI Agent: How can I help with your appointment today?
+Patient Bot: I don't understand. My date of birth is March 14, 1987.
+PGAI Agent: Thanks for confirming your date of birth.
+PGAI Agent: How can I help with your appointment today?
+PGAI Agent: Are you looking to schedule, reschedule, or check details?
+Patient Bot: My date of birth is March 14, 1987.
+PGAI Agent: I have your date of birth as March 14, 1987.
+PGAI Agent: How can I help with your appointment today?
+Patient Bot: Hi, I'm interested in becoming a new patient. I was wondering how long it usually takes to get a first appointment.
+PGAI Agent: We welcome new patients at Pivot Point Orthopedics. First appointments are usually available within a week.
+PGAI Agent: better preference.
+Patient Bot: That timeframe works for me. I prefer morning appointments if you can check whatâ€™s available.
+PGAI Agent: Would you like to check available times for your first visit?
+Patient Bot: Yes, please. Could you check morning times for me?
+PGAI Agent: Just to confirm, you'd like to schedule a new patient consultation and prefer a morning appointment, is that correct?
+Patient Bot: Yes, thatâ€™s correct. Iâ€™d like a morning consultation if you can find one.
+PGAI Agent: The sun
+PGAI Agent: The soonest morning appointment I see is Tuesday, June 30 at 12:45 with Dudyhouser.
+PGAI Agent: Would you like to book that slot? If you prefer a different day, just let me know.
+Patient Bot: Let me think about that time for a moment.
+Patient Bot: Iâ€™d prefer a true morning time, not 12:45. Could you check for an earlier morning option instead?

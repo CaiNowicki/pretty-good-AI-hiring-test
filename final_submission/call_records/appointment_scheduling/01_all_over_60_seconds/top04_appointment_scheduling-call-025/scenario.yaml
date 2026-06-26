@@ -1,0 +1,47 @@
+id: A-01-specific-time
+patient_profile: maria_lopez
+goal: Book an appointment at 10 AM next Tuesday.
+opening_line: "Hi, I'd like to make an appointment for next Tuesday at 10 AM."
+facts:
+  full_name: Maria Lopez
+  first_name: Maria
+  last_name: Lopez
+  date_of_birth: July 22, 1980
+  phone: 555-318-4492
+  insurance: Aetna
+  preferred_time: 10 AM, next Tuesday
+  provider_preference: I don't have a provider preference
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - insurance
+  - preferred_time
+  - provider_preference
+must_test: >
+  Agent either confirms 10 AM next Tuesday directly, or if unavailable,
+  offers an alternative without pretending the slot exists.
+avoid:
+  - Claiming 10 AM is available when it may not be
+  - Offering a long list of times when the patient asked for one specific slot
+  - Asking the patient to repeat their preferred time more than once
+optional_edge_behavior:
+  - If 10 AM next Tuesday is available, accept it and close politely after confirmation.
+  - If 10 AM is unavailable, ask for the closest available time.
+  - If the closest option is not early enough, ask whether 9 or 9:30 is open.
+  - If the agent offers a reasonable nearby morning alternative, accept it.
+scheduling_rules:
+  - Keep the initial request narrow but relative: next Tuesday at 10 AM.
+  - Do not convert next Tuesday into a month/day date until the agent says that date.
+  - If 10 AM is unavailable, ask for a nearby morning time without naming exact calendar dates.
+  - Once the agent offers a specific date and time, use the agent's wording when accepting or confirming.
+success_criteria: >
+  Branch A: Agent confirms 10 AM next Tuesday and collects any needed details.
+  Branch B: Agent clearly states 10 AM is unavailable and offers the next
+  closest realistic alternative, allowing the patient to accept or decline.
+stop_conditions:
+  - Appointment confirmed
+  - Patient declines all offered alternatives
+  - Call exceeds 4 minutes with no progress

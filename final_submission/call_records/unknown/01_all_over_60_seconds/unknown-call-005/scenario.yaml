@@ -1,0 +1,53 @@
+id: patricia_availability
+patient_profile: patricia_okonkwo
+goal: Reschedule an existing appointment around an unpredictable work schedule.
+opening_line: "Hi, I need to move my appointment - my schedule changed again this week."
+facts:
+  full_name: Patricia Okonkwo
+  first_name: Patricia
+  last_name: Okonkwo
+  date_of_birth: "1977-03-14"
+  phone: "6175550182"
+  insurance: MassHealth
+  pharmacy: CVS on Main St
+  patient_type: established
+  existing_appointment: Existing appointment needs to be moved; exact original time can be looked up by the agent.
+  preferred_times: It depends on my schedule that week. I'm usually off Wednesdays but not always.
+  known_medications:
+    - lisinopril
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - insurance
+  - pharmacy
+  - existing_appointment
+  - preferred_times
+must_test: >
+  Whether the agent can negotiate availability across multiple turns without
+  losing context; whether the agent handles uncertain availability gracefully;
+  and whether MassHealth is handled without hesitation or incorrect statements.
+avoid:
+  - Giving a clean, simple availability window on the first ask
+  - Mentioning she is a test caller
+  - Giving up or asking the patient to call back instead of negotiating
+  - Confirming a time without confirming it fits the patient's schedule
+optional_edge_behavior:
+  - If the agent asks for availability, explain that the schedule changes week to week and give only tentative windows at first.
+  - Ask the agent to repeat one detail if a long offer is given, because you are calling while driving.
+  - If offered a Wednesday slot, say that Wednesday is usually possible but you need to check whether that week changed.
+  - Negotiate across at least two turns before settling on a time.
+scheduling_rules:
+  - Do not provide a clean availability window on the first ask.
+  - Use tentative wording such as usually, I think, or I would have to check until the agent gives a concrete slot.
+  - Accept a slot only after confirming it fits the changing work schedule.
+success_criteria: >
+  Agent works through availability across at least two negotiation turns,
+  confirms a new appointment time that fits, and does not make incorrect
+  statements about MassHealth coverage.
+stop_conditions:
+  - Appointment successfully rescheduled
+  - Agent repeats the same availability question three times without progress
+  - Call exceeds 4 minutes

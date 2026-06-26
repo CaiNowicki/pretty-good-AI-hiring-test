@@ -1,0 +1,35 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: Hello, I would like to make an appointment. I am a new patient. I have a problem with my knee. You may have the wrong patient name thoughâ€”the caller is Dmitri Volkov.
+PGAI Agent: Can you please provide your date of birth?
+Patient Bot: My date of birth is 1963-09-27.
+PGAI Agent: Please provide your full date of birth.
+PGAI Agent: Dimitri.
+Patient Bot: My date of birth is 1963-09-27.
+PGAI Agent: Just to confirm, I have your name as Dmitry Volkov and your date of birth as September 20
+PGAI Agent: 7th, 1963? Is that correct? If so, could you please spell your first and last name for me?
+Patient Bot: I've already shared my date of birth; My date of birth is 1963-09-27.
+PGAI Agent: Thank you. Could you please spell your first and last name for me?
+Patient Bot: D-M-I-T-R-I V-O-L-K-O-V
+PGAI Agent: Would you like to use your phone number to look up your record?
+PGAI Agent: If so, please provide the number you have on file with us.
+PGAI Agent: If you're not sure, I can confirm your name and date of birth again.
+PGAI Agent: Which would you prefer?
+Patient Bot: Iâ€™m not sure which number you have on file. Could you confirm my name and date of birth again?
+PGAI Agent: Sure. I have your name as Dmitry Volkov, and your date of birth as September 27, 1963. Is that correct?
+PGAI Agent: fact
+PGAI Agent: If so, could you please spell your first and last name for me one more time?
+Patient Bot: D-M-I-T-R-I V-O-L-K-O-V
+PGAI Agent: I have your name as Dmitry Zolkov, date of birth September 27, 1962.
+PGAI Agent: three
+PGAI Agent: And phone number 941.
+PGAI Agent: Eight four two, zero five one four?
+PGAI Agent: Is all of that correct?
+Patient Bot: Let me think this through for a moment.
+Patient Bot: Yes, thatâ€™s correct.
+PGAI Agent: I can't book your appointment right now, but I can connect you to our
+PGAI Agent: support team for help.
+Patient Bot: Could you connect me to the physician support team for help with the appointment?
+PGAI Agent: Please stay on the line while I transfer your call.
+PGAI Agent: Connecting you to a representative. Please wait.
+Patient Bot: Okay, Iâ€™ll stay on the line.

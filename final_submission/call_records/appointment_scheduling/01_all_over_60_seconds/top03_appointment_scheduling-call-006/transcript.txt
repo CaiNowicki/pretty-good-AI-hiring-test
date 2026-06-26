@@ -1,0 +1,34 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI.
+PGAI Agent: Am I speaking with James?
+Patient Bot: This is Maria Lopez. You may have the wrong patient. Iâ€™ll wait for you to confirm who youâ€™re trying to reach.
+PGAI Agent: Please provide the full name and date of birth of the patient you are calling about.
+Patient Bot: My date of birth is July 22, 1980.
+PGAI Agent: Thank you. Can you please provide your full name, including your first and last name?
+Patient Bot: Maria Lopez
+PGAI Agent: Just to confirm, I have your name as Maria Lopez and your date of birth as July 22, 1980.
+PGAI Agent: ãã¿ã€‚
+PGAI Agent: Is that correct? If so, please spell your first and last name for me.
+Patient Bot: M-A-R-I-A L-O-P-E-Z
+PGAI Agent: Thank you. Could you please spell your last name, Lopez?
+Patient Bot: L-O-P-E-Z
+PGAI Agent: Would you like me to look up your record using the phone number you have on file with us?
+PGAI Agent: If so, please provide that number.
+Patient Bot: 555-318-4492
+PGAI Agent: If you're not sure, I can confirm your name?
+Patient Bot: Iâ€™ve given the phone number. Are you still there to look up my record?
+PGAI Agent: Could you please provide the rest of the phone number you have on file with us?
+Patient Bot: 555-318-4492
+PGAI Agent: Yes, I am still here. Could you please provide the full phone number you have on file with us, including all ten digits? This will help me look up your record.
+Patient Bot: 555-318-4492
+PGAI Agent: Thank you. I have your phone number as 555-4492. Could you please provide the remaining digits so I can complete the lookup?
+PGAI Agent: ê·¸ë ‡êµ¬ë‚˜.
+Patient Bot: That phone number is not mine. My phone number is 555-318-4492.
+PGAI Agent: I have your number as 555-318-4492. Is that correct?
+Patient Bot: Yes, that's correct.
+PGAI Agent: Hi, the name is Maria Lopez, date of birth July 22, 1980, and phone number five five five.
+PGAI Agent: Three one eight
+PGAI Agent: Four four nine two
+Patient Bot: I already gave you my date of birth, but My date of birth is July 22, 1980.
+PGAI Agent: I can't access your record right now, but I'll
+PGAI Agent: to our patient support team. Please stay on the line.

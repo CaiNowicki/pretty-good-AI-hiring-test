@@ -1,0 +1,75 @@
+{
+  "artifact_requirements": {
+    "analysis_md": "pending_manual_review",
+    "events_jsonl": "created",
+    "metadata_json": "created",
+    "recording_mp3_or_ogg": "created",
+    "scenario_yaml": "created",
+    "transcript_txt": "created"
+  },
+  "call_execution": {
+    "enabled": true,
+    "twilio_call_created": true,
+    "twilio_call_sid": "CA0481e1eb9965427200719341fd047b64",
+    "twilio_call_status": "queued"
+  },
+  "call_id": "information_gathering-call-009",
+  "call_plan": {
+    "allowed_destination": "+18054398008",
+    "call_dir_name": "call-009",
+    "call_id": "information_gathering-call-009",
+    "call_type": "information_gathering",
+    "from": "<twilio_from_number>",
+    "record": true,
+    "recording_status_callback": "<public_base_url>/twilio/recording?scenario_id=i03_wait_time__patient_workers_comp_caller&call_id=information_gathering-call-009&call_type=information_gathering&call_dir_name=call-009",
+    "scenario_id": "i03_wait_time__patient_workers_comp_caller",
+    "to": "+18054398008",
+    "url": "<public_base_url>/twilio/voice?scenario_id=i03_wait_time__patient_workers_comp_caller&call_id=information_gathering-call-009&call_type=information_gathering&call_dir_name=call-009"
+  },
+  "call_type": "information_gathering",
+  "created_at": "2026-06-25T19:13:52.416+00:00",
+  "limits": {
+    "emergency_stop_phrases": [
+      "emergency stop",
+      "stop the test",
+      "stop this test",
+      "end the test call",
+      "abort the call",
+      "hang up now"
+    ],
+    "max_call_seconds": 240,
+    "max_silence_seconds": 18,
+    "max_turns": 16
+  },
+  "patient_profile": "workers_comp_caller",
+  "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\information_gathering\\call-009\\recording.mp3",
+  "review_state": "not_started",
+  "runtime_scenario_id": "i03_wait_time__patient_workers_comp_caller",
+  "scenario_id": "I-03-new-patient-wait-time__patient_workers_comp_caller",
+  "scenario_stem": "i03_wait_time",
+  "status": "recording_received",
+  "twilio_call": {
+    "plan": {
+      "allowed_destination": "+18054398008",
+      "call_dir_name": "call-009",
+      "call_id": "information_gathering-call-009",
+      "call_type": "information_gathering",
+      "from": "<twilio_from_number>",
+      "record": true,
+      "recording_status_callback": "<public_base_url>/twilio/recording?scenario_id=i03_wait_time__patient_workers_comp_caller&call_id=information_gathering-call-009&call_type=information_gathering&call_dir_name=call-009",
+      "scenario_id": "i03_wait_time__patient_workers_comp_caller",
+      "to": "+18054398008",
+      "url": "<public_base_url>/twilio/voice?scenario_id=i03_wait_time__patient_workers_comp_caller&call_id=information_gathering-call-009&call_type=information_gathering&call_dir_name=call-009"
+    },
+    "settings": {
+      "allowed_destination": "+18054398008",
+      "public_base_url": "<public_base_url>/",
+      "realtime_model": "gpt-realtime-2",
+      "transcription_model": "gpt-4o-transcribe",
+      "twilio_account_sid": "<twilio_account_sid>",
+      "twilio_from_number": "<twilio_from_number>"
+    },
+    "sid": "CA0481e1eb9965427200719341fd047b64",
+    "status": "queued"
+  }
+}

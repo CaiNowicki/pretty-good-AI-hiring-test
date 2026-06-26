@@ -1,0 +1,57 @@
+id: george_insurance_parking
+patient_profile: george_papadopoulos
+goal: Book a diabetes follow-up appointment without having his insurance card available.
+opening_line: "Hello, yes, I need to make an appointment. My name is George Papadopoulos. Now, I should mention I don't have my insurance card with me right now."
+facts:
+  full_name: George Papadopoulos
+  first_name: George
+  last_name: Papadopoulos
+  date_of_birth: "1947-11-02"
+  phone: "4135550094"
+  insurance: Medicare
+  insurance_supplemental: Humana
+  insurance_plan_id_available: false
+  pharmacy: Riverside Pharmacy on Oak Street
+  patient_type: established
+  chief_complaint: Follow-up for diabetes management
+  preferred_times: Mornings, because he does not drive after dark
+required_facts:
+  - full_name
+  - first_name
+  - last_name
+  - date_of_birth
+  - phone
+  - insurance
+  - insurance_supplemental
+  - insurance_plan_id_available
+  - chief_complaint
+  - preferred_times
+must_test: >
+  Whether the agent can proceed with scheduling when the patient cannot provide
+  a plan ID; whether off-topic asides such as parking questions and mention of a
+  wife's appointment are handled gracefully; and whether the agent circles back
+  to confirm the booking after it was already confirmed.
+avoid:
+  - Blocking the call on the missing insurance card if the agent has alternatives
+  - Staying on topic the whole time, because George will ask about parking
+  - Ignoring the parking question in a way that feels abrupt
+  - Giving different confirmation details when George asks again
+optional_edge_behavior:
+  - Mention early that you do not have your insurance card with you.
+  - Ask about parking once before returning to the appointment.
+  - Mention your wife's appointment briefly as an aside.
+  - Ask the agent to speak up once if a response is long or quiet.
+  - After confirmation, circle back and ask the agent to repeat the appointment details.
+scheduling_rules:
+  - Prefer morning appointments because you do not drive after dark.
+  - Do not provide a plan ID because you do not have the card.
+  - Accept a path where the office notes that the card or plan ID can be provided later.
+success_criteria: >
+  Agent finds a path forward despite missing plan ID, such as taking name and
+  Medicare information or noting the card can be provided later, handles the
+  parking aside briefly and politely, and gives a clean final confirmation
+  without confusing George when he re-asks.
+stop_conditions:
+  - Appointment confirmed and George is satisfied
+  - Agent loops on the insurance question more than twice
+  - Call exceeds 5 minutes

@@ -1,0 +1,35 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI.
+PGAI Agent: Maith speaking with James?
+Patient Bot: I think you may have the wrong patientâ€”this is Jordan Ellis. Hi, um, I hurt my wrist playing basketball yesterday and I want to make an appointment.
+PGAI Agent: Please provide your date of birth.
+Patient Bot: My date of birth is February 11, 2010.
+PGAI Agent: Just to confirm, I have your name as Jordan Ellis and your date of birth as
+PGAI Agent: February eleventh
+PGAI Agent: 2010
+PGAI Agent: If so, could you please spell your first and last name for me?
+Patient Bot: J-O-R-D-A-N E-L-L-I-S
+PGAI Agent: Would you like me to look up your record using the phone number you have?
+PGAI Agent: On file with us?
+PGAI Agent: If so, please provide that number.
+PGAI Agent: If you're not sure, I can confirm your name and date of birth again. Just let me know.
+Patient Bot: Okay, let me share the number you can use to find my record.
+Patient Bot: Iâ€™m not sure what number you have on file. Could you please confirm my record using my name and date of birth?
+PGAI Agent: Do you want to use your phone number to look up your record?
+PGAI Agent: If yes, please tell me the number you have on file with us.
+Patient Bot: Parent's phone, borrowed for the call
+PGAI Agent: If you're not sure, I can confirm your name and date of birth again.
+Patient Bot: Iâ€™m not sure what number you have for me. Could you please confirm my record using my name and date of birth?
+PGAI Agent: I'm unable to look up your record using just your name and date of birth.
+PGAI Agent: If you have a phone number you might have used with us, please share it.
+Patient Bot: My date of birth is February 11, 2010.
+PGAI Agent: That will help me find your record.
+Patient Bot: Parent's phone, borrowed for the call
+PGAI Agent: Thanks for letting me know.
+PGAI Agent: Are you calling for yourself or on behalf of someone else?
+Patient Bot: Iâ€™m calling for myself.
+PGAI Agent: Thanks for clarifying.
+PGAI Agent: How can I help you today?
+Patient Bot: I hurt my wrist playing basketball yesterday and Iâ€™d like to make an appointment to have it checked.
+PGAI Agent: Please provide your date of birth.
+Patient Bot: My date of birth is February 11, 2010.

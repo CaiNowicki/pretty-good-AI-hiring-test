@@ -1,0 +1,42 @@
+# Smoke Call 008 Transcript
+
+Source artifact: artifacts/calls/call-008/recording.mp3
+Twilio call SID: CA00e2ba1360fba9b5b36d063bfd488ea8
+Call window: 2026-06-24T19:37:21.855+00:00 to 2026-06-24 19:40:24+00:00
+Note: Rough transcript reconstructed from realtime transcription events in artifacts/media-events.jsonl.
+
+[2026-06-24T19:37:28.496+00:00] PGAI Agent: This call may be recorded for quality and training purposes. Para espanol, oprima el dos.
+[2026-06-24T19:37:31.045+00:00] PGAI Agent: Thanks for calling Pivot Point Orthopedics.
+[2026-06-24T19:37:34.488+00:00] PGAI Agent: Pardon Pretty Good AI. Am I speaking with James?
+[2026-06-24T19:37:35.764+00:00] Patient Bot: I'm just calling as a patient about my appointment.
+[2026-06-24T19:37:43.982+00:00] PGAI Agent: Can you please provide your date of birth?
+[2026-06-24T19:37:45.155+00:00] Patient Bot: My date of birth is March 14, 1987.
+[2026-06-24T19:37:58.244+00:00] PGAI Agent: The birthday doesn't match our records but for demo purposes, I'll accept it. How can I help with your appointment today?
+[2026-06-24T19:37:59.679+00:00] Patient Bot: Hi, I'm hoping to make an appointment. I'm a new patient.
+[2026-06-24T19:38:11.051+00:00] PGAI Agent: You'd like to schedule a new patient consultation?
+[2026-06-24T19:38:12.113+00:00] PGAI Agent: Is that right?
+[2026-06-24T19:38:12.889+00:00] Patient Bot: It's a new patient consultation, not a follow-up.
+[2026-06-24T19:38:24.972+00:00] PGAI Agent: Perfect. Do you have a specific provider you'd like to see, or are you open to the first available?
+[2026-06-24T19:38:27.029+00:00] Patient Bot: Let me check who's available and get you set up.
+[2026-06-24T19:38:27.031+00:00] Patient Bot: I'm fine with the first available.
+[2026-06-24T19:38:39.620+00:00] PGAI Agent: Let me check the first available time for a new patient consultation. One moment.
+[2026-06-24T19:38:41.023+00:00] Patient Bot: It's a new patient consultation, not a follow-up.
+[2026-06-24T19:38:52.033+00:00] PGAI Agent: It looks like you already have a new patient consultation booked. If you'd like I can help you reschedule or cancel that appointment. What would you like to do?
+[2026-06-24T19:38:53.564+00:00] Patient Bot: I don't understand; I'm trying to schedule a new patient consultation.
+[2026-06-24T19:39:06.854+00:00] PGAI Agent: You already have a new patient consultation appointment on file. If you want to change it, I can help reschedule or cancel it.
+[2026-06-24T19:39:09.925+00:00] PGAI Agent: Would you like to do that or do you want to speak with someone from the office?
+[2026-06-24T19:39:10.813+00:00] Patient Bot: I don't understand; I'm trying to schedule a new patient consultation.
+[2026-06-24T19:39:24.958+00:00] PGAI Agent: You can only have one new patient consultation appointment at a time.
+[2026-06-24T19:39:26.091+00:00] PGAI Agent: Cancel it.
+[2026-06-24T19:39:26.502+00:00] Patient Bot: It's a new patient consultation, not a follow-up.
+[2026-06-24T19:39:28.017+00:00] PGAI Agent: Would you like to do that?
+[2026-06-24T19:39:29.429+00:00] Patient Bot: I don't understand; I'm trying to schedule a new patient consultation.
+[2026-06-24T19:39:43.433+00:00] PGAI Agent: You already have a new patient consultation appointment in the system. If you want to change the date or time,
+[2026-06-24T19:39:49.614+00:00] PGAI Agent: Would you like to do that, or would you like to speak with someone from the office for more help?
+[2026-06-24T19:39:50.146+00:00] Patient Bot: I don't understand; I'm trying to schedule a new patient consultation.
+[2026-06-24T19:40:04.241+00:00] PGAI Agent: It seems there's a restriction that only allows one new patient consultation at a time.
+[2026-06-24T19:40:06.570+00:00] PGAI Agent: help reschedule or cancel it.
+[2026-06-24T19:40:07.276+00:00] Patient Bot: It's a new patient consultation, not a follow-up.
+[2026-06-24T19:40:08.754+00:00] PGAI Agent: Would you like to do that or would you like
+[2026-06-24T19:40:09.584+00:00] Patient Bot: I don't understand; I'm trying to schedule a new patient consultation.
+[2026-06-24T19:40:23.580+00:00] PGAI Agent: I understand this is confusing. There is a system restriction that only allows one new patient consultation at a time.

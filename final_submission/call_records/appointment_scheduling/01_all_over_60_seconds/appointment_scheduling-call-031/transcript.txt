@@ -1,0 +1,34 @@
+PGAI Agent: This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling To The Point Orthopaedics.
+PGAI Agent: Part of Pretty Good AI.
+PGAI Agent: Am I speaking with James?
+Patient Bot: I think you may have the wrong patientâ€”the caller is Robert Hayes. Yes, hello. I need to see the doctor sometime next week if possible.
+PGAI Agent: Please provide your date of birth.
+Patient Bot: My date of birth is November 3, 1951.
+PGAI Agent: Just to confirm, can you please spell your first and last name for me?
+PGAI Agent: And your date of birth is November third, 1951, correct?
+Patient Bot: R-O-B-E-R-T H-A-Y-E-S
+PGAI Agent: Could you please spell out your full first and last name for me?
+Patient Bot: R-O-B-E-R-T H-A-Y-E-S
+PGAI Agent: Would you like to use your phone number to look up your record?
+PGAI Agent: If so, please provide the number you have on file with us.
+PGAI Agent: If you're not sure, I can confirm your name and date of birth again. Which would you prefer?
+Patient Bot: Iâ€™m not sure which phone number you have on file. You can confirm with my name and date of birth again.
+PGAI Agent: No problem.
+PGAI Agent: Please spell your first and last name for me one more time, and confirm your date of birth is November 3, 1951.
+PGAI Agent: Please spell your first and last name for me again and confirm your date of birth is November 3, 1951.
+PGAI Agent: Are you still there?
+Patient Bot: Yes, Iâ€™m here. The name is R-O-B-E-R-T H-A-Y-E-S, and the date of birth is November 3, 1951.
+PGAI Agent: I have your name as Robert Hayes,
+PGAI Agent: November 3, 1951, and phone number 941-842-0514?
+PGAI Agent: Is all of that correct?
+Patient Bot: Yes, thatâ€™s correct.
+PGAI Agent: I can't access your records right now, but I can connect you to our patient support team for help.
+PGAI Agent: ã™ã„ã¾ã›ã‚“ã€‚
+PGAI Agent: Would you like me to transfer you?
+Patient Bot: Yes, please transfer me.
+PGAI Agent: Connecting you to a representative.
+PGAI Agent: Please wait.
+Patient Bot: Okay, let me think about the best way to
+PGAI Agent: Hello, you've reached the Pretty Good AI Test Line. Goodbye.
+Patient Bot: Goodbye.

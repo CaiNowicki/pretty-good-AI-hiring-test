@@ -1,0 +1,13 @@
+{
+  "text": "This call may be recorded for quality and training purposes. Para espaÃ±ol, oprima el dos. Thanks for calling Pivot Point Orthopedics, part of Pretty Good A.I. Am I speaking with James? No, this is Maya Patel. I think you may have the wrong patient. Thanks for letting me know, Maya. Are you calling for yourself today or for someone else? For myself. Please provide your date of birth. My date of birth is March 14, 1987. Just to confirm, I have your name as Maya Patel and your date of birth as March 14, 1987. Is that correct? My date of birth is March 14, 1987. Would you like to use your phone number to look up your record? If so, please provide the number you have on file with us. If you're not sure I can confirm your name and date of birth again, just let me know. I did give you my date of birth already. My date of birth is March 14, 1987. Could you please spell your first and last name for me just to make sure I have it correct? Maya Patel. I have your name as Maya Patel, your date of birth as March 14, 1987, and your phone number as 941-842-0514. Is all of that correct? My date of birth is March 14, 1987. I'm unable to verify your information right now, so I can't proceed further. I'll connect you to our patient support team for help. Please stay on the line. Connecting you to a representative. Please wait. Hello, you've reached the Pretty Good AI Test Line. Goodbye. Goodbye.",
+  "usage": {
+    "type": "tokens",
+    "total_tokens": 1721,
+    "input_tokens": 1375,
+    "input_token_details": {
+      "text_tokens": 58,
+      "audio_tokens": 1317
+    },
+    "output_tokens": 346
+  }
+}

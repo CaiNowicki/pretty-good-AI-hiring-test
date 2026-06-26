@@ -1,0 +1,17 @@
+{
+  "call_sid": "CAb28d03b8b61d07412648f9c2b3c2e840",
+  "recording_sid": "RE5293867b9812c92d27cf27eeb2142818",
+  "stream_sid": "MZee932c2b2f113f9aae228f6548556f76",
+  "scenario_id": "t01_smoke",
+  "call_status": "completed",
+  "started": "2026-06-24 21:52:03+00:00",
+  "ended": "2026-06-24 21:54:42+00:00",
+  "duration_seconds": "159",
+  "recording_status": "completed",
+  "recording_duration_seconds": "158",
+  "recording_bytes": 631223,
+  "event_start_line": 91670,
+  "event_stop_line": 99890,
+  "local_stop_reason": "max_turns",
+  "transcript_rows": 34
+}

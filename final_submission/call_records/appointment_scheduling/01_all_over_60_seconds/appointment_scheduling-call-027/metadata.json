@@ -1,0 +1,75 @@
+{
+  "artifact_requirements": {
+    "analysis_md": "pending_manual_review",
+    "events_jsonl": "created",
+    "metadata_json": "created",
+    "recording_mp3_or_ogg": "created",
+    "scenario_yaml": "created",
+    "transcript_txt": "created"
+  },
+  "call_execution": {
+    "enabled": true,
+    "twilio_call_created": true,
+    "twilio_call_sid": "CA43816e853d1d2d3d07a3101ee3de2092",
+    "twilio_call_status": "queued"
+  },
+  "call_id": "appointment_scheduling-call-027",
+  "call_plan": {
+    "allowed_destination": "+18054398008",
+    "call_dir_name": "call-027",
+    "call_id": "appointment_scheduling-call-027",
+    "call_type": "appointment_scheduling",
+    "from": "<twilio_from_number>",
+    "record": true,
+    "recording_status_callback": "<public_base_url>/twilio/recording?scenario_id=a03_vague_narrow&call_id=appointment_scheduling-call-027&call_type=appointment_scheduling&call_dir_name=call-027",
+    "scenario_id": "a03_vague_narrow",
+    "to": "+18054398008",
+    "url": "<public_base_url>/twilio/voice?scenario_id=a03_vague_narrow&call_id=appointment_scheduling-call-027&call_type=appointment_scheduling&call_dir_name=call-027"
+  },
+  "call_type": "appointment_scheduling",
+  "created_at": "2026-06-25T19:36:16.958+00:00",
+  "limits": {
+    "emergency_stop_phrases": [
+      "emergency stop",
+      "stop the test",
+      "stop this test",
+      "end the test call",
+      "abort the call",
+      "hang up now"
+    ],
+    "max_call_seconds": 300,
+    "max_silence_seconds": 20,
+    "max_turns": 34
+  },
+  "patient_profile": "robert_hayes",
+  "recording_path": "C:\\PrettyGoodAI\\artifacts\\calls\\appointment_scheduling\\call-027\\recording.mp3",
+  "review_state": "not_started",
+  "runtime_scenario_id": "a03_vague_narrow",
+  "scenario_id": "A-03-vague-then-narrow",
+  "scenario_stem": "a03_vague_narrow",
+  "status": "recording_received",
+  "twilio_call": {
+    "plan": {
+      "allowed_destination": "+18054398008",
+      "call_dir_name": "call-027",
+      "call_id": "appointment_scheduling-call-027",
+      "call_type": "appointment_scheduling",
+      "from": "<twilio_from_number>",
+      "record": true,
+      "recording_status_callback": "<public_base_url>/twilio/recording?scenario_id=a03_vague_narrow&call_id=appointment_scheduling-call-027&call_type=appointment_scheduling&call_dir_name=call-027",
+      "scenario_id": "a03_vague_narrow",
+      "to": "+18054398008",
+      "url": "<public_base_url>/twilio/voice?scenario_id=a03_vague_narrow&call_id=appointment_scheduling-call-027&call_type=appointment_scheduling&call_dir_name=call-027"
+    },
+    "settings": {
+      "allowed_destination": "+18054398008",
+      "public_base_url": "<public_base_url>/",
+      "realtime_model": "gpt-realtime-2",
+      "transcription_model": "gpt-4o-transcribe",
+      "twilio_account_sid": "<twilio_account_sid>",
+      "twilio_from_number": "<twilio_from_number>"
+    },
+    "sid": "CA43816e853d1d2d3d07a3101ee3de2092",
+    "status": "queued"
+  }
+}
