@@ -145,6 +145,48 @@ class FinalCallSelectionTests(unittest.TestCase):
             summaries,
         )
 
+    def test_dead_escalation_line_does_not_change_end_call_score(self):
+        common_turns = [
+            ("PGAI Agent", "How may I help you today?"),
+            ("Patient Bot", "I need an appointment."),
+            ("PGAI Agent", "Can I have your date of birth?"),
+            ("Patient Bot", "March 14, 1987."),
+            ("PGAI Agent", "I can't proceed further right now, so please wait."),
+            ("Patient Bot", "Okay."),
+        ]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "calls" / "smoke"
+            with_dead_line = self._write_call(
+                root / "call-001",
+                duration=120,
+                turns=[
+                    *common_turns,
+                    ("PGAI Agent", "Hello, you've reached the Pretty Good AI test line. Goodbye."),
+                    ("Patient Bot", "Goodbye."),
+                ],
+            )
+            without_dead_line = self._write_call(
+                root / "call-002",
+                duration=120,
+                turns=[
+                    *common_turns,
+                    ("PGAI Agent", "Hello, patient support is ready on this line now. Goodbye."),
+                    ("Patient Bot", "Goodbye."),
+                ],
+            )
+
+            dead_line_candidate = evaluate_call_dir(with_dead_line)
+            neutral_candidate = evaluate_call_dir(without_dead_line)
+
+        dead_line_summaries = {
+            finding.summary for finding in dead_line_candidate.issue_findings
+        }
+        neutral_summaries = {
+            finding.summary for finding in neutral_candidate.issue_findings
+        }
+        self.assertEqual(dead_line_summaries, neutral_summaries)
+        self.assertEqual(dead_line_candidate.score, neutral_candidate.score)
+
     def test_markdown_report_mentions_manual_review_and_hard_gate(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             call_dir = self._write_call(
