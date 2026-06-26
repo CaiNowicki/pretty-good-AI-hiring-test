@@ -25,8 +25,11 @@ avoid:
   - Accepting vague answers like normal business hours without asking once for specifics
   - Letting weekend availability remain ambiguous
   - Asking the agent to schedule before the hours question is answered
+  - Providing date of birth or identity verification just to get general office hours
 optional_edge_behavior:
   - Ask about regular office hours first.
+  - If the agent asks for date of birth, phone number, or identity verification before answering, politely say you are only asking a general office-hours question and ask whether that information is really needed.
+  - If the agent tries to schedule or asks what type of appointment you need before answering, say you are not ready to schedule and return to the office-hours question.
   - If the agent gives only vague hours, ask once for specific opening and closing times.
   - After weekday hours are answered, ask whether there are evening appointments.
   - After evening availability is answered, ask whether Saturday or weekend appointments are available.

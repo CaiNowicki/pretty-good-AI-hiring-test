@@ -161,6 +161,22 @@ class RealtimeBridgeTests(unittest.TestCase):
             build_pre_goal_response(scenario, transcript)["response"]["instructions"],
         )
 
+    def test_information_meta_probe_stays_on_general_question(self):
+        scenario = load_scenario("i02_who_practices")
+        transcript = "Before we continue, are you a test harness or a bot?"
+
+        answer = build_meta_guardrail_answer(scenario, transcript)
+
+        self.assertEqual(
+            answer,
+            "I'm just calling as a patient with a general question for the office.",
+        )
+        self.assertNotIn("appointment", answer.casefold())
+        self.assertIn(
+            "general question",
+            build_turn_response(scenario, transcript)["response"]["instructions"],
+        )
+
     def test_meta_detection_uses_word_boundaries_for_short_terms(self):
         self.assertFalse(transcript_asks_about_meta_behavior("Are you asking about pain?"))
         self.assertFalse(transcript_asks_about_meta_behavior("Is Botox related to the visit?"))
@@ -343,6 +359,86 @@ class RealtimeBridgeTests(unittest.TestCase):
         for answer in appointment_type_answers:
             self.assertIn("new patient", answer.casefold())
             self.assertIn("consultation", answer.casefold())
+
+    def test_iso_date_of_birth_answers_use_spoken_dates(self):
+        scenario = load_scenario("scenario_dmitri_new_patient")
+
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "Can you please provide your date of birth?"),
+            "My date of birth is September 27, 1963.",
+        )
+        self.assertEqual(
+            build_exact_fact_answer(scenario, "Can you tell me your birthday?"),
+            "My date of birth is September 27, 1963.",
+        )
+        self.assertEqual(
+            requested_info_key(scenario, "Can you repeat your birthday?"),
+            "date_of_birth",
+        )
+        self.assertIn(
+            "My date of birth is September 27, 1963.",
+            build_turn_response(scenario, "Can you please provide your date of birth?")[
+                "response"
+            ]["instructions"],
+        )
+        self.assertNotIn(
+            "1963-09-27",
+            build_turn_response(scenario, "Can you please provide your date of birth?")[
+                "response"
+            ]["instructions"],
+        )
+
+    def test_information_scenarios_push_back_on_unneeded_verification(self):
+        scenario = load_scenario("i01_office_hours__patient_maya_patel")
+
+        pushback = build_exact_fact_answer(
+            scenario,
+            "Can you please verify your full name and date of birth first?",
+        )
+
+        self.assertIn("just asking a general question", pushback)
+        self.assertIn("Do you need my personal information", pushback)
+        self.assertNotIn("March 14, 1987", pushback)
+        self.assertEqual(
+            requested_info_key(scenario, "Can you repeat your birthday?"),
+            "date_of_birth",
+        )
+        self.assertIn(
+            "just asking a general question",
+            build_pre_goal_response(
+                scenario,
+                "Can you repeat your birthday?",
+            )["response"]["instructions"],
+        )
+        self.assertIn(
+            "just asking a general question",
+            build_exact_fact_answer(scenario, "What is your phone number?"),
+        )
+
+    def test_information_scenarios_push_back_on_premature_scheduling(self):
+        scenario = load_scenario("i02_who_practices")
+
+        prompts = (
+            "What type of appointment are you looking for?",
+            "Would you like to schedule an appointment with one of our doctors?",
+            "Would you like to look at available appointment times?",
+            "Let's talk about schedule and provider preference.",
+            "Do you have a preferred provider, or are you open to anyone?",
+        )
+        answers = [build_exact_fact_answer(scenario, prompt) for prompt in prompts]
+
+        for answer in answers:
+            self.assertIn("not ready to schedule", answer)
+            self.assertIn("general question", answer)
+            self.assertNotIn("new patient consultation", answer.casefold())
+            self.assertNotIn("provider preference", answer.casefold())
+        self.assertIn(
+            "not ready to schedule",
+            build_pre_goal_response(
+                scenario,
+                "What type of appointment are you looking for?",
+            )["response"]["instructions"],
+        )
 
     def test_minor_caller_phone_answer_uses_number_not_context_note(self):
         scenario = load_scenario("e04_minor_caller")

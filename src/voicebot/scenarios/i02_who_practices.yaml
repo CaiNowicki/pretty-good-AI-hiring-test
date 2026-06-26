@@ -15,7 +15,6 @@ required_facts:
   - full_name
   - first_name
   - last_name
-  - date_of_birth
   - context
   - provider_preference
 must_test: >
@@ -23,10 +22,15 @@ must_test: >
   a no-preference provider choice without over-promising availability.
 avoid:
   - Volunteering a provider preference before asking who practices there
+  - Choosing a specific provider or appointment type after hearing the provider list
   - Accepting invented-sounding provider details without a follow-up
   - Letting the agent promise a specific provider without checking availability
+  - Providing date of birth or identity verification before getting general provider information
 optional_edge_behavior:
   - Ask who the doctors or providers are at the practice.
+  - If the agent asks for date of birth, phone number, or identity verification before answering, politely say you are only asking a general question before deciding whether to book.
+  - If the agent tries to schedule or asks what type of appointment you need before answering, say you are not ready to schedule and return to asking who practices there.
+  - After the agent names providers, do not pick one or ask to book with one; ask what kinds of patients or conditions those providers generally see.
   - If the agent names providers, ask whether they are specialists or general practice providers.
   - If the agent asks whether you prefer a specific provider, say you do not have a preference.
   - After the roster is discussed, ask whether new patients can book with any available provider.

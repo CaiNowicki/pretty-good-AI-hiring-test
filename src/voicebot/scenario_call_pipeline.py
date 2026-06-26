@@ -151,7 +151,7 @@ def prepare_scenario_call(
     to_number: str = ALLOWED_DESTINATION,
     calls_root: Path = DEFAULT_CALLS_ROOT,
 ) -> PreparedScenarioCall:
-    """Create a grouped call directory and dry-run call plan for one scenario."""
+    """Create a grouped call directory and safe call plan for one scenario."""
 
     scenario = load_scenario(scenario_id)
     scenario_path = scenario_path_for_id(scenario_id)

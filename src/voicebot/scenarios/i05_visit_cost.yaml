@@ -16,7 +16,6 @@ required_facts:
   - full_name
   - first_name
   - last_name
-  - date_of_birth
   - insurance
   - financial_concern
   - visit_type
@@ -27,8 +26,11 @@ avoid:
   - Hiding the financial concern; make clear affordability matters
   - Accepting a specific dollar figure without asking where it comes from
   - Letting the agent refuse cost discussion without asking for a useful next step
+  - Providing date of birth or identity verification just to ask about general visit costs
 optional_edge_behavior:
   - Ask what it costs to come in for a visit.
+  - If the agent asks for date of birth, phone number, or identity verification before discussing general costs, politely say you are only asking a general cost question before deciding whether to book.
+  - If the agent tries to schedule or asks what type of appointment you need before discussing costs, say you are not ready to schedule and return to the cost question.
   - When asked about insurance, say you have Medicare.
   - Ask what the co-pay usually would be with Medicare.
   - Then ask what it would cost without using insurance.

@@ -172,6 +172,28 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("Scenario date-selection rules:", prompt)
         self.assertIn("Start broad with relative wording", prompt)
         self.assertIn("identity facts, such as date of birth", prompt)
+        self.assertIn("Say dates in", prompt)
+
+    def test_prompt_formats_iso_dobs_as_spoken_dates(self):
+        scenario = load_scenario("scenario_dmitri_new_patient")
+        prompt = build_patient_system_prompt(scenario)
+
+        self.assertEqual(scenario.facts["date_of_birth"], "1963-09-27")
+        self.assertIn("date_of_birth: September 27, 1963", prompt)
+        self.assertIn("Required fact keys that must be preserved accurately", prompt)
+        self.assertIn('"September 27, 1963" instead of "1963-09-27."', prompt)
+        self.assertNotIn("date_of_birth: 1963-09-27", prompt)
+
+    def test_prompt_formats_embedded_iso_dates_in_guidance(self):
+        scenario = load_scenario("scenario_carmen_refill_identity")
+        prompt = build_patient_system_prompt(scenario)
+
+        self.assertIn("date_of_birth: February 28, 1993", prompt)
+        self.assertIn("mother_date_of_birth: July 15, 1958", prompt)
+        self.assertIn("give July 15, 1958", prompt)
+        self.assertIn("correct it to February 28, 1993", prompt)
+        self.assertNotIn("1958-07-15", prompt)
+        self.assertNotIn("1993-02-28", prompt)
 
     def test_scheduling_rules_are_scenario_specific_and_prompt_driven(self):
         specific_time = load_scenario("a01_specific_time")
@@ -357,7 +379,20 @@ class ScenarioTests(unittest.TestCase):
                 self.assertTrue(scenario.optional_edge_behavior)
                 self.assertIn("Optional edge behavior:", prompt)
                 self.assertIn("ask one question at a time", prompt)
+                self.assertIn("Information request boundary:", prompt)
+                self.assertIn("politely push", prompt)
+                self.assertIn("Do not choose a provider", prompt)
+                self.assertNotIn("date_of_birth:", prompt)
+                self.assertNotIn("date_of_birth", scenario.required_facts)
                 self.assertEqual(load_scenario(declared_id).id, declared_id)
+
+    def test_practitioner_information_scenario_blocks_provider_selection(self):
+        scenario = load_scenario("i02_who_practices")
+        prompt = build_patient_system_prompt(scenario)
+
+        self.assertIn("Choosing a specific provider", prompt)
+        self.assertIn("do not pick one or ask to book", prompt)
+        self.assertIn("not ready to schedule", prompt)
 
     def test_loads_medication_refill_scenarios_as_standard_batch(self):
         scenario_files = {

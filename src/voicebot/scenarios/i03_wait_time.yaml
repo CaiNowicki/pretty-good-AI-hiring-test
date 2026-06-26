@@ -16,7 +16,6 @@ required_facts:
   - full_name
   - first_name
   - last_name
-  - date_of_birth
   - context
   - follow_up_intent
   - time_preference
@@ -27,14 +26,17 @@ avoid:
   - Booking before getting a useful wait time answer
   - Accepting it depends without asking once for a ballpark range
   - Treating a fabricated expedited pathway as confirmed
+  - Providing date of birth or identity verification just to get a general wait-time estimate
 optional_edge_behavior:
   - Ask how long it usually takes to get a first appointment as a new patient.
+  - If the agent asks for date of birth, phone number, or identity verification before giving a wait-time estimate, politely say you are only asking a general question before deciding whether to book.
+  - If the agent tries to schedule or asks what type of appointment you need before giving a wait-time estimate, say you are not ready to schedule and return to the wait-time question.
   - If the agent gives a range, ask roughly how many weeks that means if it is not already clear.
   - If the agent gives only a vague answer, ask once for a ballpark range.
   - After the wait time is clear, ask whether there is any way to be seen sooner for something more pressing.
   - If the agent describes a faster option, ask whether that is through this office or somewhere else.
   - If the agent says there is no expedited option, ask where you should go if you needed to be seen faster.
-  - If the answer is useful and regular booking is offered, proceed with name, date of birth, and morning preference when asked.
+  - If the answer is useful and regular booking is offered, say you are not ready to verify personal details yet unless you decide to actually book.
 success_criteria: >
   Agent gives a realistic wait time range and either describes a legitimate
   expedited option or clearly states none exists while suggesting an appropriate

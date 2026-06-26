@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from voicebot.date_formatting import format_spoken_date, format_spoken_dates_in_text
 from voicebot.scenario_loader import META_BEHAVIOR_ALLOW_PHRASES, Scenario
 
 
@@ -22,7 +23,9 @@ def scenario_allows_meta_behavior(scenario: Scenario) -> bool:
 
 def _format_fact_value(value: Any) -> str:
     if isinstance(value, list):
-        return ", ".join(str(item) for item in value)
+        return ", ".join(format_spoken_dates_in_text(str(item)) for item in value)
+    if isinstance(value, str):
+        return format_spoken_dates_in_text(format_spoken_date(value))
     return str(value)
 
 
@@ -31,6 +34,16 @@ def _format_fact_lines(facts: dict[str, Any]) -> str:
     for key, value in facts.items():
         lines.append(f"- {key}: {_format_fact_value(value)}")
     return "\n".join(lines)
+
+
+def _prompt_facts_for_scenario(scenario: Scenario) -> dict[str, Any]:
+    if not _scenario_is_information_gathering(scenario):
+        return scenario.facts
+    return {
+        key: value
+        for key, value in scenario.facts.items()
+        if key not in {"date_of_birth", "patient_date_of_birth", "phone"}
+    }
 
 
 def _build_name_lookup_guidance(scenario: Scenario) -> str:
@@ -61,7 +74,7 @@ verify date of birth before accepting or confirming any appointment details.
 def _format_guidance_list(items: Any) -> str:
     if not isinstance(items, list):
         return ""
-    return "\n".join(f"- {item}" for item in items)
+    return "\n".join(f"- {format_spoken_dates_in_text(str(item))}" for item in items)
 
 
 def _build_persona_behavior_guidance(scenario: Scenario) -> str:
@@ -114,13 +127,42 @@ def _scenario_has_scheduling_goal(scenario: Scenario) -> bool:
     )
 
 
+def _scenario_is_information_gathering(scenario: Scenario) -> bool:
+    return scenario.id.casefold().startswith("i-")
+
+
+def _build_information_request_guidance(scenario: Scenario) -> str:
+    if not _scenario_is_information_gathering(scenario):
+        return ""
+    return """
+Information request boundary:
+- You are asking for general office information before deciding whether to book.
+- If the agent asks for date of birth, phone number, full identity verification,
+  or patient-record lookup before answering the general question, politely push
+  back instead of providing it.
+- If the agent tries to move into scheduling, appointment type, or booking
+  before the general question is answered, politely say
+  you are not ready to schedule yet and return to the information question.
+- Do not choose a provider, appointment type, appointment time, or transfer path
+  for booking during an informational scenario. Once the information question is
+  answered, close politely or ask one final information follow-up.
+- Use natural wording such as: "I'm just asking a general question right now,
+  not trying to book yet. Do you need my personal information to answer that?"
+- Provide insurance plan type only when the information question itself requires
+  it, such as asking whether a specific plan is accepted.
+"""
+
+
 def _build_scheduling_guidance(scenario: Scenario) -> str:
     if not scenario.scheduling_rules and not _scenario_has_scheduling_goal(scenario):
         return ""
 
     scenario_rules = ""
     if scenario.scheduling_rules:
-        rules = "\n".join(f"- {rule}" for rule in scenario.scheduling_rules)
+        rules = "\n".join(
+            f"- {format_spoken_dates_in_text(str(rule))}"
+            for rule in scenario.scheduling_rules
+        )
         scenario_rules = f"""
 Scenario date-selection rules:
 {rules}
@@ -139,8 +181,9 @@ Scheduling date-selection guidance:
 - Let the scenario rules decide whether you are broad, narrow, urgent,
   flexible, confused, or changing your mind. Vary the phrasing naturally rather
   than following a fixed wording pattern.
-- This guidance is only about appointment dates and times. Provide exact
-  identity facts, such as date of birth, when the agent asks.
+- This guidance is only about appointment dates and times. Provide accurate
+  identity facts, such as date of birth, when the agent asks. Say dates in
+  natural spoken month/day/year form.
 {scenario_rules}"""
 
 
@@ -159,11 +202,11 @@ def build_scheduling_turn_guidance(scenario: Scenario | None) -> str:
 def build_patient_system_prompt(scenario: Scenario) -> str:
     """Build the realtime model instructions from scenario facts."""
 
-    facts = _format_fact_lines(scenario.facts)
+    facts = _format_fact_lines(_prompt_facts_for_scenario(scenario))
     required_facts = ", ".join(scenario.required_facts)
-    avoid = "\n".join(f"- {item}" for item in scenario.avoid)
-    edge_behavior = "\n".join(f"- {item}" for item in scenario.optional_edge_behavior)
-    stop_conditions = "\n".join(f"- {item}" for item in scenario.stop_conditions)
+    avoid = _format_guidance_list(scenario.avoid)
+    edge_behavior = _format_guidance_list(scenario.optional_edge_behavior)
+    stop_conditions = _format_guidance_list(scenario.stop_conditions)
     patient_name = scenario.facts.get(
         "full_name",
         scenario.facts.get(
@@ -179,6 +222,7 @@ Optional edge behavior:
 """
     name_lookup_guidance = _build_name_lookup_guidance(scenario)
     persona_behavior_guidance = _build_persona_behavior_guidance(scenario)
+    information_request_guidance = _build_information_request_guidance(scenario)
     scheduling_guidance = _build_scheduling_guidance(scenario)
     strategy_section = """
 Conversation strategy:
@@ -230,7 +274,9 @@ Goal: {scenario.goal}
 Use these scenario facts to answer the agent's questions:
 {facts}
 
-Required fact keys that must be preserved exactly when asked: {required_facts}
+Required fact keys that must be preserved accurately when asked: {required_facts}
+For date-of-birth values, preserve the date but say it naturally, such as
+"September 27, 1963" instead of "1963-09-27."
 
 Answer with the provided facts only when asked. Do not volunteer everything at once.
 Respond to the agent's most recent question only. Do not add unrelated facts,
@@ -247,6 +293,7 @@ Wait for the agent to finish speaking before responding.
 Stay polite and conversational, like a real patient on a phone call.
 {strategy_section}
 {role_boundary_section}
+{information_request_guidance}
 {scheduling_guidance}
 {interruption_guidance}
 {meta_guidance}

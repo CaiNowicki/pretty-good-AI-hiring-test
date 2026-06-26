@@ -13,6 +13,7 @@ from voicebot.conversation_classifier import (
     transcript_asks_about_assumed_patient,
     transcript_asks_about_meta_behavior,
 )
+from voicebot.date_formatting import format_spoken_date
 from voicebot.scenario_loader import Scenario
 from voicebot.scenario_prompts import (
     build_scheduling_turn_guidance,
@@ -345,7 +346,25 @@ def build_meta_guardrail_answer(scenario: Scenario | None, transcript: str) -> s
         return f"Yes, that's fine. {scenario.opening_line}"
     if not transcript_asks_about_meta_behavior(transcript):
         return ""
-    return "I'm just calling as a patient about my appointment."
+    return _patient_meta_redirect(scenario)
+
+
+def _patient_meta_redirect(scenario: Scenario | None) -> str:
+    if scenario is None:
+        return "I'm just calling as a patient."
+    if _scenario_is_information_gathering(scenario):
+        return "I'm just calling as a patient with a general question for the office."
+
+    text = f"{scenario.goal} {scenario.opening_line} {scenario.must_test}".casefold()
+    if "refill" in text or "medication" in text:
+        return "I'm just calling as a patient about a medication refill."
+    if "record" in text:
+        return "I'm just calling as a patient about a records request."
+    if "emergency" in text or "urgent" in text:
+        return "I'm just calling as a patient with a medical question."
+    if "appointment" in text or "schedule" in text or "book" in text:
+        return "I'm just calling as a patient about my appointment."
+    return "I'm just calling as a patient about the reason I called."
 
 
 def _is_clinic_ai_disclosure_offer(transcript: str) -> bool:
@@ -382,6 +401,10 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
     first_name = _caller_first_name(scenario)
     last_name = _caller_last_name(scenario)
 
+    information_pushback = build_information_boundary_pushback(scenario, normalized)
+    if information_pushback:
+        return information_pushback
+
     confirmation_answer = build_fact_confirmation_answer(scenario, transcript, normalized)
     name_spelling_answer = _name_spelling_answer(scenario, normalized)
     if confirmation_answer and name_spelling_answer:
@@ -390,13 +413,14 @@ def build_exact_fact_answer(scenario: Scenario | None, transcript: str) -> str:
         return name_spelling_answer
     if confirmation_answer:
         return confirmation_answer
-    if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
+    if _asks_about_date_of_birth(normalized):
         dob, subject = _date_of_birth_answer_parts(scenario, normalized)
         if not dob:
             return ""
+        spoken_dob = format_spoken_date(dob)
         if subject:
-            return f"{subject}'s date of birth is {dob}."
-        return f"My date of birth is {dob}."
+            return f"{subject}'s date of birth is {spoken_dob}."
+        return f"My date of birth is {spoken_dob}."
     if _asks_about_full_name(normalized) and full_name:
         return full_name
     if "first name" in normalized and first_name:
@@ -440,7 +464,7 @@ def requested_info_key(scenario: Scenario | None, transcript: str) -> str:
         return spelling_key
     if build_fact_confirmation_answer(scenario, transcript, normalized):
         return ""
-    if "date of birth" in normalized or "birthdate" in normalized or "dob" in normalized:
+    if _asks_about_date_of_birth(normalized):
         if _transcript_asks_for_patient_date_of_birth(scenario, normalized):
             return "patient_date_of_birth"
         return "date_of_birth"
@@ -572,6 +596,119 @@ def _scenario_is_new_patient(scenario: Scenario) -> bool:
         ]
     ).casefold()
     return "new patient" in searchable_text
+
+
+def build_information_boundary_pushback(
+    scenario: Scenario,
+    normalized_transcript: str,
+) -> str:
+    if not _scenario_is_information_gathering(scenario):
+        return ""
+    if _asks_for_identity_verification(normalized_transcript):
+        return (
+            "I'm just asking a general question right now, not trying to book yet. "
+            "Do you need my personal information to answer that?"
+        )
+    if _asks_to_start_scheduling(normalized_transcript):
+        return (
+            "I'm not ready to schedule yet. I just wanted to ask my general "
+            "question first."
+        )
+    return ""
+
+
+def _scenario_is_information_gathering(scenario: Scenario) -> bool:
+    return scenario.id.casefold().startswith("i-")
+
+
+def _asks_for_identity_verification(normalized_transcript: str) -> bool:
+    if _asks_about_date_of_birth(normalized_transcript):
+        return True
+    if any(
+        phrase in normalized_transcript
+        for phrase in (
+            "phone number",
+            "your phone",
+            "address",
+            "email address",
+            "social security",
+            "ssn",
+            "medical record",
+            "patient id",
+        )
+    ):
+        return True
+    if any(
+        phrase in normalized_transcript
+        for phrase in (
+            "verify your identity",
+            "verify identity",
+            "confirm your identity",
+            "confirm identity",
+            "pull up your record",
+            "look up your record",
+            "pull up your account",
+            "look up your account",
+        )
+    ):
+        return True
+    asks_verification = any(
+        phrase in normalized_transcript
+        for phrase in (
+            "verify",
+            "confirm",
+            "pull up",
+            "look up",
+        )
+    )
+    asks_name = any(
+        phrase in normalized_transcript
+        for phrase in (
+            "your name",
+            "full name",
+            "first and last name",
+        )
+    )
+    return asks_verification and asks_name
+
+
+def _asks_to_start_scheduling(normalized_transcript: str) -> bool:
+    if _asks_about_appointment_type(normalized_transcript):
+        return True
+    if _asks_about_provider_preference(normalized_transcript):
+        return True
+    if "schedule" in normalized_transcript and "provider" in normalized_transcript:
+        return True
+    return any(
+        phrase in normalized_transcript
+        for phrase in (
+            "would you like to schedule",
+            "do you want to schedule",
+            "are you trying to schedule",
+            "are you calling to schedule",
+            "looking to schedule",
+            "ready to schedule",
+            "ready to book",
+            "would you like to book",
+            "do you want to book",
+            "are you trying to book",
+            "looking to book",
+            "do you need an appointment",
+            "is this for an appointment",
+            "is this about an appointment",
+            "make an appointment",
+            "book an appointment",
+            "schedule an appointment",
+            "set up an appointment",
+            "get you scheduled",
+            "get you booked",
+            "available appointment times",
+            "appointment times",
+            "appointment options",
+            "look at availability",
+            "check availability",
+        )
+    )
 
 
 def _name_spelling_answer(scenario: Scenario, normalized_transcript: str) -> str:
@@ -897,9 +1034,18 @@ def _phone_digits_mismatch(expected_digits: str, actual_digits: str) -> bool:
 def build_confusion_reply(scenario: Scenario, transcript: str) -> str:
     normalized = transcript.casefold()
 
-    if "birthdate doesn't match" in normalized or "date of birth doesn't match" in normalized:
+    if (
+        "birthdate doesn't match" in normalized
+        or "date of birth doesn't match" in normalized
+        or "birth date doesn't match" in normalized
+        or "birthday doesn't match" in normalized
+    ):
         dob = scenario.facts.get("date_of_birth", "").strip()
-        return f"I don't understand. My date of birth is {dob}." if dob else "I don't understand."
+        return (
+            f"I don't understand. My date of birth is {format_spoken_date(dob)}."
+            if dob
+            else "I don't understand."
+        )
 
     if "dental" in normalized:
         return "I don't understand; I thought I called orthopedics."
@@ -932,6 +1078,19 @@ def _asks_about_appointment_type(normalized_transcript: str) -> bool:
             "follow-up",
             "followup",
             "routine visit",
+        )
+    )
+
+
+def _asks_about_date_of_birth(normalized_transcript: str) -> bool:
+    return any(
+        phrase in normalized_transcript
+        for phrase in (
+            "date of birth",
+            "birth date",
+            "birthdate",
+            "birthday",
+            "dob",
         )
     )
 

@@ -16,7 +16,6 @@ required_facts:
   - full_name
   - first_name
   - last_name
-  - date_of_birth
   - insurance_being_asked_about
   - actual_plan
   - context
@@ -28,8 +27,11 @@ avoid:
   - Volunteering BlueCross BlueShield PPO before the agent asks which plan
   - Accepting a yes or no answer based only on Blue Cross
   - Asking whether a new patient consultation is covered unless the plan has first been clarified
+  - Providing date of birth or identity verification just to ask which plans are accepted
 optional_edge_behavior:
   - Ask whether the office takes Blue Cross insurance, using only that short name at first.
+  - If the agent asks for date of birth, phone number, or identity verification before discussing accepted plans, politely say you are only asking a general insurance question and ask whether personal information is needed.
+  - If the agent tries to schedule or asks what type of appointment you need before discussing accepted plans, say you are not ready to schedule and return to the insurance question.
   - Do not reveal BlueCross BlueShield PPO until the agent asks which Blue Cross plan or asks for plan details.
   - If the agent asks for clarification, provide BlueCross BlueShield PPO.
   - If the agent confirms the plan is accepted after clarification, ask whether that generally applies to a new patient consultation.
