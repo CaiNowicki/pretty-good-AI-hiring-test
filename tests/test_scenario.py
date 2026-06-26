@@ -155,6 +155,8 @@ class ScenarioTests(unittest.TestCase):
         self.assertIn("Answer direct questions with the relevant scenario fact", prompt)
         self.assertIn("Correct misunderstandings plainly", prompt)
         self.assertIn("politely steer back to the goal", prompt)
+        self.assertIn("Say only the patient-facing words", prompt)
+        self.assertIn('"let me respond as the patient"', prompt)
         self.assertIn("ask one question at a time", prompt)
         self.assertIn("Wait for the agent to finish speaking before responding.", prompt)
         self.assertIn("Say the opening line once only.", prompt)

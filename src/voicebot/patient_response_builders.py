@@ -79,10 +79,10 @@ REPEATED_INFO_LABELS = {
 
 
 REPEATED_INFO_TEMPLATES = (
-    "I already gave you {label}, but {answer}",
-    "I mentioned {label} earlier, but {answer}",
+    "I already gave you {label}. {answer}",
+    "I mentioned {label} earlier. {answer}",
     "I did give you {label} already. {answer}",
-    "I've already shared {label}; {answer}",
+    "I've already shared {label}. {answer}",
 )
 
 
@@ -112,6 +112,14 @@ SCHEDULER_LANGUAGE_GUARDRAIL = (
     "do those things for you. Patient-side phrases are okay, such as 'Could "
     "you check that for me?', 'That works for me if you can book it', 'Can you "
     "move it to that time?', or 'Can you confirm the details?'"
+)
+
+
+PATIENT_REPLY_ONLY_GUARDRAIL = (
+    "Say only the patient reply. Do not speak internal reasoning, setup, or "
+    "assistant commentary such as 'let me think', 'let me respond as the "
+    "patient', 'let me keep this simple', or 'let me think this through'. "
+    "Say dates in natural spoken form, not ISO format."
 )
 
 
@@ -170,6 +178,7 @@ def build_turn_response(scenario: Scenario | None = None, transcript: str = "") 
                     "scenario facts exactly, do not add unrelated preferences or comments, "
                     "do not mention tests, harnesses, bots, assistants, simulations, or "
                     "demos, and wait for the agent after speaking. "
+                    f"{PATIENT_REPLY_ONLY_GUARDRAIL} "
                     f"{scheduling_guidance} {SCHEDULER_LANGUAGE_GUARDRAIL}"
                 )
 
@@ -203,6 +212,7 @@ def build_pre_goal_response(scenario: Scenario | None = None, transcript: str = 
                     "Do not ask to schedule yet, do not repeat the opening line, use the scenario "
                     "facts exactly, do not add unrelated preferences or comments, do not mention "
                     "tests, harnesses, bots, assistants, simulations, or demos, and keep it brief. "
+                    f"{PATIENT_REPLY_ONLY_GUARDRAIL} "
                     f"{scheduling_guidance} {SCHEDULER_LANGUAGE_GUARDRAIL}"
                 )
 

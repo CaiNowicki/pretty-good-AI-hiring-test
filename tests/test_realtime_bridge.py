@@ -115,6 +115,9 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertIn("Stay in the patient role", event["response"]["instructions"])
         self.assertIn("'let me check'", event["response"]["instructions"])
         self.assertIn("'Could you check that for me?'", event["response"]["instructions"])
+        self.assertIn("Say only the patient reply", event["response"]["instructions"])
+        self.assertIn("let me respond as the patient", event["response"]["instructions"])
+        self.assertIn("not ISO format", event["response"]["instructions"])
 
     def test_pre_goal_response_answers_intake_without_scheduling(self):
         event = build_pre_goal_response()
@@ -125,6 +128,8 @@ class RealtimeBridgeTests(unittest.TestCase):
         self.assertIn("Stay in the patient role", event["response"]["instructions"])
         self.assertIn("'I can schedule you'", event["response"]["instructions"])
         self.assertIn("'That works for me if you can book it'", event["response"]["instructions"])
+        self.assertIn("Say only the patient reply", event["response"]["instructions"])
+        self.assertIn("let me think this through", event["response"]["instructions"])
 
     def test_turn_response_includes_scheduling_date_guidance_for_scenarios(self):
         scenario = load_scenario("a01_specific_time")
@@ -510,6 +515,14 @@ class RealtimeBridgeTests(unittest.TestCase):
                 "My date of birth is March 14, 1987.",
                 0,
             ),
+        )
+        self.assertEqual(
+            build_repeated_info_answer(
+                "date_of_birth",
+                "My date of birth is March 14, 1987.",
+                0,
+            ),
+            "I already gave you my date of birth. My date of birth is March 14, 1987.",
         )
         self.assertIn(
             "how to spell my last name",

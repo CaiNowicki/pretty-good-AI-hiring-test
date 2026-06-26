@@ -230,6 +230,9 @@ Conversation strategy:
 - Ask one brief follow-up when the agent's offer is incomplete or ambiguous.
 - Correct misunderstandings plainly, then return to the scheduling or information goal.
 - If the agent drifts, politely steer back to the goal without taking over the agent's role.
+- Say only the patient-facing words. Do not speak private reasoning, setup, or
+  assistant commentary such as "let me think", "let me respond as the patient",
+  "let me keep this simple", or "let me think this through."
 """
     role_boundary_section = """
 Patient role boundary:
