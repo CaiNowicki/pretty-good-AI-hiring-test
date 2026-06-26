@@ -620,7 +620,7 @@ class FinalCallSelectionTests(unittest.TestCase):
         )
         self.assertNotIn("## Selected Calls With Review Flags", report)
 
-    def test_missing_agent_action_evidence_uses_formal_absence_text(self):
+    def test_minor_guardian_context_uses_review_flag_not_issue(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             call_dir = self._write_call(
                 Path(temp_dir) / "calls" / "orthopedic_edge_cases" / "call-001",
@@ -641,17 +641,24 @@ class FinalCallSelectionTests(unittest.TestCase):
             )
 
             candidate = evaluate_call_dir(call_dir)
+            selected = select_top_candidates([candidate])
+            report = render_markdown_report([candidate], selected)
 
-        evidence = {
-            finding.evidence
-            for finding in candidate.issue_findings
-            if finding.summary == "Minor or guardian context may not have been acknowledged by the agent."
-        }
-        self.assertEqual(
-            evidence,
-            {
-                "No direct transcript line: this issue is inferred from minor or guardian context and the absence of agent acknowledgement."
-            },
+        self.assertIn("minor_guardian_context_unacknowledged", candidate.sensibility_flags)
+        self.assertFalse(
+            any(
+                finding.summary
+                == "Minor or guardian context may not have been acknowledged by the agent."
+                for finding in candidate.issue_findings
+            )
+        )
+        self.assertIn(
+            "Minor or guardian context may not have been acknowledged by the agent.",
+            report,
+        )
+        self.assertIn(
+            "No direct transcript line: this flag is inferred from minor or guardian context and the absence of agent acknowledgement.",
+            report,
         )
 
     def _write_call(
