@@ -44,10 +44,10 @@ class ScenarioTests(unittest.TestCase):
             "Start broad with relative wording",
             scenario.scheduling_rules[0],
         )
-        self.assertEqual(scenario.limits.max_call_seconds, 240)
+        self.assertEqual(scenario.limits.max_call_seconds, 360)
         self.assertNotEqual(scenario.limits.max_call_seconds, 60)
         self.assertEqual(scenario.limits.max_silence_seconds, 20)
-        self.assertEqual(scenario.limits.max_turns, 34)
+        self.assertEqual(scenario.limits.max_turns, 48)
 
     def test_loads_smoke_scenario_by_declared_id(self):
         scenario = load_scenario("T-01-smoke")
@@ -471,10 +471,10 @@ class ScenarioTests(unittest.TestCase):
         scenario = load_scenario("e04_minor_caller")
         bootstrap = build_realtime_bootstrap(scenario)
 
-        self.assertEqual(scenario.limits.max_call_seconds, 240)
+        self.assertEqual(scenario.limits.max_call_seconds, 360)
         self.assertEqual(scenario.limits.max_silence_seconds, 20)
-        self.assertEqual(scenario.limits.max_turns, 34)
-        self.assertEqual(bootstrap["limits"]["max_turns"], 34)
+        self.assertEqual(scenario.limits.max_turns, 48)
+        self.assertEqual(bootstrap["limits"]["max_turns"], 48)
 
     def test_loads_all_difficult_scenarios_after_standard_batches(self):
         scenario_files = {
@@ -506,9 +506,9 @@ class ScenarioTests(unittest.TestCase):
         self.assertFalse(load_scenario("d01_hard_of_hearing").interruption_test)
         self.assertTrue(load_scenario("d02_interrupter").interruption_test)
         self.assertTrue(load_scenario("d02_interrupter").interruption_behavior)
-        self.assertEqual(load_scenario("d02_interrupter").limits.max_call_seconds, 300)
+        self.assertEqual(load_scenario("d02_interrupter").limits.max_call_seconds, 360)
         self.assertEqual(load_scenario("d02_interrupter").limits.max_silence_seconds, 8)
-        self.assertEqual(load_scenario("d02_interrupter").limits.max_turns, 34)
+        self.assertEqual(load_scenario("d02_interrupter").limits.max_turns, 48)
         self.assertFalse(load_scenario("d03_background_interruptions").interruption_test)
         self.assertEqual(load_scenario("d03_background_interruptions").interruption_behavior, {})
 

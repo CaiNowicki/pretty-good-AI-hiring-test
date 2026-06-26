@@ -36,6 +36,8 @@ DEFAULT_EMERGENCY_STOP_PHRASES = (
     "abort the call",
     "hang up now",
 )
+DEFAULT_MAX_CALL_SECONDS = 360
+DEFAULT_MAX_AGENT_TURNS = 48
 PATIENT_FACT_KEYS = {
     "full_name",
     "first_name",
@@ -94,9 +96,9 @@ class Scenario:
     fungible: bool = True
     limits: CallLimits = field(
         default_factory=lambda: CallLimits(
-            max_call_seconds=240,
+            max_call_seconds=DEFAULT_MAX_CALL_SECONDS,
             max_silence_seconds=20,
-            max_turns=34,
+            max_turns=DEFAULT_MAX_AGENT_TURNS,
         )
     )
 
@@ -406,7 +408,8 @@ def _default_limits_for_scenario(
     stop_conditions: list[str],
     interruption_test: bool,
 ) -> CallLimits:
-    max_call_seconds = _call_duration_from_stop_conditions(stop_conditions) or 240
+    configured_max_call_seconds = _call_duration_from_stop_conditions(stop_conditions)
+    max_call_seconds = configured_max_call_seconds or DEFAULT_MAX_CALL_SECONDS
     normalized_id = scenario_id.casefold()
 
     if patient_profile == "distressed_adult_caller" or "medical-emergency" in normalized_id:
@@ -415,34 +418,35 @@ def _default_limits_for_scenario(
             max_silence_seconds=10,
             max_turns=12,
         )
+    max_call_seconds = max(max_call_seconds, DEFAULT_MAX_CALL_SECONDS)
     if interruption_test or patient_profile == "impatient_adult_caller":
         return CallLimits(
             max_call_seconds=max_call_seconds,
             max_silence_seconds=8,
-            max_turns=34,
+            max_turns=DEFAULT_MAX_AGENT_TURNS,
         )
     if "hard-of-hearing" in normalized_id:
         return CallLimits(
             max_call_seconds=max_call_seconds,
             max_silence_seconds=24,
-            max_turns=36,
+            max_turns=54,
         )
     if "background-interruptions" in normalized_id:
         return CallLimits(
             max_call_seconds=max_call_seconds,
             max_silence_seconds=18,
-            max_turns=34,
+            max_turns=DEFAULT_MAX_AGENT_TURNS,
         )
     if normalized_id.startswith("i-"):
         return CallLimits(
             max_call_seconds=max_call_seconds,
             max_silence_seconds=18,
-            max_turns=16,
+            max_turns=24,
         )
     return CallLimits(
         max_call_seconds=max_call_seconds,
         max_silence_seconds=20,
-        max_turns=34,
+        max_turns=DEFAULT_MAX_AGENT_TURNS,
     )
 
 
