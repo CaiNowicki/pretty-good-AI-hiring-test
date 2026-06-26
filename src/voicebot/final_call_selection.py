@@ -715,7 +715,7 @@ def _automated_issue_scan(
 
     _scan_policy_issues(findings, transcript_text, agent_text, patient_text, scenario_blob)
     _scan_factual_issues(findings, transcript_text, agent_text, patient_text, scenario_blob)
-    _scan_flow_issues(findings, turns, transcript_text, agent_text)
+    _scan_flow_issues(findings, turns, agent_text)
     _scan_voice_quality_issues(
         findings,
         call_dir,
@@ -853,7 +853,6 @@ def _scan_factual_issues(
 def _scan_flow_issues(
     findings: list[IssueFinding],
     turns: list[TranscriptTurn],
-    transcript_text: str,
     agent_text: str,
 ) -> None:
     repeated_agent = _repeated_utterance_count(
@@ -893,18 +892,21 @@ def _scan_flow_issues(
             )
         )
 
-    if re.search(r"\b(connect|transfer|representative|please wait)\b", agent_text, re.I) and re.search(
-        r"\b(test line|goodbye)\b",
-        transcript_text,
+    escalation = re.compile(
+        r"\b("
+        r"connect(?:ing)? you|transfer(?:ring)? you|representative|please wait|"
+        r"can'?t proceed further|unable to proceed|support team"
+        r")\b",
         re.I,
-    ):
+    )
+    if escalation.search(agent_text):
         findings.append(
             IssueFinding(
                 "flow",
                 "medium",
                 "agent_bot",
-                "Transfer path appears to end at the test line instead of a meaningful resolution.",
-                _snippet(transcript_text, re.compile(r"\b(test line|goodbye)\b", re.I)),
+                "Agent escalated or transferred the call instead of resolving it in-bot.",
+                _snippet(agent_text, escalation),
             )
         )
 

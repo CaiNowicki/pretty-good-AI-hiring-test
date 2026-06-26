@@ -111,6 +111,39 @@ class FinalCallSelectionTests(unittest.TestCase):
         self.assertNotIn("voice_quality", categories)
         summaries = {finding.summary for finding in candidate.issue_findings}
         self.assertNotIn("Agent utterance may be clipped or missing context.", summaries)
+        self.assertIn(
+            "Agent escalated or transferred the call instead of resolving it in-bot.",
+            summaries,
+        )
+
+    def test_dead_escalation_line_alone_is_not_a_flow_failure(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            call_dir = self._write_call(
+                Path(temp_dir) / "calls" / "smoke" / "call-001",
+                duration=120,
+                turns=[
+                    ("PGAI Agent", "How may I help you today?"),
+                    ("Patient Bot", "I need an appointment."),
+                    ("PGAI Agent", "Can I have your date of birth?"),
+                    ("Patient Bot", "March 14, 1987."),
+                    ("PGAI Agent", "Hello, you've reached the Pretty Good AI test line. Goodbye."),
+                    ("Patient Bot", "Goodbye."),
+                    ("PGAI Agent", "Thank you for calling."),
+                    ("Patient Bot", "Thanks."),
+                ],
+            )
+
+            candidate = evaluate_call_dir(call_dir)
+
+        summaries = {finding.summary for finding in candidate.issue_findings}
+        self.assertNotIn(
+            "Agent escalated or transferred the call instead of resolving it in-bot.",
+            summaries,
+        )
+        self.assertNotIn(
+            "Transfer path appears to end at the test line instead of a meaningful resolution.",
+            summaries,
+        )
 
     def test_markdown_report_mentions_manual_review_and_hard_gate(self):
         with tempfile.TemporaryDirectory() as temp_dir:
