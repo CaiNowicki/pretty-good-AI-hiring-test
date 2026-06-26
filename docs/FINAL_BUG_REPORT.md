@@ -1,168 +1,354 @@
-# Bug Report — Pivot Point Orthopedics Voice Agent
+# Bug Report - Pivot Point Orthopedics Voice Agent
 
-Generated from transcript analysis of 10 submitted calls.
-All citations reference files in `artifacts/calls/`.
+Generated from review of the non-legacy call set in `artifacts/calls/`.
 
----
+## Scope
 
-## Overall Findings
+Found: 89 non-legacy call directories.
 
-The most significant finding from this test run is not any individual bug — it is that the agent's behavior during identity verification was sufficiently broken that it was not possible to meaningfully test most of the planned edge case scenarios. Eight of ten calls ended in an escalation after a failed verification loop, before the agent had any opportunity to demonstrate scheduling logic, handle refill requests, manage provider preferences, or respond to edge cases like interruptions, date boundary testing, or ambiguous requests.
+Reviewed: 80 non-legacy transcript files.
 
-This is an important distinction: the limited scenario coverage in these transcripts is not a testing gap — it is itself evidence of a systemic agent failure. The patient bot reached the point of stating a goal in nearly every call. The agent simply never got past verification to act on it.
+Excluded from primary causal analysis:
 
-**A note on patient bot behavior:** The patient bot showed two categories of issues worth disclosing. First, in several calls it reasoned out loud in ways that broke patient persona — "Let me think about the best way to handle that for you" and "Let me think about the best way to get you set up" are internal reasoning patterns, not patient speech. In `appointment_scheduling/call-025`, the patient bot explicitly broke character with "Okay, let me respond as the patient and keep it simple." A few turns were also cut off mid-sentence, likely due to barge-in behavior. Second, several scenario categories did not execute as designed: the hard-of-hearing, impatient caller, and parent/child scenarios all defaulted to standard appointment-scheduling behavior rather than following their specific persona instructions. These calls were filtered out by the selection pipeline and do not appear in the submitted set, but they represent a known patient bot limitation that reduced scenario diversity.
+- 9 directories had no transcript and could not be reviewed: `appointment_scheduling/call-038`, `appointment_scheduling/call-039`, `information_gathering/call-001`, `information_gathering/call-002`, `information_gathering/call-003`, `information_gathering/call-004`, `information_gathering/call-005`, `medication_refill/call-001`, `medication_refill/call-002`.
+- 3 transcripts were empty: `information_gathering/call-006`, `medication_refill/call-003`, `medication_refill/call-004`.
+- 15 calls contained patient-bot artifacts such as internal reasoning or persona leakage. These calls are not used as primary evidence where the artifact could have caused the failure. Agent bugs that occurred before, or independently of, the patient-bot artifact are still listed in the appendix for traceability.
 
-These patient bot issues are noted for transparency but do not explain the agent's failures. The agent's verification loop misbehavior is directly observable from transcript sequencing: it re-requests information the patient just provided, misreads clearly spelled-out names, and escalates mid-exchange while the patient is still actively cooperating. Critically, calls like `smoke/call-002` and `orthopedic_edge_cases/call-006` show clean patient bot behavior throughout and still hit the same verification failure — confirming the agent's record lookup is the failure point, not the patient bot.
+The report below focuses on agent-bot behavior. Patient-bot behavior is mentioned only when it materially limits interpretation.
 
----
+## Executive Summary
 
-## BR-001: Agent Greets Every Caller as "James" Regardless of Who Is Calling
+The dominant failure mode is identity verification. In clean, non-empty calls, the agent repeatedly opens as though the caller is "James", continues with verification after the caller corrects the identity, asks for information already supplied, misreads or truncates patient-provided data, and often escalates after gathering enough information to proceed.
 
-**Severity:** High
-**Affected Calls:** All 10 submitted calls
-**Example:** `orthopedic_edge_cases/call-005/transcript.txt`, turn 2
+This prevents many scenarios from being tested on their merits. Appointment scheduling, medication refill, worker's comp, records, and minor-consent scenarios often collapse into the same verification failure before the task-specific workflow can complete.
 
-**What happened:**
-Every call begins with the agent asking "Am I speaking with James?" regardless of which patient is calling. Across all 10 calls the actual callers were Maria Lopez, Carmen Reyes, Maya Patel, Marcus Webb, Denise Wong, Dmitri Volkov, and others — none of them James. After callers correct this, the agent in several calls continues addressing them as James anyway: in `orthopedic_edge_cases/call-005`, after the patient never confirmed the name James, the agent responds "I understand, James. For this demo, I can still help you."
+There are also several higher-risk behavior classes:
 
-**Why it matters:**
-This is a first-impression failure on every single call. More seriously, the agent is surfacing what appears to be another patient's name before any identity is established — a potential HIPAA-adjacent data exposure issue. Continuing to use the wrong name after correction signals the agent is not tracking conversation state.
+- The agent exposes or relies on stale/fabricated patient data, especially the recurring `941-842-0514` phone number.
+- The agent uses internal demo override language such as "for demo purposes, I'll accept it."
+- The agent sometimes acts on records after verification has failed.
+- The agent sends a text confirmation before resolving a phone-number mismatch.
 
-**Expected behavior:**
-The agent should greet callers neutrally and establish identity before presenting any patient-specific information. If a caller corrects a name assumption, the agent should immediately adopt the correct name and not revert.
+## Findings
 
----
+### AGT-001 - Agent Assumes the Caller Is James Before Verification
 
-## BR-002: All Patients Share the Same Phone Number on File
+Severity: High
 
-**Severity:** High
-**Affected Calls:** `appointment_scheduling/call-020`, `smoke/call-002`, `orthopedic_edge_cases/call-006`, `unknown/call-003`, `orthopedic_edge_cases/call-004`
-**Example:** `smoke/call-002/transcript.txt` and `orthopedic_edge_cases/call-006/transcript.txt`
+The agent frequently opens with "Am I speaking with James?" even when the patient immediately says they are not James. This creates a wrong-patient disclosure risk and sets the rest of the call on an unstable identity path.
 
-**What happened:**
-The phone number 941-842-0514 appears as the on-file number for every patient across multiple calls, presented without the patient ever providing it. Maya Patel, Denise Wong, Dmitri Volkov, Marcus Webb, and others all apparently have this same number "on file." In several calls the agent reads it back and the patient confirms it — unknowingly validating a number that is not theirs.
+Examples:
 
-**Why it matters:**
-This is either a hardcoded demo number being treated as real patient data, or a lookup system returning the same default record regardless of who is calling. Either way the agent is presenting fabricated identity data as confirmed fact. Patients who confirm it are now in the system with incorrect contact information.
+- `appointment_scheduling/call-006`: caller says this is Maria Lopez and that the agent may have the wrong patient.
+- `information_gathering/call-021`: caller says this is Dmitri Volkov, not James.
+- `smoke/call-002`: caller says this is Maya Patel, not James.
 
-**Expected behavior:**
-The agent should only present a phone number retrieved from a verified patient record matching the caller's provided identity. It should not volunteer a number the caller has not provided and then ask them to confirm it.
+Expected behavior: greet neutrally, then verify identity from caller-provided information before surfacing a patient name.
 
----
+### AGT-002 - Agent Uses Internal Demo Override Language
 
-## BR-003: Agent Leaks Internal Demo Language to Callers
+Severity: High
 
-**Severity:** High
-**Affected Calls:** `orthopedic_edge_cases/call-005`, `unknown/call-001`
-**Example:** `orthopedic_edge_cases/call-005/transcript.txt`, turn 6
+The agent sometimes says the birthdate does not match records, then proceeds anyway "for demo purposes." This exposes internal test state and tells the caller the agent is bypassing verification.
 
-**What happened:**
-In two calls, after a date of birth does not match records, the agent responds: "The birthdate doesn't match our records, but for demo purposes, I'll accept it." This phrase appears verbatim in both calls. The agent also says "For this demo, I can still help you" in `orthopedic_edge_cases/call-005`.
+Examples:
 
-**Why it matters:**
-A production voice agent should never reveal to a caller that it is running in demo mode, that it is overriding verification logic, or that it is accepting data it knows to be incorrect. A real patient hearing this would question whether their information is being handled properly. It also means the agent is proceeding past a failed verification check on false grounds.
+- `appointment_scheduling/call-028`: "The birthday doesn't match our records, but for demo purposes, I'll accept it."
+- `difficult_call_handling/call-001`: same pattern before scheduling.
+- `orthopedic_edge_cases/call-005`: same pattern before booking a minor's appointment.
 
-**Expected behavior:**
-The agent should either complete verification successfully or clearly explain it cannot proceed and offer appropriate next steps — never reveal internal system state or override verification for convenience.
+Expected behavior: do not expose demo/test logic. If verification fails, explain that the agent cannot proceed and provide appropriate next steps.
 
----
+### AGT-003 - Agent Surfaces Stale or Fabricated Phone Numbers
 
-## BR-004: Agent Books Appointment for a Minor Without Consent Check
+Severity: High
 
-**Severity:** High
-**Affected Call:** `orthopedic_edge_cases/call-005/transcript.txt`, turns 4–20
+The agent repeatedly reads back an on-file phone number the caller did not provide. The recurring number `941-842-0514` appears across unrelated patients. In several calls, the caller rejects the number as not theirs.
 
-**What happened:**
-The patient provided a date of birth of February 11, 2010, making them 16 years old. The agent bypassed verification with "for demo purposes, I'll accept it" and proceeded to book a full medical appointment — including sending a text confirmation — without any acknowledgment that the patient is a minor, without asking for parental authorization, and without requesting consent documentation.
+Examples:
 
-**Why it matters:**
-Scheduling a medical appointment for a minor without parental consent verification is a compliance risk. An orthopedic practice must handle minor patients differently — at minimum by confirming a guardian is authorizing the visit.
+- `medication_refill/call-007`: agent gives `941-842-0514`; Dmitri Volkov says it is not his number and gives `5085550341`.
+- `smoke/call-002`: agent gives the same `941-842-0514` number during Maya Patel's call.
+- `orthopedic_edge_cases/call-005`: agent says it sent a confirmation, then reveals the on-file number is `941-842-0514`, while the patient gives `555-684-2190`.
 
-**Expected behavior:**
-The agent should recognize when a date of birth makes the patient a minor and follow the practice's minor consent policy before proceeding with scheduling.
+Expected behavior: do not volunteer or confirm patient contact data until the agent has matched the correct record. If lookup returns a conflicting number, treat it as a verification failure, not as confirmed patient data.
 
----
+### AGT-004 - Agent Re-Asks for Already Provided Verification Data
 
-## BR-005: Agent Abandons Identity Verification It Had Enough Information to Complete
+Severity: High
 
-**Severity:** High
-**Affected Calls:** `appointment_scheduling/call-006`, `appointment_scheduling/call-020`, `appointment_scheduling/call-025`, `unknown/call-002`, `orthopedic_edge_cases/call-004`, `smoke/call-002`, `orthopedic_edge_cases/call-006`, `unknown/call-003`
-**Example:** `appointment_scheduling/call-006/transcript.txt`, turns 6–22
+The agent gets stuck asking for names, spellings, dates of birth, or phone numbers that the caller has already provided. The patient often has to say they already gave the information.
 
-**What happened:**
-In 8 of 10 calls, the agent collects name, date of birth, and phone number — all three standard verification fields — but still says "I can't proceed further right now" and escalates. The verification loop repeats the same questions 2–3 times per call: name spelling is re-requested after already being confirmed, date of birth is asked for again mid-loop, and the agent presents information back incorrectly before giving up. It is not that the agent lacks the information — it cannot successfully use what it has already collected.
+Examples:
 
-**Note on patient bot contribution:** The patient bot produced some unhelpful turns during these loops — reasoning out loud and one character break in `appointment_scheduling/call-025`. However, the verification failure pattern is consistent across calls where the patient bot behaved cleanly (`smoke/call-002`, `orthopedic_edge_cases/call-006`), confirming this is an agent-side failure.
+- `appointment_scheduling/call-018`: the agent repeatedly asks Robert Hayes to spell his name and last name after the caller already did so.
+- `medication_refill/call-007`: the caller says they already gave the spelling of the last name.
+- `smoke/call-002`: the caller says they already gave the date of birth.
 
-**Why it matters:**
-Identity verification is the prerequisite for every patient task. When it fails despite the patient providing complete, correct, repeated answers, the agent cannot help anyone. This failure prevented meaningful edge case testing in 8 of 10 submitted calls.
+Expected behavior: retain verified fields during the call and only re-ask when the agent can clearly explain what field is missing or uncertain.
 
-**Expected behavior:**
-The agent should complete a lookup using name and date of birth as a fallback when phone number matching fails. It should not re-request confirmed information and should not escalate while still in an active, cooperative exchange.
+### AGT-005 - Agent Escalates After Collecting Enough Verification Information
 
----
+Severity: High
 
-## BR-006: Agent Never Attempts to Handle Non-Scheduling Requests
+In many calls, the agent collects name, date of birth, spelling, and phone number, then says it cannot proceed and transfers or promises clinic follow-up. The transfer reaches the intentionally dead test line; the failure is the escalation decision, not the dead line.
 
-**Severity:** High
-**Affected Calls:** `unknown/call-002`, `orthopedic_edge_cases/call-006`
-**Examples:**
-- `unknown/call-002`: Patient opens with a medication refill request. Agent ignores it, runs identity verification, fails, and escalates without ever acknowledging the refill.
-- `orthopedic_edge_cases/call-006`: Patient explicitly states they need records sent to another doctor. Agent ignores the request entirely and follows the same verification-then-escalation path.
+Examples:
 
-**Why it matters:**
-Both patients stated their need clearly in their opening turn. The agent acknowledged neither request, made no attempt to address it, and routed both callers to a transfer after a failed verification loop with no context passed about what the patient actually needed.
+- `appointment_scheduling/call-006`: the agent collects identity and phone information, then says it cannot access the record and routes to support.
+- `information_gathering/call-021`: the agent collects identity information, then cannot check insurance and offers transfer.
+- `unknown/call-002`: the caller asks for a medication refill, the agent verifies identity, then escalates without resolving the request.
 
-**Expected behavior:**
-The agent should acknowledge the patient's stated need before beginning verification. If verification fails and escalation is necessary, the handoff should include the patient's original request so the receiving team can act on it.
+Expected behavior: complete lookup using the available verified fields or explicitly state which field failed. Escalation should be reserved for warranted cases and should preserve the patient's stated task.
 
----
+### AGT-006 - Agent Loses or Does Not Resolve Medication Refill Intent
 
-## BR-007: Agent Misreads and Misconfirms Patient-Provided Information
+Severity: Medium
 
-**Severity:** Medium
-**Affected Calls:** `appointment_scheduling/call-006`, `appointment_scheduling/call-020`, `unknown/call-001`, `unknown/call-003`
-**Examples (confirmed against recordings):**
-- `appointment_scheduling/call-020`: Patient spells "M-A-R-I-A"; agent reads back "N-A-R-I-A." Same call, agent drops the last two letters of "Lopez" during readback.
-- `appointment_scheduling/call-006`: Patient provides 555-318-4492 three times; agent reads back "555-4492" dropping three digits, then asks for "the remaining digits" as if only a partial number was received.
-- `unknown/call-001`: Patient gives DOB 2000-06-05; agent reads back "May 6th, 2006" — wrong month and wrong year.
-- `unknown/call-003`: Patient spells "D-M-I-T-R-I V-O-L-K-O-V"; agent confirms "Dmitry Zolkov" with DOB "September 27, 1962" when patient said 1963.
+Some medication-refill calls are consumed by verification and never reach a useful refill workflow. This is distinct from calls where the patient lacks medication details and the agent reasonably routes to staff.
 
-**Why it matters:**
-The agent mishears what the caller provides, then presents the incorrect version as a confirmation. A patient who says "yes, that's correct" to a garbled readback is now in the system with wrong data. Wrong name, wrong DOB, and wrong phone number together make the patient record unretrievable.
+Examples:
 
-**Expected behavior:**
-The agent should accurately reflect what the caller provided. Where uncertainty exists it should ask the caller to re-confirm rather than asserting a garbled version as authoritative.
+- `medication_refill/call-005`: caller asks for a refill; agent verifies, then escalates without collecting medication details.
+- `medication_refill/call-009`: agent asks verification questions, misconfirms details, and escalates before resolving the refill.
+- `unknown/call-002`: caller asks for a blood-pressure medication refill; the request is not resolved before escalation.
 
----
+Expected behavior: acknowledge the refill request early, collect medication/pharmacy/urgency details when possible, and pass the request context forward if escalation is required.
 
-## BR-008: Agent Sends Text Confirmation Before Verifying Contact Number
+### AGT-007 - Agent Does Not Handle Records Request
 
-**Severity:** Medium
-**Affected Call:** `orthopedic_edge_cases/call-005/transcript.txt`, turns 27–35
+Severity: Medium
 
-**What happened:**
-After booking an appointment, the agent asked if the patient wanted a text confirmation and immediately said "I sent a text confirmation to your phone." The patient then provided their actual number (555-684-2190), at which point the agent revealed it had a different number on file (941-842-0514) — the same placeholder number appearing across all calls. The confirmation was already sent before the discrepancy was discovered.
+The agent fails to handle a medical-records request as a records workflow.
 
-**Why it matters:**
-The confirmation was sent to an unverified number that does not belong to this patient. The patient has no confirmation, and the number that received it may belong to someone else.
+Example:
 
-**Expected behavior:**
-The agent should confirm the patient's contact number before sending any outbound communication. If the number on file differs from what the patient provides, resolve the discrepancy first.
+- `orthopedic_edge_cases/call-006`: caller says they need records sent to another doctor. The call proceeds through identity verification and escalation without explaining records authorization or routing to records.
 
----
+Patient-bot note: this transcript later contains patient-bot reasoning text, so it should not be used to judge later call turns. The records request itself is stated clearly before that artifact.
 
-## BR-009: Agent Confirms Workers' Comp Cases Without Collecting Required Information
+Expected behavior: acknowledge the records request, explain authorization requirements, and route or collect the appropriate information.
 
-**Severity:** Medium
-**Affected Call:** `orthopedic_edge_cases/call-004/transcript.txt`, turns 5–6
+### AGT-008 - Agent Does Not Collect Worker's Comp Intake Information
 
-**What happened:**
-The patient asked whether the practice handles workers' compensation cases. The agent immediately confirmed it does and moved to schedule without asking about the employer, claim number, injury details, or authorization status.
+Severity: Medium
 
-**Why it matters:**
-Workers' compensation scheduling requires pre-authorization from the employer's insurer in most states. Confirming an appointment without this information creates an administrative failure when the patient arrives with no claim established.
+The agent acknowledges worker's comp but does not collect worker's comp-specific information such as employer, claim number, insurer, or authorization status.
 
-**Expected behavior:**
-The agent should acknowledge that the practice may handle workers' comp, explain that additional information is needed, and either collect it or route to a staff member who can.
+Examples:
+
+- `orthopedic_edge_cases/call-004`: caller says the ankle injury should go through worker's comp; agent confirms the practice handles it and moves into ordinary scheduling/verification.
+- `orthopedic_edge_cases/call-008`: caller repeats the worker's comp context; agent escalates without collecting claim details.
+
+Expected behavior: distinguish worker's comp from ordinary scheduling and collect or route for claim/authorization details.
+
+### AGT-009 - Agent Does Not Apply Minor/Guardian Handling
+
+Severity: High
+
+The agent receives dates of birth indicating the caller/patient is a minor, but does not reliably apply guardian or consent handling.
+
+Examples:
+
+- `orthopedic_edge_cases/call-001`: DOB is February 11, 2010. The agent asks whether the caller is calling for themself only after a phone-number confusion, then asks how it can help and repeats DOB without applying minor-consent logic.
+- `orthopedic_edge_cases/call-005`: DOB is February 11, 2010. The agent bypasses verification for demo purposes and books an appointment without consent handling.
+
+Expected behavior: recognize minor age from DOB and follow guardian/consent policy before scheduling or modifying care.
+
+### AGT-010 - Agent Sends Text Confirmation Before Resolving Phone Mismatch
+
+Severity: Medium
+
+The agent says a text confirmation was sent before confirming the patient's correct phone number.
+
+Example:
+
+- `orthopedic_edge_cases/call-005`: agent books an appointment and says it sent a text confirmation. Only afterward does the patient provide `555-684-2190`, while the agent reveals the on-file number is `941-842-0514`.
+
+Expected behavior: verify the destination phone number before sending confirmations.
+
+### AGT-011 - Agent Misreads or Truncates Patient-Provided Data
+
+Severity: Medium
+
+The agent often reads back malformed names, dates, or phone numbers.
+
+Examples:
+
+- `appointment_scheduling/call-006`: caller gives `555-318-4492`; agent later reads back `555-4492`.
+- `information_gathering/call-010`: caller gives `555-629-3817`; agent reads back `555-3817` and asks for a ten-digit number.
+- `unknown/call-002`: caller gives `7745550467`; agent reads back `774-555-046`.
+- `medication_refill/call-007`: caller gives birth year 1963; agent first states 1960, then corrects itself mid-turn.
+
+Expected behavior: preserve exact user-provided values and ask for clarification when uncertain rather than presenting corrupted values as confirmed.
+
+### AGT-012 - Agent Acts on Records After Failed Verification
+
+Severity: High
+
+After a date of birth mismatch or wrong-patient correction, the agent sometimes proceeds to cancel, schedule, or discuss an appointment anyway.
+
+Examples:
+
+- `appointment_scheduling/call-028`: after a DOB mismatch/demo override, agent finds and cancels an appointment.
+- `difficult_call_handling/call-001`: after a DOB mismatch/demo override, agent schedules a follow-up.
+- `orthopedic_edge_cases/call-005`: after a DOB mismatch/demo override, agent books a new appointment.
+- `orthopedic_edge_cases/call-007`: after a DOB mismatch/demo override, agent discloses appointment details.
+
+Expected behavior: do not access, modify, or disclose appointment data unless identity verification has succeeded.
+
+## Patient-Bot Artifacts
+
+The following patient-bot artifacts were observed but were not treated as agent bugs:
+
+- Empty transcripts: `information_gathering/call-006`, `medication_refill/call-003`, `medication_refill/call-004`.
+- Patient-bot internal reasoning or persona leakage, such as "let me think about the best way..." or "let me respond...": observed in 15 calls.
+
+These artifacts matter because they reduce scenario coverage and sometimes make later turns unfit as evidence. They do not explain the repeated wrong-patient opening, stale phone-number surfacing, demo override language, or verification-loop failures that occur across clean calls.
+
+## Bug Tracking Appendix
+
+### Bug Key Metrics
+
+| Key | Short Name | Severity | Agent-observable Calls | Primary Clean Evidence Calls |
+| --- | --- | --- | ---: | ---: |
+| AGT-001 | Wrong-patient "James" opening | High | 66 | 54 |
+| AGT-002 | Internal demo override language | High | 10 | 8 |
+| AGT-003 | Stale/fabricated phone number | High | 20 | 13 |
+| AGT-004 | Repeated verification requests | High | 23 | 16 |
+| AGT-005 | Escalates after enough verification | High | 48 | 35 |
+| AGT-006 | Medication refill intent unresolved | Medium | 6 | 5 |
+| AGT-007 | Records request not handled | Medium | 1 | 1 |
+| AGT-008 | Worker's comp intake not collected | Medium | 2 | 2 |
+| AGT-009 | Minor/guardian handling missing | High | 2 | 2 |
+| AGT-010 | Text sent before phone verification | Medium | 1 | 1 |
+| AGT-011 | Misreads/truncates patient data | Medium | 13 | 8 |
+| AGT-012 | Acts after failed verification | High | 14 | 11 |
+
+### Call-to-Bug Map
+
+`patient-artifact` means later turns include patient-bot behavior that should not be used as primary evidence unless the agent bug occurred independently.
+
+#### `appointment_scheduling/`
+
+| Call | Agent Bug Keys | Notes |
+| --- | --- | --- |
+| `call-001` | AGT-001, AGT-003, AGT-004, AGT-005 | patient-artifact |
+| `call-006` | AGT-001, AGT-003, AGT-004, AGT-005, AGT-011 |  |
+| `call-015` | AGT-001, AGT-005, AGT-011 |  |
+| `call-016` | AGT-001, AGT-003, AGT-005 |  |
+| `call-017` | AGT-001, AGT-005 |  |
+| `call-018` | AGT-001, AGT-004, AGT-011 |  |
+| `call-019` | AGT-005 |  |
+| `call-020` | AGT-001, AGT-003, AGT-005, AGT-011 | patient-artifact |
+| `call-021` | AGT-001, AGT-005 |  |
+| `call-022` | AGT-001 | short call |
+| `call-023` | AGT-001, AGT-005, AGT-012 |  |
+| `call-024` | AGT-001, AGT-004, AGT-005 |  |
+| `call-025` | AGT-001, AGT-004, AGT-005 | patient-artifact |
+| `call-026` | AGT-001, AGT-005 |  |
+| `call-027` | AGT-001, AGT-004, AGT-005 |  |
+| `call-028` | AGT-001, AGT-002, AGT-012 |  |
+| `call-029` | AGT-001, AGT-005 |  |
+| `call-030` | AGT-001, AGT-003, AGT-005 |  |
+| `call-031` | AGT-001, AGT-003, AGT-005 | patient-artifact |
+| `call-032` | AGT-001, AGT-005, AGT-011 | patient-artifact |
+| `call-033` | AGT-001, AGT-003, AGT-005 |  |
+| `call-034` | AGT-001 |  |
+| `call-035` | AGT-001, AGT-003, AGT-004 |  |
+| `call-036` | AGT-001 |  |
+| `call-037` | AGT-001, AGT-003, AGT-005 |  |
+| `call-038` | none | not reviewed - missing transcript |
+| `call-039` | none | not reviewed - missing transcript |
+| `call-040` | AGT-001, AGT-004 |  |
+| `call-041` | AGT-004, AGT-005 | patient-artifact |
+| `call-042` | AGT-001, AGT-004 |  |
+| `call-043` | AGT-001, AGT-003, AGT-004, AGT-005, AGT-011 | patient-artifact |
+
+#### `difficult_call_handling/`
+
+| Call | Agent Bug Keys | Notes |
+| --- | --- | --- |
+| `call-001` | AGT-001, AGT-002, AGT-012 |  |
+| `call-002` | AGT-001 | short call |
+| `call-003` | AGT-001, AGT-004, AGT-005 |  |
+| `call-004` | AGT-001, AGT-005 |  |
+| `call-005` | AGT-001, AGT-002, AGT-012 |  |
+| `call-006` | AGT-001, AGT-004 |  |
+
+#### `information_gathering/`
+
+| Call | Agent Bug Keys | Notes |
+| --- | --- | --- |
+| `call-001` | none | not reviewed - missing transcript |
+| `call-002` | none | not reviewed - missing transcript |
+| `call-003` | none | not reviewed - missing transcript |
+| `call-004` | none | not reviewed - missing transcript |
+| `call-005` | none | not reviewed - missing transcript |
+| `call-006` | none | empty transcript |
+| `call-007` | AGT-001, AGT-005 |  |
+| `call-008` | AGT-001, AGT-004, AGT-005 |  |
+| `call-009` | AGT-002, AGT-005, AGT-012 |  |
+| `call-010` | AGT-001 |  |
+| `call-011` | AGT-002, AGT-005, AGT-012 |  |
+| `call-012` | AGT-005 | caller is James |
+| `call-013` | AGT-001, AGT-005 | patient-artifact |
+| `call-014` | AGT-002, AGT-012 | patient-artifact |
+| `call-015` | AGT-001, AGT-003, AGT-004 |  |
+| `call-016` | AGT-001, AGT-004 |  |
+| `call-017` | AGT-001, AGT-005 |  |
+| `call-018` | AGT-001, AGT-005 |  |
+| `call-019` | AGT-001 |  |
+| `call-020` | AGT-001 | short call |
+| `call-021` | AGT-001, AGT-005 |  |
+| `call-022` | AGT-001, AGT-004 |  |
+| `call-023` | AGT-001, AGT-005 |  |
+| `call-024` | AGT-001 |  |
+
+#### `medication_refill/`
+
+| Call | Agent Bug Keys | Notes |
+| --- | --- | --- |
+| `call-001` | none | not reviewed - missing transcript |
+| `call-002` | none | not reviewed - missing transcript |
+| `call-003` | none | empty transcript |
+| `call-004` | none | empty transcript |
+| `call-005` | AGT-001, AGT-003, AGT-005, AGT-006 |  |
+| `call-006` | AGT-002, AGT-005, AGT-012 | patient cannot identify medication; refill-specific failure not counted |
+| `call-007` | AGT-001, AGT-003, AGT-004, AGT-006, AGT-011 |  |
+| `call-008` | AGT-001, AGT-003, AGT-005, AGT-012 | agent handles refill details but still has identity/phone bugs |
+| `call-009` | AGT-001, AGT-005, AGT-006, AGT-011 |  |
+
+#### `orthopedic_edge_cases/`
+
+| Call | Agent Bug Keys | Notes |
+| --- | --- | --- |
+| `call-001` | AGT-001, AGT-009 |  |
+| `call-002` | AGT-001 | emergency handling otherwise appropriate |
+| `call-003` | AGT-001, AGT-005 |  |
+| `call-004` | AGT-001, AGT-005, AGT-008, AGT-012 | patient-artifact after worker's comp request |
+| `call-005` | AGT-002, AGT-003, AGT-009, AGT-010, AGT-012 |  |
+| `call-006` | AGT-001, AGT-003, AGT-004, AGT-005, AGT-007, AGT-011 | patient-artifact after records request |
+| `call-007` | AGT-002, AGT-012 | caller says they are James |
+| `call-008` | AGT-001, AGT-005, AGT-008, AGT-011, AGT-012 |  |
+
+#### `smoke/`
+
+| Call | Agent Bug Keys | Notes |
+| --- | --- | --- |
+| `call-001` | AGT-001, AGT-003, AGT-005 | patient-artifact |
+| `call-002` | AGT-001, AGT-003, AGT-004, AGT-005 |  |
+| `call-003` | AGT-001, AGT-003, AGT-004, AGT-005 |  |
+| `call-004` | AGT-001 |  |
+
+#### `unknown/`
+
+| Call | Agent Bug Keys | Notes |
+| --- | --- | --- |
+| `call-001` | AGT-002, AGT-004, AGT-011, AGT-012 | patient-artifact |
+| `call-002` | AGT-001, AGT-005, AGT-006, AGT-011 |  |
+| `call-003` | AGT-001, AGT-003, AGT-004, AGT-005, AGT-011 | patient-artifact |
+| `call-004` | AGT-001, AGT-005 |  |
+| `call-005` | AGT-001 |  |
+| `call-006` | AGT-001, AGT-005, AGT-006 | patient-artifact |
+| `call-007` | AGT-006 | incomplete before resolution |
