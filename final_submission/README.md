@@ -2,9 +2,11 @@
 
 This directory contains the call-record bundle for the Pretty Good AI hiring challenge.
 
-Calls are grouped by type under call_records/:
+Start with call_records/00_priority_top_10/ for the 10 selected recordings in rank order.
 
-- Each type directory may include 00_selected_top_10/ for priority review calls.
+The complete package is grouped by type under call_records/:
+
+- Each type directory may include 00_priority_top_10/ for priority review calls of that type.
 - Each type directory includes 01_all_over_60_seconds/ for every local recording of that type verified as longer than 60 seconds.
 - CALL_RECORDS_MANIFEST.csv and CALL_RECORDS_MANIFEST.json list every copied record, duration, source, and relative path.
 

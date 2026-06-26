@@ -2,11 +2,14 @@
 
 Final package location: final_submission/call_records/
 
-Calls are organized by type first. Inside each type directory, 00_selected_top_10 contains any priority review calls for that type, and 01_all_over_60_seconds contains every local recording of that type verified as longer than 60 seconds.
+Use final_submission/call_records/00_priority_top_10/ first. It contains the 10 selected recordings copied into rank order for quick review.
+
+The complete package is also organized by call type. Inside each type directory, 00_priority_top_10 contains the priority calls for that type when applicable, and 01_all_over_60_seconds contains every local recording of that type verified as longer than 60 seconds.
 
 Counts:
 
-- Selected top recordings: 10
+- Top-level priority recordings: 10
+- Type-local priority recordings: 10
 - Grouped recordings over 60 seconds: 51
 - Legacy recordings over 60 seconds: 13
 - Total over-60 recordings in the complete set: 64
@@ -15,7 +18,7 @@ Metadata copied into final_submission is sanitized for the Twilio account SID, o
 
 ## Type Summary
 
-| Type | Selected top 10 count | All over-60 count |
+| Type | Priority top 10 count | All over-60 count |
 | --- | ---: | ---: |
 | appointment_scheduling | 3 | 23 |
 | difficult_call_handling | 0 | 3 |

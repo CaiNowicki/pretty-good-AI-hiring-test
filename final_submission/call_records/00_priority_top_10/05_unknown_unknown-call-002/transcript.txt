@@ -1,0 +1,31 @@
+PGAI Agent: Grabado para calidad y entrenamiento purposes. Para espaÃ±ol, oprima el dos.
+PGAI Agent: Thanks for calling Pivot Point Orthopedics, part of Pretty Good AI. Am I speaking with James?
+Patient Bot: This is Carmen Reyes. You may have the wrong patient if youâ€™re expecting James. Hi, I need to get a refill on my blood pressure medication. The little white pill - I can never remember the name.
+PGAI Agent: Can you please provide the full name and date of birth of the patient who needs the medication refill?
+Patient Bot: My date of birth is 1993-02-28.
+PGAI Agent: Thank you. Can you please provide your full name, including your first and last name?
+Patient Bot: Carmen Reyes
+PGAI Agent: Just to make sure I have everything correct,
+PGAI Agent: name for me?
+Patient Bot: Carmen Reyes. First name C-A-R-M-E-N. Last name R-E-Y-E-S.
+PGAI Agent: Thank you. Can you please spell your first and last name letter by letter?
+Patient Bot: C-A-R-M-E-N R-E-Y-E-S
+PGAI Agent: Thank you. Can you also spell your first name, Carmen, letter by letter?
+Patient Bot: C-A-R-M-E-N
+PGAI Agent: Would you like me to look up your record using the phone number you have on file with us? If so, please provide that number.
+PGAI Agent: If you're not sure, I can confirm your name and date of birth again instead. Which would you prefer?
+Patient Bot: 7745550467
+PGAI Agent: I have your phone number as 774-555-046.
+PGAI Agent: and your date of birth?
+PGAI Agent: As February 28, 1993,
+PGAI Agent: Is that correct?
+Patient Bot: Yes, thatâ€™s correct.
+PGAI Agent: I can't proceed further right now.
+PGAI Agent: Make sure our clinic support team follows up with you. Please hold while I connect you to our patient support team.
+Patient Bot: Okay, Iâ€™ll hold.
+PGAI Agent: Connecting you to a representative. Please wait.
+PGAI Agent: Hello.
+Patient Bot: Hi there, let me just think this through with you for a moment so we can keep things clear.
+Patient Bot: Hello, this is Carmen Reyes. Iâ€™m here. I need a refill on my blood pressure medication.
+PGAI Agent: You've reached the Pretty Good AI Test Line. Goodbye.
+Patient Bot: Okay, goodbye.
