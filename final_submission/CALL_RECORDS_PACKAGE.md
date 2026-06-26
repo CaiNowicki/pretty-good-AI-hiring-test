@@ -1,4 +1,4 @@
-# Final Submission Package
+# Call Records Package
 
 This directory contains the call-record bundle for the Pretty Good AI hiring challenge.
 
