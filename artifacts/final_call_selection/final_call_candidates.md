@@ -1,6 +1,6 @@
 # Final Call Candidate Review
 
-Generated: 2026-06-26T14:37:25.042+00:00
+Generated: 2026-06-26T15:42:54.303+00:00
 
 Selection policy:
 - HARD GATE: calls must be at least 60 seconds long, with a non-empty recording and speaker-labeled transcript.
@@ -9,28 +9,28 @@ Selection policy:
 - Automated first pass flags policy, factual, flow, and voice-quality issues for reviewer triage.
 - Manual listening/review is still required before a call is included in the final package.
 
-Discovered calls: 75
-Eligible after hard gates and severe sensibility checks: 61
-Rejected by hard gate: 14
+Discovered calls: 89
+Eligible after hard gates and severe sensibility checks: 74
+Rejected by hard gate: 15
 
 ## Automated First Pass
 
-Policy: 2 | Factual: 59 | Flow: 61 | Voice quality: 24
+Policy: 2 | Factual: 72 | Flow: 68 | Voice quality: 25
 
 ## Top 10 Review Queue
 
 | Rank | Call | Type | Duration | Turns | Score | Review | Issues | Flags |
 | --- | --- | --- | ---: | ---: | ---: | --- | ---: | --- |
 | 1 | `orthopedic_edge_cases-call-005` | `orthopedic_edge_cases` | 240s | 38 | 93.3 | pass | 1 | none |
-| 2 | `medication_refill-call-007` | `medication_refill` | 197s | 39 | 86.7 | pass | 2 | none |
-| 3 | `appointment_scheduling-call-020` | `appointment_scheduling` | 199s | 33 | 85.8 | pass | 2 | none |
-| 4 | `appointment_scheduling-call-006` | `appointment_scheduling` | 176s | 34 | 84.8 | pass | 3 | none |
-| 5 | `appointment_scheduling-call-025` | `appointment_scheduling` | 162s | 36 | 84.0 | pass | 2 | none |
-| 6 | `information_gathering-call-021` | `information_gathering` | 193s | 30 | 83.1 | pass | 2 | none |
-| 7 | `unknown-call-002` | `unknown` | 162s | 31 | 79.7 | pass | 2 | none |
-| 8 | `unknown-call-001` | `unknown` | 166s | 32 | 78.8 | pass | 0 | none |
-| 9 | `orthopedic_edge_cases-call-004` | `orthopedic_edge_cases` | 145s | 33 | 78.6 | pass | 2 | none |
-| 10 | `smoke-call-002` | `smoke` | 158s | 31 | 76.5 | pass | 2 | none |
+| 2 | `medication_refill-call-008` | `medication_refill` | 190s | 36 | 88.3 | pass | 2 | none |
+| 3 | `medication_refill-call-007` | `medication_refill` | 197s | 39 | 86.7 | pass | 2 | none |
+| 4 | `appointment_scheduling-call-020` | `appointment_scheduling` | 199s | 33 | 85.8 | pass | 2 | none |
+| 5 | `appointment_scheduling-call-006` | `appointment_scheduling` | 176s | 34 | 84.8 | pass | 3 | none |
+| 6 | `appointment_scheduling-call-025` | `appointment_scheduling` | 162s | 36 | 84.0 | pass | 2 | none |
+| 7 | `information_gathering-call-021` | `information_gathering` | 193s | 30 | 83.1 | pass | 2 | none |
+| 8 | `unknown-call-002` | `unknown` | 162s | 31 | 79.7 | pass | 2 | none |
+| 9 | `unknown-call-001` | `unknown` | 166s | 32 | 78.8 | pass | 0 | none |
+| 10 | `orthopedic_edge_cases-call-004` | `orthopedic_edge_cases` | 145s | 33 | 78.6 | pass | 2 | none |
 
 ## Manual Review Checklist
 
@@ -46,6 +46,8 @@ Policy: 2 | Factual: 59 | Flow: 61 | Voice quality: 24
 | Call | Category | Severity | Source | Finding | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | `orthopedic_edge_cases-call-005` | policy | medium | agent_bot | Minor or guardian context may not have been acknowledged by the agent. | PGAI Agent: This call may be recorded for quality and training purposes. Para español, oprima el dos. |
+| `medication_refill-call-008` | factual | high | agent_bot | Agent may have assumed or surfaced the wrong patient identity. | ...t: Hi, I’m calling to request a refill on one of my medications. I think you may have the wrong patient though; the caller is Denise Wong. PGAI Agent: Can you please provide your date of birth?... |
+| `medication_refill-call-008` | flow | medium | agent_bot | Agent escalated or transferred the call instead of resolving it in-bot. | .... Kommunegrænser I've documented your medication refill request and sent it to our clinic support team. They'll get back to you as soon as they can. Is there anything else I can help you with... |
 | `medication_refill-call-007` | factual | high | agent_bot | Agent may have assumed or surfaced the wrong patient identity. | ...t: I’m calling to request a refill on one of my medications, but I think you may have the wrong patient. The caller is Dmitri Volkov. PGAI Agent: Can you please provide your full name and date... |
 | `medication_refill-call-007` | factual | high | agent_bot | Agent may have confirmed an incorrect phone number or stale record. | ...PGAI Agent: Is that correct? Patient Bot: My name and date of birth are correct, but that phone number is not mine. My phone number is 5085550341. PGAI Agent: No problem. PGAI Agent: Thanks for clarifying... |
 | `appointment_scheduling-call-020` | factual | high | agent_bot | Agent may have assumed or surfaced the wrong patient identity. | ...tty Good AI. Am I speaking with James? Patient Bot: This is Maria Lopez. You may have the wrong patient if you were expecting James. I’ll wait for your next question. PGAI Agent: Thanks for cla... |
@@ -61,8 +63,6 @@ Policy: 2 | Factual: 59 | Flow: 61 | Voice quality: 24
 | `unknown-call-002` | flow | medium | agent_bot | Agent escalated or transferred the call instead of resolving it in-bot. | ...e number as 774-555-046. and your date of birth? As February 28, 1993, Is that correct? I can't proceed further right now. Make sure our clinic support team follows up with you. Please hold while I con... |
 | `orthopedic_edge_cases-call-004` | factual | high | agent_bot | Agent may have assumed or surfaced the wrong patient identity. | ...etty Good AI. PGAI Agent: Am I speaking with James? Patient Bot: I think you may have the wrong patient—this is Marcus Webb. Hi, I hurt my ankle at work a couple days ago and I need to come in.... |
 | `orthopedic_edge_cases-call-004` | flow | medium | agent_bot | Agent escalated or transferred the call instead of resolving it in-bot. | ...one number as 555 814-3309, and your date of birth is August 22, 1979. Is that correct? I can't proceed further right now, but I can make sure our clinic support team Fall is up with you. Please stay o... |
-| `smoke-call-002` | factual | high | agent_bot | Agent may have assumed or surfaced the wrong patient identity. | ...etty Good AI. Am I speaking with James? Patient Bot: This is Maya Patel. You may have the wrong patient if you were expecting James. Hi, I'm hoping to make an appointment. I'm a new patient. PG... |
-| `smoke-call-002` | flow | medium | agent_bot | Agent escalated or transferred the call instead of resolving it in-bot. | ...zero five one four. Újabbak. And your date of birth is March 14, 1987. Is that correct? I can't proceed further right now, but I can make sure our clinic support team follows was up a few. Please hold... |
 
 ## Near Misses
 
@@ -70,14 +70,14 @@ Policy: 2 | Factual: 59 | Flow: 61 | Voice quality: 24
 | --- | --- | ---: | ---: | ---: | --- | ---: | --- |
 | `appointment_scheduling-call-031` | `appointment_scheduling` | 185s | 34 | 83.4 | pass | 2 | none |
 | `appointment_scheduling-call-023` | `appointment_scheduling` | 170s | 33 | 82.3 | pass | 2 | none |
+| `appointment_scheduling-call-043` | `appointment_scheduling` | 195s | 37 | 80.3 | review | 3 | repeated_utterance_count_3 |
 | `appointment_scheduling-call-041` | `appointment_scheduling` | 184s | 31 | 78.9 | pass | 1 | none |
 | `appointment_scheduling-call-030` | `appointment_scheduling` | 159s | 32 | 76.9 | pass | 2 | none |
+| `unknown-call-006` | `unknown` | 150s | 31 | 76.9 | pass | 2 | none |
+| `smoke-call-002` | `smoke` | 158s | 31 | 76.5 | pass | 2 | none |
 | `orthopedic_edge_cases-call-006` | `orthopedic_edge_cases` | 160s | 26 | 74.7 | pass | 2 | none |
 | `appointment_scheduling-call-017` | `appointment_scheduling` | 150s | 29 | 74.0 | pass | 2 | none |
-| `appointment_scheduling-call-015` | `appointment_scheduling` | 158s | 26 | 73.4 | pass | 2 | none |
-| `appointment_scheduling-call-024` | `appointment_scheduling` | 133s | 32 | 73.4 | pass | 2 | none |
-| `information_gathering-call-019` | `information_gathering` | 152s | 30 | 73.3 | pass | 1 | none |
-| `appointment_scheduling-call-032` | `appointment_scheduling` | 172s | 24 | 73.3 | pass | 2 | none |
+| `smoke-call-003` | `smoke` | 147s | 28 | 73.5 | pass | 2 | none |
 
 ## Hard-Gate Rejections
 
@@ -95,3 +95,4 @@ Policy: 2 | Factual: 59 | Flow: 61 | Voice quality: 24
 - `medication_refill-call-002`: duration_unknown; recording_missing; transcript_missing; no_speaker_labeled_turns
 - `medication_refill-call-003`: duration_unknown; transcript_empty; no_speaker_labeled_turns
 - `medication_refill-call-004`: duration_unknown; transcript_empty; no_speaker_labeled_turns
+- `unknown-call-007`: recording_missing
