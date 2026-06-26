@@ -85,7 +85,7 @@ class FinalCallSelectionTests(unittest.TestCase):
         self.assertEqual(candidate.sensibility_status, "fail")
         self.assertEqual(selected, [])
 
-    def test_automated_first_pass_flags_issue_categories(self):
+    def test_automated_first_pass_ignores_transcription_error_artifacts(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             call_dir = self._write_call(
                 Path(temp_dir) / "calls" / "smoke" / "call-001",
@@ -95,6 +95,7 @@ class FinalCallSelectionTests(unittest.TestCase):
                     ("Patient Bot", "I think you have the wrong patient. The caller is Maya."),
                     ("PGAI Agent", "Would you like to use your phone number?"),
                     ("PGAI Agent", "You have on file with us."),
+                    ("PGAI Agent", "그렇구나."),
                     ("Patient Bot", "That phone number is not mine."),
                     ("PGAI Agent", "I'll transfer you to a representative. Please wait."),
                     ("PGAI Agent", "Hello, you've reached the Pretty Good AI test line. Goodbye."),
@@ -107,7 +108,9 @@ class FinalCallSelectionTests(unittest.TestCase):
         categories = {finding.category for finding in candidate.issue_findings}
         self.assertIn("factual", categories)
         self.assertIn("flow", categories)
-        self.assertIn("voice_quality", categories)
+        self.assertNotIn("voice_quality", categories)
+        summaries = {finding.summary for finding in candidate.issue_findings}
+        self.assertNotIn("Agent utterance may be clipped or missing context.", summaries)
 
     def test_markdown_report_mentions_manual_review_and_hard_gate(self):
         with tempfile.TemporaryDirectory() as temp_dir:

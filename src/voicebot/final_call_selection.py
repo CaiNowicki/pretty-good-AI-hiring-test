@@ -117,7 +117,6 @@ def evaluate_call_dir(call_dir: Path, *, min_duration_seconds: float = 60.0) -> 
         turns,
         duration_seconds=duration_seconds,
         gate_failures=gate_failures,
-        sensibility_flags=sensibility_flags,
     )
     score = _score_candidate(
         duration_seconds=duration_seconds,
@@ -676,10 +675,6 @@ def _sensibility_check(turns: list[TranscriptTurn]) -> tuple[str, list[str]]:
     if PATIENT_ROLE_DRIFT_PATTERN.search(patient_text):
         flags.append("patient_role_drift_phrase")
 
-    all_text = "\n".join(turn.text for turn in turns)
-    if all_text.count("\ufffd") >= 3:
-        flags.append("transcript_decode_artifacts")
-
     severe = {
         "missing_one_speaker",
         "patient_meta_disclosure",
@@ -702,7 +697,6 @@ def _automated_issue_scan(
     *,
     duration_seconds: float | None,
     gate_failures: list[str],
-    sensibility_flags: list[str],
 ) -> list[IssueFinding]:
     findings: list[IssueFinding] = []
     transcript_text = "\n".join(f"{turn.speaker}: {turn.text}" for turn in turns)
@@ -725,10 +719,8 @@ def _automated_issue_scan(
     _scan_voice_quality_issues(
         findings,
         call_dir,
-        transcript_text,
         duration_seconds=duration_seconds,
         gate_failures=gate_failures,
-        sensibility_flags=sensibility_flags,
     )
     return _dedupe_findings(findings)
 
@@ -916,27 +908,13 @@ def _scan_flow_issues(
             )
         )
 
-    clipped_phrase = re.compile(r"\byou have on file with us\b", re.I)
-    if clipped_phrase.search(agent_text):
-        findings.append(
-            IssueFinding(
-                "flow",
-                "low",
-                "agent_bot",
-                "Agent utterance may be clipped or missing context.",
-                _snippet(agent_text, clipped_phrase),
-            )
-        )
-
 
 def _scan_voice_quality_issues(
     findings: list[IssueFinding],
     call_dir: Path,
-    transcript_text: str,
     *,
     duration_seconds: float | None,
     gate_failures: list[str],
-    sensibility_flags: list[str],
 ) -> None:
     for failure in gate_failures:
         if failure.startswith("recording") or failure.startswith("transcript"):
@@ -949,18 +927,6 @@ def _scan_voice_quality_issues(
                     failure,
                 )
             )
-
-    mojibake = re.compile(r"(Ã|â€™|â€œ|â€)")
-    if "transcript_decode_artifacts" in sensibility_flags or mojibake.search(transcript_text):
-        findings.append(
-            IssueFinding(
-                "voice_quality",
-                "low",
-                "artifact",
-                "Transcript contains encoding artifacts that may affect excerpt quality.",
-                _snippet(transcript_text, mojibake),
-            )
-        )
 
     if duration_seconds is None:
         findings.append(
