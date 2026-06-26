@@ -220,4 +220,5 @@ __marimo__/
 # Challenge artifacts
 /artifacts/
 *.mp4
+!final_submission/bugfixing_video.mp4
 *.zip
