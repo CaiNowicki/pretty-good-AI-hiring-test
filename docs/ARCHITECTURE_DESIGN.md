@@ -1,5 +1,17 @@
-# Architecture Design
+The patient bot uses the OpenAI Realtime API over a bidirectional WebSocket,
+with Twilio handling the outbound call, caller-number control, and recording.
+Scenario definitions and patient personas live in YAML files rather than code
+— this keeps the runtime logic stable while making it easy to add, revise, or
+retune scenarios without touching the bridge. Early calibration calls sounded
+scripted; moving facts and behavioral constraints into data rather than code
+was what made the conversations feel natural.
 
-The project is a Python voice-bot harness under `src/voicebot` with an argparse CLI as the operator entry point. The CLI loads `.env` settings, builds a safe dry-run or real Twilio call plan, refuses destinations other than `+18054398008`, can start the FastAPI webhook server, and can prepare grouped scenario-call artifact folders under `artifacts/calls/<scenario_type>/call-###/` without placing calls. Twilio calls `/twilio/voice` to receive TwiML that connects the phone call to `/twilio/media`; the server reads the scenario id from the Media Stream start event, loads the matching YAML scenario/persona data, and passes Twilio audio frames to `RealtimeBridge`. The bridge connects to the OpenAI Realtime API over WebSockets, forwards PCMU audio in both directions, applies the scenario prompt and turn-state rules, logs JSONL events, and enforces hard stops, emergency-stop DTMF, and natural completion once the scenario goal appears satisfied.
-
-The key design choices are driven by the challenge's evaluation priorities and by the call-history remediation work in this repo. Twilio is used because the submission needs real outbound phone calls, call recording, caller-number control, and phone-network behavior; Python keeps the telephony adapter, scenario engine, artifact helpers, and tests easy to inspect. Scenario behavior lives in YAML and personas rather than code so the harness can cover appointment scheduling, medication refill, information gathering, orthopedic edge cases, difficult-call behavior, and smoke tests without rewriting runtime logic. The bridge uses explicit turn gating, service-opening detection, exact-fact answers, opt-in interruption behavior, deterministic limits, and polite call completion because earlier calibration reviews and remediation commits showed that a naive realtime loop spoke during preambles, interrupted the agent, repeated or over-shared facts, and failed to close cleanly. Grouping artifacts by scenario type and writing boundary/metadata records keeps the required recordings, transcripts, and later bug evidence auditable while preserving older flat calibration calls as historical evidence.
+The initial implementation concentrated too much in a single class.
+RealtimeBridge grew to nearly two thousand lines covering audio forwarding,
+turn-taking, response construction, transcript classification, and completion
+evaluation. A proactive refactor split these into focused modules —
+patient_response_builders, conversation_classifier, openai_builders —
+with RealtimeBridge reduced to an async orchestrator that calls into them.
+The same separation was applied to scenario loading and prompt building.
+The goal was to make the codebase easier to edit with confidence as scenario
+coverage expands.
